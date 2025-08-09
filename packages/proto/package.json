@@ -1,0 +1,22 @@
+{
+  "name": "@iot-manager/proto",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+
+  "scripts": {
+    "build": "tsc",
+    "generate-proto-types": "shx ls src/proto/*.proto | xargs -n1 proto-loader-gen-types --outDir=src/generated/",
+    "clean": "rm -rf dist src/generated"
+  },
+  "devDependencies": {
+    "shx": "^0.4.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.13.4",
+    "@grpc/proto-loader": "^0.8.0",
+    "google-proto-files": "^5.0.0"
+  }
+}

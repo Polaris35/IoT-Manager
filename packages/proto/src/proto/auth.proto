@@ -1,0 +1,14 @@
+syntax = "proto3";
+package auth;
+
+import "google/protobuf/empty.proto";
+
+service AuthService {
+    rpc credentialsRegister(RegisterDto) returns (google.protobuf.Empty);
+}
+
+message RegisterDto {
+    string fullName = 1;
+    string email = 2;
+    string password = 3;
+}

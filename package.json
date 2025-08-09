@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run generate-proto-types dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"
@@ -13,6 +13,9 @@
     "turbo": "^2.5.4",
     "typescript": "5.8.2"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "packageManager": "pnpm@10.12.4",
   "engines": {
     "node": ">=18"
