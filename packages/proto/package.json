@@ -4,19 +4,21 @@
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-
   "scripts": {
     "build": "tsc",
-    "generate-proto-types": "shx ls src/proto/*.proto | xargs -n1 proto-loader-gen-types --outDir=src/generated/",
+    "generate-proto-types": "shx rm -rf ./src/generated && shx mkdir -p ./src/generated && C:\\protobuf\\bin\\protoc.exe --plugin=protoc-gen-ts_proto=E:\\PetProject\\IoT-Manager\\packages\\proto\\node_modules\\.bin\\protoc-gen-ts_proto.cmd --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true,fileSuffix=.pb,lowerCaseServiceMethods=true,outputClientImpl=true,addNestjsRestParameter=true -I ./proto ./proto/*.proto",
     "clean": "rm -rf dist src/generated"
   },
   "devDependencies": {
     "shx": "^0.4.0",
+    "ts-proto": "^2.7.7",
     "typescript": "^5.9.2"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
-    "google-proto-files": "^5.0.0"
+    "@nestjs/microservices": "^11.1.5",
+    "google-proto-files": "^5.0.0",
+    "rxjs": "^7.8.2"
   }
 }
