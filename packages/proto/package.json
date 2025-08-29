@@ -2,11 +2,25 @@
   "name": "@iot-manager/proto",
   "version": "1.0.0",
   "private": true,
+  
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }, 
+    "./proto": {
+      "default": "./proto/*.proto"
+    }
+  },
+  "files": [
+    "dist",
+    "proto"
+  ],
   "scripts": {
     "build": "tsc",
-    "generate-proto-types": "shx rm -rf ./src/generated && shx mkdir -p ./src/generated && C:\\protobuf\\bin\\protoc.exe --plugin=protoc-gen-ts_proto=E:\\PetProject\\IoT-Manager\\packages\\proto\\node_modules\\.bin\\protoc-gen-ts_proto.cmd --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true,fileSuffix=.pb,lowerCaseServiceMethods=true,outputClientImpl=true,addNestjsRestParameter=true -I ./proto ./proto/*.proto",
+    "generate-proto-types": "shx rm -rf ./src/generated && shx mkdir -p ./src/generated && C:\\protobuf\\bin\\protoc.exe --plugin=protoc-gen-ts_proto=E:\\PetProject\\IoT-Manager\\packages\\proto\\node_modules\\.bin\\protoc-gen-ts_proto.cmd --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true,lowerCaseServiceMethods=true,outputClientImpl=true,addNestjsRestParameter=true,useAbortController=true -I ./proto ./proto/*.proto && pnpm build",
     "clean": "rm -rf dist src/generated"
   },
   "devDependencies": {

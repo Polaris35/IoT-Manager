@@ -7,9 +7,14 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
-import { Empty } from "./google/protobuf/empty.pb";
 
 export const protobufPackage = "auth";
+
+export enum ResponseStatus {
+  OK = 0,
+  ERROR = 1,
+  UNRECOGNIZED = -1,
+}
 
 export interface RegisterDto {
   fullName: string;
@@ -17,14 +22,22 @@ export interface RegisterDto {
   password: string;
 }
 
+export interface RegisterResponse {
+  status: ResponseStatus;
+  errorMessage?: string | undefined;
+}
+
 export const AUTH_PACKAGE_NAME = "auth";
 
 export interface AuthServiceClient {
-  credentialsRegister(request: RegisterDto, ...rest: any): Observable<Empty>;
+  credentialsRegister(request: RegisterDto, ...rest: any): Observable<RegisterResponse>;
 }
 
 export interface AuthServiceController {
-  credentialsRegister(request: RegisterDto, ...rest: any): void;
+  credentialsRegister(
+    request: RegisterDto,
+    ...rest: any
+  ): Promise<RegisterResponse> | Observable<RegisterResponse> | RegisterResponse;
 }
 
 export function AuthServiceControllerMethods() {
