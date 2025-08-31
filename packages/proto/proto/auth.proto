@@ -2,7 +2,24 @@ syntax = "proto3";
 package auth;
 
 service AuthService {
-    rpc CredentialsRegister(RegisterDto) returns (RegisterResponse);
+    rpc CredentialsRegister(RegisterDto) returns (EmptyResponseWithStatus);
+    rpc CredentialsLogin(CredentialsLoginDto) returns (LoginResponse);
+    rpc Logout(LogoutDto) returns (EmptyResponseWithStatus);
+    rpc refreshTokens(refreshTokensDto) returns (refreshTokensResponse);
+}
+
+message refreshTokensDto {
+    string agent = 1;
+    string refreshToken = 2;
+}
+
+message refreshTokensResponse {
+    string accessToken = 1;
+    RefreshToken refreshToken = 2;
+}
+
+message LogoutDto {
+    string refreshToken = 1;
 }
 
 message RegisterDto {
@@ -15,7 +32,36 @@ enum ResponseStatus {
     OK = 0;
     ERROR = 1;
 }
-message RegisterResponse {
+message EmptyResponseWithStatus {
     ResponseStatus status = 1;
     optional string error_message = 2;
+}
+
+message CredentialsLoginDto {
+    string email = 1;
+    string password = 2;
+    string agent = 3;
+}
+
+message Account {
+    string id = 1;
+    string fullName = 2;
+    string email = 4;
+}
+
+message RefreshToken {
+    string id = 1;
+    string token = 2;
+    uint32 expInMillisec = 3;
+    string userAgent = 4;
+}
+
+message RefreshAndAccessTokens {
+    RefreshToken refreshToken = 1;
+    string accessToken = 2;
+}
+
+message LoginResponse {
+    Account account = 1;
+    RefreshAndAccessTokens tokens = 2;
 }

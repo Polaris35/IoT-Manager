@@ -1,16 +1,12 @@
 import { Account, Token } from '@entities';
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tokens } from './interfaces';
 import { v4 } from 'uuid';
 import { add } from 'date-fns';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class TokenService {
@@ -45,45 +41,32 @@ export class TokenService {
       email: account.email,
     });
 
-    // this.logger.log(this.getDataFromAccessToken(accessToken));
     const refreshToken = await this.getRefreshToken(account.id, agent);
 
     return { accessToken, refreshToken };
   }
 
   async getRefreshToken(accountId: string, agent: string): Promise<Token> {
-    await this.tokenRepository.upsert(
-      {
-        token: v4(),
-        exp: add(new Date(), { months: 1 }),
-        account: {
-          id: accountId,
+    const [tokenId] = (
+      await this.tokenRepository.upsert(
+        {
+          token: v4(),
+          exp: add(new Date(), { months: 1 }),
+          account: {
+            id: accountId,
+          },
+          userAgent: agent,
         },
-        userAgent: agent,
-      },
-      ['token'],
-    );
+        ['token'],
+      )
+    ).raw as { id: string }[];
 
-    const token = (await this.tokenRepository.findOne({
-      where: {
-        account: {
-          id: accountId,
-        },
-        userAgent: agent,
-      },
-    })) as Token;
-
-    const newToken = await this.tokenRepository.findOne({
-      where: { token: token.token },
-    });
-
-    if (!newToken) {
-      this.logger.error(
-        `token not found, accountId: ${accountId}, user-agent: ${agent}`,
-      );
-      throw new NotFoundException('Token not found');
+    const token = await this.tokenRepository.findOneBy({ id: tokenId.id });
+    if (!token) {
+      this.logger.error("Can't find updated token with id: " + tokenId.id);
+      throw new RpcException("Can't find updated token with id: " + tokenId.id);
     }
-    return newToken;
+    return token;
   }
 
   //   getDataFromAccessToken(token: string) {

@@ -16,33 +16,97 @@ export enum ResponseStatus {
   UNRECOGNIZED = -1,
 }
 
+export interface refreshTokensDto {
+  agent: string;
+  refreshToken: string;
+}
+
+export interface refreshTokensResponse {
+  accessToken: string;
+  refreshToken: RefreshToken | undefined;
+}
+
+export interface LogoutDto {
+  refreshToken: string;
+}
+
 export interface RegisterDto {
   fullName: string;
   email: string;
   password: string;
 }
 
-export interface RegisterResponse {
+export interface EmptyResponseWithStatus {
   status: ResponseStatus;
   errorMessage?: string | undefined;
+}
+
+export interface CredentialsLoginDto {
+  email: string;
+  password: string;
+  agent: string;
+}
+
+export interface Account {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+export interface RefreshToken {
+  id: string;
+  token: string;
+  expInMillisec: number;
+  userAgent: string;
+}
+
+export interface RefreshAndAccessTokens {
+  refreshToken: RefreshToken | undefined;
+  accessToken: string;
+}
+
+export interface LoginResponse {
+  account: Account | undefined;
+  tokens: RefreshAndAccessTokens | undefined;
 }
 
 export const AUTH_PACKAGE_NAME = "auth";
 
 export interface AuthServiceClient {
-  credentialsRegister(request: RegisterDto, ...rest: any): Observable<RegisterResponse>;
+  credentialsRegister(request: RegisterDto, ...rest: any): Observable<EmptyResponseWithStatus>;
+
+  credentialsLogin(request: CredentialsLoginDto, ...rest: any): Observable<LoginResponse>;
+
+  logout(request: LogoutDto, ...rest: any): Observable<EmptyResponseWithStatus>;
+
+  refreshTokens(request: refreshTokensDto, ...rest: any): Observable<refreshTokensResponse>;
 }
 
 export interface AuthServiceController {
   credentialsRegister(
     request: RegisterDto,
     ...rest: any
-  ): Promise<RegisterResponse> | Observable<RegisterResponse> | RegisterResponse;
+  ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
+
+  credentialsLogin(
+    request: CredentialsLoginDto,
+    ...rest: any
+  ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
+
+  logout(
+    request: LogoutDto,
+    ...rest: any
+  ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
+
+  refreshTokens(
+    request: refreshTokensDto,
+    ...rest: any
+  ): Promise<refreshTokensResponse> | Observable<refreshTokensResponse> | refreshTokensResponse;
 }
 
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["credentialsRegister"];
+    const grpcMethods: string[] = ["credentialsRegister", "credentialsLogin", "logout", "refreshTokens"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("AuthService", method)(constructor.prototype[method], method, descriptor);

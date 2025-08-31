@@ -1,80 +1,83 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Post,
-  UseInterceptors,
-  Headers,
-  Query,
-  Get,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { RegisterAccountDto } from './dto/register.dto';
+import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AccountProvider } from '@entities';
-import { CredentialsLoginDto } from './dto/login.dto';
 import { TokenService } from '@tokens/token.service';
+import { GrpcMethod, RpcException } from '@nestjs/microservices';
+import type {
+  AuthServiceController,
+  CredentialsLoginDto,
+  LoginResponse,
+  LogoutDto,
+  refreshTokensDto,
+  RegisterDto,
+} from '@iot-manager/proto';
+import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
 
-@Controller('auth')
-export class AuthController {
+@Controller()
+export class AuthController implements AuthServiceController {
   constructor(
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
   ) {}
 
-  @Post('credentials/register')
-  async CredentialsRegister(@Body() dto: RegisterAccountDto) {
-    const user = await this.authService.register(dto);
-    console.log(user);
-    if (!user) {
-      throw new BadRequestException(
-        `Can't registrate user ${JSON.stringify(dto)}`,
-      );
+  @GrpcMethod(AUTH_SERVICE_NAME)
+  async credentialsRegister(dto: RegisterDto) {
+    const account = await this.authService.register(dto);
+
+    if (!account) {
+      throw new RpcException(`Can't registrate account ${JSON.stringify(dto)}`);
     }
+    return {
+      status: ResponseStatus.OK,
+    };
   }
 
-  @Post('credentials/login')
-  async credentialsLogin(
-    @Body() dto: CredentialsLoginDto,
-    @Headers('user-agent') agent: string,
-  ) {
-    console.log(dto);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+  @GrpcMethod(AUTH_SERVICE_NAME)
+  async credentialsLogin(dto: CredentialsLoginDto): Promise<LoginResponse> {
+    const { agent, ...dtoWithoutAgent } = dto;
+
     const userWithTokens = await this.authService.authorize(
-      dto,
+      dtoWithoutAgent,
       agent,
       AccountProvider.CREDENTIALS,
     );
     if (!userWithTokens) {
-      throw new BadRequestException(`Can't login user`);
+      throw new RpcException(`Can't login user`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    return { user: userWithTokens.user, tokens: userWithTokens.tokens };
+    return userWithTokens;
   }
 
-  @Get('logout')
-  async logout(@Query('refreshToken') refreshToken: string) {
-    if (!refreshToken) {
-      throw new BadRequestException('refreshToken is required');
+  @GrpcMethod(AUTH_SERVICE_NAME)
+  async logout(dto: LogoutDto) {
+    if (!dto) {
+      throw new RpcException('refreshToken is required');
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    await this.tokenService.deleteRefreshToken(refreshToken);
+    await this.tokenService.deleteRefreshToken(dto.refreshToken);
+
+    return {
+      status: ResponseStatus.OK,
+    };
   }
 
-  @Get('refresh-tokens')
-  async refreshTokens(
-    @Query('refreshToken') refreshToken: string,
-    @Headers('user-agent') agent: string,
-  ) {
-    console.log(refreshToken);
-    if (!refreshToken) {
-      throw new UnauthorizedException();
+  @GrpcMethod(AUTH_SERVICE_NAME)
+  async refreshTokens(dto: refreshTokensDto) {
+    if (!dto) {
+      throw new RpcException('no data provided in dto');
     }
-    const tokens = await this.tokenService.refreshToken(refreshToken, agent);
+    const tokens = await this.tokenService.refreshToken(
+      dto.refreshToken,
+      dto.agent,
+    );
     if (!tokens) {
-      throw new UnauthorizedException("Can't update refresh token");
+      throw new RpcException("Can't update refresh token");
     }
-    return tokens;
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: {
+        ...tokens.refreshToken,
+        expInMillisec: tokens.refreshToken.exp.getMilliseconds(),
+      },
+    };
   }
 }
