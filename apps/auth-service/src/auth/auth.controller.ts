@@ -82,7 +82,7 @@ export class AuthController implements AuthServiceController {
       accessToken: tokens.accessToken,
       refreshToken: {
         ...tokens.refreshToken,
-        expInMillisec: tokens.refreshToken.exp.getMilliseconds(),
+        expInISOString: tokens.refreshToken.exp.toISOString(),
       },
     };
   }

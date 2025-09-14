@@ -52,7 +52,7 @@ message Account {
 message RefreshToken {
     string id = 1;
     string token = 2;
-    uint32 expInMillisec = 3;
+    string expInISOString = 3;
     string userAgent = 4;
 }
 

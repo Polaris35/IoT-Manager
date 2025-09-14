@@ -56,7 +56,7 @@ export interface Account {
 export interface RefreshToken {
   id: string;
   token: string;
-  expInMillisec: number;
+  expInISOString: string;
   userAgent: string;
 }
 

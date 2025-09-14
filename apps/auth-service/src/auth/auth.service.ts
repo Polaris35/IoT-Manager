@@ -54,13 +54,16 @@ export class AuthService {
 
     const user = await provider.authorize(dto);
     const tokens = await this.tokensServise.generateTokens(user, agent);
+
     return {
       account: { ...user },
       tokens: {
         accessToken: tokens.accessToken,
         refreshToken: {
-          ...tokens.refreshToken,
-          expInMillisec: tokens.refreshToken.exp.getMilliseconds(),
+          id: tokens.refreshToken.id,
+          expInISOString: tokens.refreshToken.exp.toISOString(),
+          token: tokens.refreshToken.token,
+          userAgent: tokens.refreshToken.userAgent,
         },
       },
     };
