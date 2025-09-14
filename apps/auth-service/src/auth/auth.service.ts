@@ -1,5 +1,5 @@
 import { Account, AccountProvider } from '@entities';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { genSaltSync, hashSync } from 'bcrypt';
@@ -8,7 +8,10 @@ import { LoginDto } from './dto/login.dto';
 import { Provider } from './providers';
 import { TokenService } from 'src/tokens/token.service';
 import { RegisterDto, LoginResponse } from '@iot-manager/proto';
-import { GrpcAlreadyExistsException } from 'nestjs-grpc-exceptions';
+import {
+  GrpcAlreadyExistsException,
+  GrpcInvalidArgumentException,
+} from 'nestjs-grpc-exceptions';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +47,9 @@ export class AuthService {
   ): Promise<LoginResponse> {
     const provider = this.providers[providerType] as Provider<T>;
     if (!provider) {
-      throw new BadRequestException(`Provider ${providerType} not supported`);
+      throw new GrpcInvalidArgumentException(
+        `Provider ${providerType} not supported`,
+      );
     }
 
     const user = await provider.authorize(dto);

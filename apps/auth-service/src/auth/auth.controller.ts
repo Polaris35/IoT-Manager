@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AccountProvider } from '@entities';
 import { TokenService } from '@tokens/token.service';
-import { GrpcMethod, RpcException } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import type {
   AuthServiceController,
   CredentialsLoginDto,
@@ -12,7 +12,10 @@ import type {
   RegisterDto,
 } from '@iot-manager/proto';
 import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
-import { GrpcUnknownException } from 'nestjs-grpc-exceptions';
+import {
+  GrpcInvalidArgumentException,
+  GrpcUnknownException,
+} from 'nestjs-grpc-exceptions';
 
 @Controller()
 export class AuthController implements AuthServiceController {
@@ -45,7 +48,7 @@ export class AuthController implements AuthServiceController {
       AccountProvider.CREDENTIALS,
     );
     if (!userWithTokens) {
-      throw new RpcException(`Can't login user`);
+      throw new GrpcUnknownException(`Can't login user`);
     }
 
     return userWithTokens;
@@ -54,7 +57,7 @@ export class AuthController implements AuthServiceController {
   @GrpcMethod(AUTH_SERVICE_NAME)
   async logout(dto: LogoutDto) {
     if (!dto) {
-      throw new RpcException('refreshToken is required');
+      throw new GrpcInvalidArgumentException('refreshToken is required');
     }
     await this.tokenService.deleteRefreshToken(dto.refreshToken);
 
@@ -66,14 +69,14 @@ export class AuthController implements AuthServiceController {
   @GrpcMethod(AUTH_SERVICE_NAME)
   async refreshTokens(dto: refreshTokensDto) {
     if (!dto) {
-      throw new RpcException('no data provided in dto');
+      throw new GrpcInvalidArgumentException('no data provided in dto');
     }
     const tokens = await this.tokenService.refreshToken(
       dto.refreshToken,
       dto.agent,
     );
     if (!tokens) {
-      throw new RpcException("Can't update refresh token");
+      throw new GrpcUnknownException("Can't update refresh token");
     }
     return {
       accessToken: tokens.accessToken,
