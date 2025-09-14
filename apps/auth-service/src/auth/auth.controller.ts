@@ -12,6 +12,7 @@ import type {
   RegisterDto,
 } from '@iot-manager/proto';
 import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
+import { GrpcUnknownException } from 'nestjs-grpc-exceptions';
 
 @Controller()
 export class AuthController implements AuthServiceController {
@@ -25,7 +26,9 @@ export class AuthController implements AuthServiceController {
     const account = await this.authService.register(dto);
 
     if (!account) {
-      throw new RpcException(`Can't registrate account ${JSON.stringify(dto)}`);
+      throw new GrpcUnknownException(
+        `Can't registrate account ${JSON.stringify(dto)}`,
+      );
     }
     return {
       status: ResponseStatus.OK,

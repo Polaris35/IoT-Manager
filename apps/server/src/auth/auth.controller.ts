@@ -1,10 +1,12 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAccountDto } from '@iot-manager/nest-libs/dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { GrpcToHttpInterceptor } from 'nestjs-grpc-exceptions';
 
 @ApiTags('cats')
 @Controller('auth')
+@UseInterceptors(new GrpcToHttpInterceptor())
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -13,7 +15,7 @@ export class AuthController {
     description: 'The account has been successfully registered.',
   })
   @Post('credentials/register')
-  credentialsLogin(@Body() dto: RegisterAccountDto, agent: string) {
-    this.authService.credentialsLogin(dto, agent);
+  credentialsRegister(@Body() dto: RegisterAccountDto) {
+    return this.authService.credentialsRegister(dto);
   }
 }

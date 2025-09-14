@@ -1,10 +1,5 @@
 import { Account, AccountProvider } from '@entities';
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { genSaltSync, hashSync } from 'bcrypt';
@@ -13,6 +8,7 @@ import { LoginDto } from './dto/login.dto';
 import { Provider } from './providers';
 import { TokenService } from 'src/tokens/token.service';
 import { RegisterDto, LoginResponse } from '@iot-manager/proto';
+import { GrpcAlreadyExistsException } from 'nestjs-grpc-exceptions';
 
 @Injectable()
 export class AuthService {
@@ -25,12 +21,13 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto): Promise<Account> {
-    console.log('email: ', dto.email);
     const existedAccount = await this.accountsRepository.findOneBy({
       email: dto.email,
     });
     if (existedAccount) {
-      throw new ConflictException('user with this email exist');
+      throw new GrpcAlreadyExistsException(
+        'User with this email already exist',
+      );
     }
 
     return this.accountsRepository.save({
