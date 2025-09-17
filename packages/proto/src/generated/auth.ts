@@ -16,12 +16,12 @@ export enum ResponseStatus {
   UNRECOGNIZED = -1,
 }
 
-export interface refreshTokensDto {
+export interface RefreshTokensDto {
   agent: string;
   refreshToken: string;
 }
 
-export interface refreshTokensResponse {
+export interface RefreshTokensResponse {
   accessToken: string;
   refreshToken: RefreshToken | undefined;
 }
@@ -79,7 +79,7 @@ export interface AuthServiceClient {
 
   logout(request: LogoutDto, ...rest: any): Observable<EmptyResponseWithStatus>;
 
-  refreshTokens(request: refreshTokensDto, ...rest: any): Observable<refreshTokensResponse>;
+  refreshTokens(request: RefreshTokensDto, ...rest: any): Observable<RefreshTokensResponse>;
 }
 
 export interface AuthServiceController {
@@ -99,9 +99,9 @@ export interface AuthServiceController {
   ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
 
   refreshTokens(
-    request: refreshTokensDto,
+    request: RefreshTokensDto,
     ...rest: any
-  ): Promise<refreshTokensResponse> | Observable<refreshTokensResponse> | refreshTokensResponse;
+  ): Promise<RefreshTokensResponse> | Observable<RefreshTokensResponse> | RefreshTokensResponse;
 }
 
 export function AuthServiceControllerMethods() {

@@ -8,7 +8,7 @@ import type {
   CredentialsLoginDto,
   LoginResponse,
   LogoutDto,
-  refreshTokensDto,
+  RefreshTokensDto,
   RegisterDto,
 } from '@iot-manager/proto';
 import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
@@ -67,7 +67,7 @@ export class AuthController implements AuthServiceController {
   }
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async refreshTokens(dto: refreshTokensDto) {
+  async refreshTokens(dto: RefreshTokensDto) {
     if (!dto) {
       throw new GrpcInvalidArgumentException('no data provided in dto');
     }

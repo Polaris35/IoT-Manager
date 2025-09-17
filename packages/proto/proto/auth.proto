@@ -5,15 +5,15 @@ service AuthService {
     rpc CredentialsRegister(RegisterDto) returns (EmptyResponseWithStatus);
     rpc CredentialsLogin(CredentialsLoginDto) returns (LoginResponse);
     rpc Logout(LogoutDto) returns (EmptyResponseWithStatus);
-    rpc refreshTokens(refreshTokensDto) returns (refreshTokensResponse);
+    rpc RefreshTokens(RefreshTokensDto) returns (RefreshTokensResponse);
 }
 
-message refreshTokensDto {
+message RefreshTokensDto {
     string agent = 1;
     string refreshToken = 2;
 }
 
-message refreshTokensResponse {
+message RefreshTokensResponse {
     string accessToken = 1;
     RefreshToken refreshToken = 2;
 }
