@@ -16,7 +16,7 @@ export enum ResponseStatus {
   UNRECOGNIZED = -1,
 }
 
-export interface RefreshTokensDto {
+export interface RefreshTokensRequest {
   agent: string;
   refreshToken: string;
 }
@@ -26,11 +26,11 @@ export interface RefreshTokensResponse {
   refreshToken: RefreshToken | undefined;
 }
 
-export interface LogoutDto {
+export interface LogoutRequest {
   refreshToken: string;
 }
 
-export interface RegisterDto {
+export interface RegisterRequest {
   fullName: string;
   email: string;
   password: string;
@@ -41,7 +41,7 @@ export interface EmptyResponseWithStatus {
   errorMessage?: string | undefined;
 }
 
-export interface CredentialsLoginDto {
+export interface CredentialsLoginRequest {
   email: string;
   password: string;
   agent: string;
@@ -73,33 +73,33 @@ export interface LoginResponse {
 export const AUTH_PACKAGE_NAME = "auth";
 
 export interface AuthServiceClient {
-  credentialsRegister(request: RegisterDto, ...rest: any): Observable<EmptyResponseWithStatus>;
+  credentialsRegister(request: RegisterRequest, ...rest: any): Observable<EmptyResponseWithStatus>;
 
-  credentialsLogin(request: CredentialsLoginDto, ...rest: any): Observable<LoginResponse>;
+  credentialsLogin(request: CredentialsLoginRequest, ...rest: any): Observable<LoginResponse>;
 
-  logout(request: LogoutDto, ...rest: any): Observable<EmptyResponseWithStatus>;
+  logout(request: LogoutRequest, ...rest: any): Observable<EmptyResponseWithStatus>;
 
-  refreshTokens(request: RefreshTokensDto, ...rest: any): Observable<RefreshTokensResponse>;
+  refreshTokens(request: RefreshTokensRequest, ...rest: any): Observable<RefreshTokensResponse>;
 }
 
 export interface AuthServiceController {
   credentialsRegister(
-    request: RegisterDto,
+    request: RegisterRequest,
     ...rest: any
   ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
 
   credentialsLogin(
-    request: CredentialsLoginDto,
+    request: CredentialsLoginRequest,
     ...rest: any
   ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
   logout(
-    request: LogoutDto,
+    request: LogoutRequest,
     ...rest: any
   ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
 
   refreshTokens(
-    request: RefreshTokensDto,
+    request: RefreshTokensRequest,
     ...rest: any
   ): Promise<RefreshTokensResponse> | Observable<RefreshTokensResponse> | RefreshTokensResponse;
 }

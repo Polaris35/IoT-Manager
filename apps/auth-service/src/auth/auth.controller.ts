@@ -5,11 +5,11 @@ import { TokenService } from '@tokens/token.service';
 import { GrpcMethod } from '@nestjs/microservices';
 import type {
   AuthServiceController,
-  CredentialsLoginDto,
+  CredentialsLoginRequest,
   LoginResponse,
-  LogoutDto,
-  RefreshTokensDto,
-  RegisterDto,
+  LogoutRequest,
+  RefreshTokensRequest,
+  RegisterRequest,
 } from '@iot-manager/proto';
 import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
 import {
@@ -25,7 +25,7 @@ export class AuthController implements AuthServiceController {
   ) {}
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async credentialsRegister(dto: RegisterDto) {
+  async credentialsRegister(dto: RegisterRequest) {
     const account = await this.authService.register(dto);
 
     if (!account) {
@@ -39,7 +39,7 @@ export class AuthController implements AuthServiceController {
   }
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async credentialsLogin(dto: CredentialsLoginDto): Promise<LoginResponse> {
+  async credentialsLogin(dto: CredentialsLoginRequest): Promise<LoginResponse> {
     const { agent, ...dtoWithoutAgent } = dto;
 
     const userWithTokens = await this.authService.authorize(
@@ -55,7 +55,7 @@ export class AuthController implements AuthServiceController {
   }
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async logout(dto: LogoutDto) {
+  async logout(dto: LogoutRequest) {
     if (!dto) {
       throw new GrpcInvalidArgumentException('refreshToken is required');
     }
@@ -67,7 +67,7 @@ export class AuthController implements AuthServiceController {
   }
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async refreshTokens(dto: RefreshTokensDto) {
+  async refreshTokens(dto: RefreshTokensRequest) {
     if (!dto) {
       throw new GrpcInvalidArgumentException('no data provided in dto');
     }

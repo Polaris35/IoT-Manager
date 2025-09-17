@@ -2,13 +2,13 @@ syntax = "proto3";
 package auth;
 
 service AuthService {
-    rpc CredentialsRegister(RegisterDto) returns (EmptyResponseWithStatus);
-    rpc CredentialsLogin(CredentialsLoginDto) returns (LoginResponse);
-    rpc Logout(LogoutDto) returns (EmptyResponseWithStatus);
-    rpc RefreshTokens(RefreshTokensDto) returns (RefreshTokensResponse);
+    rpc CredentialsRegister(RegisterRequest) returns (EmptyResponseWithStatus);
+    rpc CredentialsLogin(CredentialsLoginRequest) returns (LoginResponse);
+    rpc Logout(LogoutRequest) returns (EmptyResponseWithStatus);
+    rpc RefreshTokens(RefreshTokensRequest) returns (RefreshTokensResponse);
 }
 
-message RefreshTokensDto {
+message RefreshTokensRequest {
     string agent = 1;
     string refreshToken = 2;
 }
@@ -18,11 +18,11 @@ message RefreshTokensResponse {
     RefreshToken refreshToken = 2;
 }
 
-message LogoutDto {
+message LogoutRequest {
     string refreshToken = 1;
 }
 
-message RegisterDto {
+message RegisterRequest {
     string fullName = 1;
     string email = 2;
     string password = 3;
@@ -37,7 +37,7 @@ message EmptyResponseWithStatus {
     optional string error_message = 2;
 }
 
-message CredentialsLoginDto {
+message CredentialsLoginRequest {
     string email = 1;
     string password = 2;
     string agent = 3;
