@@ -4,6 +4,7 @@ import {
   CredentialsLoginDto,
   RegisterAccountDto,
   LogoutDto,
+  RefreshTokensDto,
 } from '@iot-manager/nest-libs/dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GrpcToHttpInterceptor } from 'nestjs-grpc-exceptions';
@@ -35,5 +36,11 @@ export class AuthController {
   @Post('logout')
   logout(@Body() logoutDto: LogoutDto) {
     this.authService.logout(logoutDto);
+  }
+
+  @Post('refresh-tokens')
+  async refreshTokens(@Body() refreshTokensDto: RefreshTokensDto) {
+    console.log(refreshTokensDto);
+    return await this.authService.refreshTokens(refreshTokensDto);
   }
 }

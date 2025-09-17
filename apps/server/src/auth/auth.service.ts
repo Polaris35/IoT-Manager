@@ -13,6 +13,7 @@ import { ClientGrpc } from '@nestjs/microservices';
 import {
   CredentialsLoginDto,
   LogoutDto,
+  RefreshTokensDto,
   RegisterAccountDto,
 } from '@iot-manager/nest-libs/dto';
 import { lastValueFrom } from 'rxjs';
@@ -42,7 +43,6 @@ export class AuthService implements OnModuleInit {
         agent,
       }),
     );
-    console.log(loginData);
 
     if (!loginData) {
       throw new BadRequestException("can't login user");
@@ -53,6 +53,10 @@ export class AuthService implements OnModuleInit {
 
   logout(logoutDto: LogoutDto) {
     this.authServiceClient.logout(logoutDto);
+  }
+
+  async refreshTokens(dto: RefreshTokensDto) {
+    return await lastValueFrom(this.authServiceClient.refreshTokens(dto));
   }
 
   private constructLoginRespose(loginData: LoginResponse): AccountWithTokens {
