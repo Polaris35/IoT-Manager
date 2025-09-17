@@ -2,16 +2,20 @@ import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AccountProvider } from '@entities';
 import { TokenService } from '@tokens/token.service';
-import { GrpcMethod, RpcException } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import type {
   AuthServiceController,
-  CredentialsLoginDto,
+  CredentialsLoginRequest,
   LoginResponse,
-  LogoutDto,
-  refreshTokensDto,
-  RegisterDto,
+  LogoutRequest,
+  RefreshTokensRequest,
+  RegisterRequest,
 } from '@iot-manager/proto';
 import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
+import {
+  GrpcInvalidArgumentException,
+  GrpcUnknownException,
+} from 'nestjs-grpc-exceptions';
 
 @Controller()
 export class AuthController implements AuthServiceController {
@@ -21,11 +25,13 @@ export class AuthController implements AuthServiceController {
   ) {}
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async credentialsRegister(dto: RegisterDto) {
+  async credentialsRegister(dto: RegisterRequest) {
     const account = await this.authService.register(dto);
 
     if (!account) {
-      throw new RpcException(`Can't registrate account ${JSON.stringify(dto)}`);
+      throw new GrpcUnknownException(
+        `Can't registrate account ${JSON.stringify(dto)}`,
+      );
     }
     return {
       status: ResponseStatus.OK,
@@ -33,7 +39,7 @@ export class AuthController implements AuthServiceController {
   }
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async credentialsLogin(dto: CredentialsLoginDto): Promise<LoginResponse> {
+  async credentialsLogin(dto: CredentialsLoginRequest): Promise<LoginResponse> {
     const { agent, ...dtoWithoutAgent } = dto;
 
     const userWithTokens = await this.authService.authorize(
@@ -42,16 +48,16 @@ export class AuthController implements AuthServiceController {
       AccountProvider.CREDENTIALS,
     );
     if (!userWithTokens) {
-      throw new RpcException(`Can't login user`);
+      throw new GrpcUnknownException(`Can't login user`);
     }
 
     return userWithTokens;
   }
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async logout(dto: LogoutDto) {
+  async logout(dto: LogoutRequest) {
     if (!dto) {
-      throw new RpcException('refreshToken is required');
+      throw new GrpcInvalidArgumentException('refreshToken is required');
     }
     await this.tokenService.deleteRefreshToken(dto.refreshToken);
 
@@ -61,22 +67,22 @@ export class AuthController implements AuthServiceController {
   }
 
   @GrpcMethod(AUTH_SERVICE_NAME)
-  async refreshTokens(dto: refreshTokensDto) {
+  async refreshTokens(dto: RefreshTokensRequest) {
     if (!dto) {
-      throw new RpcException('no data provided in dto');
+      throw new GrpcInvalidArgumentException('no data provided in dto');
     }
     const tokens = await this.tokenService.refreshToken(
       dto.refreshToken,
       dto.agent,
     );
     if (!tokens) {
-      throw new RpcException("Can't update refresh token");
+      throw new GrpcUnknownException("Can't update refresh token");
     }
     return {
       accessToken: tokens.accessToken,
       refreshToken: {
         ...tokens.refreshToken,
-        expInMillisec: tokens.refreshToken.exp.getMilliseconds(),
+        expInISOString: tokens.refreshToken.exp.toISOString(),
       },
     };
   }

@@ -4,11 +4,11 @@
   "tasks": {
     "generate-proto-types": {
       "dependsOn": [],
-      "outputs": ["src/generated/**"],
+      "outputs": ["dist/**"],
       "cache": true
     },
     "build": {
-      "dependsOn": ["generate-proto-types", "^build"],
+      "dependsOn": ["build-libs", "generate-proto-types", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"]
     },
@@ -19,9 +19,14 @@
       "dependsOn": ["^check-types"]
     },
     "dev": {
-      "dependsOn": ["generate-proto-types"],
+      "dependsOn": ["generate-proto-types", "build-libs"],
       "cache": false,
       "persistent": true
+    },
+    "build-libs": {
+      "dependsOn": [],
+      "outputs": ["dist/**"],
+      "cache": true
     }
   }
 }

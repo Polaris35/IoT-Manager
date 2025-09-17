@@ -1,12 +1,15 @@
 import { Account, Token } from '@entities';
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tokens } from './interfaces';
 import { v4 } from 'uuid';
 import { add } from 'date-fns';
-import { RpcException } from '@nestjs/microservices';
+import {
+  GrpcUnauthenticatedException,
+  GrpcUnknownException,
+} from 'nestjs-grpc-exceptions';
 
 @Injectable()
 export class TokenService {
@@ -20,12 +23,16 @@ export class TokenService {
   ) {}
 
   async refreshToken(refreshTokens: string, agent: string): Promise<Tokens> {
-    const token = await this.tokenRepository.findOneBy({
-      token: refreshTokens,
+    const token = await this.tokenRepository.findOne({
+      where: {
+        token: refreshTokens,
+      },
+      relations: ['account'],
     });
-
     if (!token || token.exp < new Date()) {
-      throw new UnauthorizedException();
+      throw new GrpcUnauthenticatedException(
+        "don't have token or token expired",
+      );
     }
 
     await this.tokenRepository.delete({ token: refreshTokens });
@@ -64,7 +71,9 @@ export class TokenService {
     const token = await this.tokenRepository.findOneBy({ id: tokenId.id });
     if (!token) {
       this.logger.error("Can't find updated token with id: " + tokenId.id);
-      throw new RpcException("Can't find updated token with id: " + tokenId.id);
+      throw new GrpcUnknownException(
+        "Can't find updated token with id: " + tokenId.id,
+      );
     }
     return token;
   }

@@ -1,0 +1,35 @@
+{
+  "name": "@iot-manager/nest-libs",
+  "version": "1.0.0",
+  "description": "package for store nestjs decorators, utils and types",
+  "private": true,
+  "exports": {
+    "./interfaces": {
+      "types": "./dist/types/interfaces/index.d.ts",
+      "default": "./dist/types/interfaces/index.js"
+    },
+    "./dto": {
+      "types": "./dist/types/dto/index.d.ts",
+      "default": "./dist/types/dto/index.js"
+    },
+    "./decorators": {
+      "types": "./dist/decorators/index.d.ts",
+      "default": "./dist/decorators/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build-libs": "tsc --watch"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/swagger": "^11.2.0",
+    "class-validator": "^0.14.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
