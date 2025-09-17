@@ -29,7 +29,6 @@ export class TokenService {
       },
       relations: ['account'],
     });
-    console.log(token);
     if (!token || token.exp < new Date()) {
       throw new GrpcUnauthenticatedException(
         "don't have token or token expired",
