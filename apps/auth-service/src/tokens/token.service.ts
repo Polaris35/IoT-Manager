@@ -23,10 +23,13 @@ export class TokenService {
   ) {}
 
   async refreshToken(refreshTokens: string, agent: string): Promise<Tokens> {
-    const token = await this.tokenRepository.findOneBy({
-      token: refreshTokens,
+    const token = await this.tokenRepository.findOne({
+      where: {
+        token: refreshTokens,
+      },
+      relations: ['account'],
     });
-
+    console.log(token);
     if (!token || token.exp < new Date()) {
       throw new GrpcUnauthenticatedException(
         "don't have token or token expired",
