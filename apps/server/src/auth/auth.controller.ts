@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import {
   CredentialsLoginDto,
   RegisterAccountDto,
+  LogoutDto,
 } from '@iot-manager/nest-libs/dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GrpcToHttpInterceptor } from 'nestjs-grpc-exceptions';
@@ -29,5 +30,10 @@ export class AuthController {
     @UserAgent() agent: string,
   ) {
     return this.authService.credentialsLogin(dto, agent);
+  }
+
+  @Post('logout')
+  logout(@Body() logoutDto: LogoutDto) {
+    this.authService.logout(logoutDto);
   }
 }

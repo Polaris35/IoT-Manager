@@ -12,6 +12,7 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import {
   CredentialsLoginDto,
+  LogoutDto,
   RegisterAccountDto,
 } from '@iot-manager/nest-libs/dto';
 import { lastValueFrom } from 'rxjs';
@@ -48,6 +49,10 @@ export class AuthService implements OnModuleInit {
     }
 
     return this.constructLoginRespose(loginData);
+  }
+
+  logout(logoutDto: LogoutDto) {
+    this.authServiceClient.logout(logoutDto);
   }
 
   private constructLoginRespose(loginData: LoginResponse): AccountWithTokens {
