@@ -8,7 +8,7 @@
       "cache": true
     },
     "build": {
-      "dependsOn": ["build-libs", "generate-proto-types", "^build"],
+      "dependsOn": ["build-libs", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"]
     },

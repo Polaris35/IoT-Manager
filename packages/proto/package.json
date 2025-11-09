@@ -2,14 +2,13 @@
   "name": "@iot-manager/proto",
   "version": "1.0.0",
   "private": true,
-  
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }, 
+    },
     "./proto": {
       "default": "./proto/*.proto"
     }
@@ -19,13 +18,13 @@
     "proto"
   ],
   "scripts": {
-    "build": "tsc",
-    "generate-proto-types": "shx rm -rf ./src/generated && shx mkdir -p ./src/generated && C:\\protobuf\\bin\\protoc.exe --plugin=protoc-gen-ts_proto=E:\\PetProject\\IoT-Manager\\packages\\proto\\node_modules\\.bin\\protoc-gen-ts_proto.cmd --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true,lowerCaseServiceMethods=true,outputClientImpl=true,addNestjsRestParameter=true,useAbortController=true -I ./proto ./proto/*.proto && pnpm build",
-    "clean": "rm -rf dist src/generated"
+    "clean": "pnpm shx rm -rf dist src/generated",
+    "generate": "node generate-proto.js",
+    "compile": "tsc -p tsconfig.json",
+    "build": "pnpm run clean && pnpm run generate && pnpm run compile"
   },
   "devDependencies": {
     "shx": "^0.4.0",
-    "ts-proto": "^2.7.7",
     "typescript": "^5.9.2"
   },
   "dependencies": {
@@ -33,6 +32,7 @@
     "@grpc/proto-loader": "^0.8.0",
     "@nestjs/microservices": "^11.1.5",
     "google-proto-files": "^5.0.0",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "ts-proto": "^2.8.3"
   }
 }
