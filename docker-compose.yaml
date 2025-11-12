@@ -1,0 +1,140 @@
+services:
+  # ===============================================
+  #  INFRASTRUCTURE SERVICES
+  # ===============================================
+
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-postgres-auth
+    environment:
+      POSTGRES_USER: ${POSTGRES_AUTH_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_AUTH_DB}
+    ports:
+      - "${POSTGRES_AUTH_HOST_PORT}:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - iot_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AUTH_USER} -d ${POSTGRES_AUTH_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # postgres-device:
+  #   image: postgres:15-alpine
+  #   container_name: ${COMPOSE_PROJECT_NAME}-postgres-device
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_DEVICE_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_DEVICE_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DEVICE_DB}
+  #   ports:
+  #     - "${POSTGRES_DEVICE_HOST_PORT}:5432"
+  #   volumes:
+  #     - postgres-device-data:/var/lib/postgresql/data
+  #   networks:
+  #     - iot_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DEVICE_USER} -d ${POSTGRES_DEVICE_DB}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
+
+  # redis-cache:
+  #   image: redis:7-alpine
+  #   container_name: ${COMPOSE_PROJECT_NAME}-redis-cache
+  #   ports:
+  #     - "${REDIS_HOST_PORT}:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - iot_network
+  #   restart: unless-stopped
+
+  # rabbitmq-broker:
+  #   image: rabbitmq:3.11-management-alpine
+  #   container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq-broker
+  #   ports:
+  #     - "${RABBITMQ_HOST_PORT}:5672"
+  #     - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
+  #   networks:
+  #     - iot_network
+  #   restart: unless-stopped
+  
+  # influxdb:
+  #   image: influxdb:2.7
+  #   container_name: ${COMPOSE_PROJECT_NAME}-influxdb
+  #   environment:
+  #     DOCKER_INFLUXDB_INIT_MODE: ${DOCKER_INFLUXDB_INIT_MODE}
+  #     DOCKER_INFLUXDB_INIT_USERNAME: ${DOCKER_INFLUXDB_INIT_USERNAME}
+  #     DOCKER_INFLUXDB_INIT_PASSWORD: ${DOCKER_INFLUXDB_INIT_PASSWORD}
+  #     DOCKER_INFLUXDB_INIT_ORG: ${DOCKER_INFLUXDB_INIT_ORG}
+  #     DOCKER_INFLUXDB_INIT_BUCKET: ${DOCKER_INFLUXDB_INIT_BUCKET}
+  #   ports:
+  #     - "${INFLUXDB_HOST_PORT}:8086"
+  #   volumes:
+  #     - influxdb-data:/var/lib/influxdb2
+  #   networks:
+  #     - iot_network
+  #   restart: unless-stopped
+
+  # ===============================================
+  #  APPLICATION SERVICES
+  # ===============================================
+
+  auth-service:
+    container_name: ${COMPOSE_PROJECT_NAME}-auth-service
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    ports:
+      - "${AUTH_SERVICE_HOST_PORT}:${AUTH_SERVICE_CONTAINER_PORT}"
+    environment:
+      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}     
+      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}     
+      DB_USER: ${POSTGRES_AUTH_USER}          
+      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}    
+      DB_NAME: ${POSTGRES_AUTH_DB}           
+      PORT: ${AUTH_SERVICE_CONTAINER_PORT}
+      JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
+      # REDIS_HOST: ${REDIS_HOST}
+    networks:
+      - iot_network
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      # redis-cache:
+      #   condition: service_started
+    restart: unless-stopped
+
+  api-gateway:
+    container_name: ${COMPOSE_PROJECT_NAME}-api-gateway
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    ports:
+      - "${API_GATEWAY_HOST_PORT}:${API_GATEWAY_CONTAINER_PORT}"
+    environment:
+      AUTH_SERVICE_GRPC_URL: ${AUTH_SERVICE_GRPC_URL}
+      PORT: ${API_GATEWAY_CONTAINER_PORT}
+    networks:
+      - iot_network
+    restart: unless-stopped
+
+  
+networks:
+  iot_network:
+    driver: bridge
+
+volumes:
+  postgres-auth-data:
+    driver: local
+  postgres-device-data:
+    driver: local
+  redis-data:
+    driver: local
+  influxdb-data:
+    driver: local

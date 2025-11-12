@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build-libs": "tsc --watch"
+    "build-libs": "tsc"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

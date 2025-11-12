@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AUTH_PACKAGE_NAME } from '@iot-manager/proto';
-import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -10,11 +9,9 @@ async function bootstrap() {
     {
       transport: Transport.GRPC,
       options: {
+        url: `0.0.0.0:${process.env.PORT}`,
         package: AUTH_PACKAGE_NAME,
-        protoPath: join(
-          __dirname,
-          './../node_modules/@iot-manager/proto/proto/auth.proto',
-        ),
+        protoPath: require.resolve('@iot-manager/proto/proto/auth.proto'),
       },
     },
   );

@@ -9,19 +9,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./proto": {
-      "default": "./proto/*.proto"
-    }
+    "./proto/*": "./proto/*"
   },
   "files": [
     "dist",
     "proto"
   ],
   "scripts": {
-    "clean": "pnpm shx rm -rf dist src/generated",
-    "generate": "node generate-proto.js",
-    "compile": "tsc -p tsconfig.json",
-    "build": "pnpm run clean && pnpm run generate && pnpm run compile"
+     "clean": "shx rm -rf dist src/generated",
+    "generate": "node generate-proto.js && pnpm run compile", 
+    "build": "tsc -p tsconfig.json"
   },
   "devDependencies": {
     "shx": "^0.4.0",

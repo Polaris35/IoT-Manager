@@ -9,7 +9,11 @@
     },
     "build": {
       "dependsOn": ["build-libs", "^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "proto/**/*.proto"
+      ],
       "outputs": ["dist/**"]
     },
     "lint": {
