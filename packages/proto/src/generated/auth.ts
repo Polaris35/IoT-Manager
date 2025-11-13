@@ -16,6 +16,17 @@ export enum ResponseStatus {
   UNRECOGNIZED = -1,
 }
 
+export interface ValidateTokenRequest {
+  accessToken: string;
+}
+
+export interface ValidateTokenResponse {
+  id: string;
+  email: string;
+  iat: string;
+  exp: string;
+}
+
 export interface RefreshTokensRequest {
   agent: string;
   refreshToken: string;
@@ -80,6 +91,8 @@ export interface AuthServiceClient {
   logout(request: LogoutRequest): Observable<EmptyResponseWithStatus>;
 
   refreshTokens(request: RefreshTokensRequest): Observable<RefreshTokensResponse>;
+
+  validateAccessToken(request: ValidateTokenRequest): Observable<ValidateTokenResponse>;
 }
 
 export interface AuthServiceController {
@@ -98,11 +111,21 @@ export interface AuthServiceController {
   refreshTokens(
     request: RefreshTokensRequest,
   ): Promise<RefreshTokensResponse> | Observable<RefreshTokensResponse> | RefreshTokensResponse;
+
+  validateAccessToken(
+    request: ValidateTokenRequest,
+  ): Promise<ValidateTokenResponse> | Observable<ValidateTokenResponse> | ValidateTokenResponse;
 }
 
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["credentialsRegister", "credentialsLogin", "logout", "refreshTokens"];
+    const grpcMethods: string[] = [
+      "credentialsRegister",
+      "credentialsLogin",
+      "logout",
+      "refreshTokens",
+      "validateAccessToken",
+    ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("AuthService", method)(constructor.prototype[method], method, descriptor);

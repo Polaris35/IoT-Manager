@@ -6,6 +6,18 @@ service AuthService {
     rpc CredentialsLogin(CredentialsLoginRequest) returns (LoginResponse);
     rpc Logout(LogoutRequest) returns (EmptyResponseWithStatus);
     rpc RefreshTokens(RefreshTokensRequest) returns (RefreshTokensResponse);
+    rpc ValidateAccessToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+message ValidateTokenRequest {
+    string accessToken = 1;
+}
+
+message ValidateTokenResponse {
+    string id = 1;
+    string email = 2;
+    string iat = 3;
+    string exp = 4;
 }
 
 message RefreshTokensRequest {

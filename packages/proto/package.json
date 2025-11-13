@@ -17,7 +17,7 @@
   ],
   "scripts": {
      "clean": "shx rm -rf dist src/generated",
-    "generate": "node generate-proto.js && pnpm run compile", 
+    "generate-proto-types": "node generate-proto.js && pnpm run build", 
     "build": "tsc -p tsconfig.json"
   },
   "devDependencies": {

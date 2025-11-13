@@ -10,6 +10,7 @@ import type {
   LogoutRequest,
   RefreshTokensRequest,
   RegisterRequest,
+  ValidateTokenRequest,
 } from '@iot-manager/proto';
 import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
 import {
@@ -85,5 +86,10 @@ export class AuthController implements AuthServiceController {
         expInISOString: tokens.refreshToken.exp.toISOString(),
       },
     };
+  }
+
+  @GrpcMethod(AUTH_SERVICE_NAME)
+  async validateAccessToken(request: ValidateTokenRequest) {
+    return this.tokenService.validateAccessToken(request.accessToken);
   }
 }
