@@ -6,6 +6,11 @@ export interface Tokens {
 }
 
 export interface JwtPayload {
-  id: number;
+  id: string;
   email: string;
+}
+
+export interface AccessTokenPayload extends JwtPayload {
+  iat: number;
+  exp: number;
 }

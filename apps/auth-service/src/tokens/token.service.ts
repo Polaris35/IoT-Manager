@@ -3,13 +3,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Tokens } from './interfaces';
+import { AccessTokenPayload, Tokens } from './interfaces';
 import { v4 } from 'uuid';
 import { add } from 'date-fns';
 import {
   GrpcUnauthenticatedException,
   GrpcUnknownException,
 } from 'nestjs-grpc-exceptions';
+import { ConfigService } from '@nestjs/config';
+import { ValidateTokenResponse } from '@iot-manager/proto';
 
 @Injectable()
 export class TokenService {
@@ -20,6 +22,7 @@ export class TokenService {
     private readonly tokenRepository: Repository<Token>,
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
+    private readonly configSerice: ConfigService,
   ) {}
 
   async refreshToken(refreshTokens: string, agent: string): Promise<Tokens> {
@@ -78,10 +81,32 @@ export class TokenService {
     return token;
   }
 
-  //   getDataFromAccessToken(token: string) {
-  //     const payload = this.jwtService.decode(token);
-  //     return payload;
-  //   }
+  async validateAccessToken(
+    accessToken: string,
+  ): Promise<ValidateTokenResponse> {
+    try {
+      const data = await this.jwtService.verifyAsync<AccessTokenPayload>(
+        accessToken,
+        {
+          secret: this.configSerice.get<string>('JWT_SECRET'),
+        },
+      );
+
+      const response: ValidateTokenResponse = {
+        id: data.id,
+        email: data.email,
+        // * 1000 for converting seconds to milliseconds
+        iat: new Date(data.iat * 1000).toISOString(),
+        exp: new Date(data.exp * 1000).toISOString(),
+      };
+
+      return response;
+    } catch (error) {
+      throw new GrpcUnauthenticatedException(
+        error.message || 'Invalid or expired token',
+      );
+    }
+  }
 
   deleteRefreshToken(token: string) {
     return this.tokenRepository.delete({
