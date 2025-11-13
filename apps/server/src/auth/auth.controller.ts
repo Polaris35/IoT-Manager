@@ -1,14 +1,21 @@
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthGuard } from './guards';
 import {
   CredentialsLoginDto,
   RegisterAccountDto,
   LogoutDto,
   RefreshTokensDto,
 } from '@iot-manager/nest-libs/dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GrpcToHttpInterceptor } from 'nestjs-grpc-exceptions';
-import { UserAgent } from '@iot-manager/nest-libs/decorators';
+import { CurrentUser, UserAgent } from '@iot-manager/nest-libs/decorators';
 
 @ApiTags('cats')
 @Controller('auth')
@@ -41,5 +48,13 @@ export class AuthController {
   @Post('refresh-tokens')
   refreshTokens(@Body() refreshTokensDto: RefreshTokensDto) {
     return this.authService.refreshTokens(refreshTokensDto);
+  }
+
+  @Post('test-protected-router')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  testProtectedRoute(@CurrentUser('id') id: string) {
+    console.log('this is protected route, current user id: ', id);
+    return id;
   }
 }
