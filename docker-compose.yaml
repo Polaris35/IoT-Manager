@@ -43,16 +43,16 @@ services:
   #     retries: 5
   #   restart: unless-stopped
 
-  # redis-cache:
-  #   image: redis:7-alpine
-  #   container_name: ${COMPOSE_PROJECT_NAME}-redis-cache
-  #   ports:
-  #     - "${REDIS_HOST_PORT}:6379"
-  #   volumes:
-  #     - redis-data:/data
-  #   networks:
-  #     - iot_network
-  #   restart: unless-stopped
+  redis-cache:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-redis-cache
+    ports:
+      - "${REDIS_HOST_PORT}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - iot_network
+    restart: unless-stopped
 
   # rabbitmq-broker:
   #   image: rabbitmq:3.11-management-alpine
@@ -100,14 +100,15 @@ services:
       DB_NAME: ${POSTGRES_AUTH_DB}           
       PORT: ${AUTH_SERVICE_CONTAINER_PORT}
       JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
-      # REDIS_HOST: ${REDIS_HOST}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     networks:
       - iot_network
     depends_on:
       postgres-auth:
         condition: service_healthy
-      # redis-cache:
-      #   condition: service_started
+      redis-cache:
+        condition: service_started
     restart: unless-stopped
 
   api-gateway:
