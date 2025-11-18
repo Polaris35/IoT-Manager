@@ -1,5 +1,5 @@
 import { Account, Token } from '@entities';
-import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,7 +16,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
 @Injectable()
-export class TokenService implements OnModuleInit {
+export class TokenService {
   logger = new Logger(TokenService.name);
   constructor(
     private readonly jwtService: JwtService,
@@ -28,36 +28,16 @@ export class TokenService implements OnModuleInit {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  onModuleInit() {
-    this.logger.log('==> [4/4] TokenService has been initialized.');
-    // Проверяем, какой store реально используется
-    // (this.cacheManager as any) - это хак, чтобы добраться до приватного свойства store
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const store = (this.cacheManager as any).store;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const storeName = store?.constructor?.name;
-    this.logger.log(`==> Injected cache store is: "${storeName}"`);
-    if (storeName === 'Keyv') {
-      this.logger.log('==> SUCCESS: Redis-based Keyv store is in use!');
-    } else {
-      this.logger.error(
-        `==> FAILURE: Default in-memory store is in use ("${storeName}"). Check CacheModule configuration.`,
-      );
-    }
-  }
-
   async refreshToken(
     refreshTokenValue: string,
     agent: string,
   ): Promise<Tokens> {
-    // Делегируем поиск токена приватному методу, который "знает" о кэше
     const tokenEntity = await this.findTokenByValue(refreshTokenValue);
 
     if (!tokenEntity || new Date(tokenEntity.exp) < new Date()) {
       throw new GrpcUnauthenticatedException('Token not found or has expired');
     }
 
-    // Делегируем удаление токена методу, который "знает" о кэше
     await this.deleteTokenByValue(tokenEntity.token);
 
     const account = await this.accountRepository.findOneBy({
@@ -67,7 +47,6 @@ export class TokenService implements OnModuleInit {
       throw new GrpcUnknownException('Account associated with token not found');
     }
 
-    // Делегируем создание и кэширование нового токена
     return this.generateTokens(account, agent);
   }
 
@@ -152,11 +131,8 @@ export class TokenService implements OnModuleInit {
       account: { id: accountId },
       userAgent: agent,
     });
-
-    // Сначала сохраняем в источник правды (PostgreSQL)
     const savedToken = await this.tokenRepository.save(tokenEntity);
 
-    // Затем сохраняем в кэш
     await this.setTokenInCache(savedToken);
 
     return savedToken;
