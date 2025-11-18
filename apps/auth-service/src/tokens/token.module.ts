@@ -7,6 +7,7 @@ import { options } from './config';
 import KeyvRedis from '@keyv/redis';
 import { Keyv } from 'cacheable';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   providers: [TokenService],
@@ -14,10 +15,11 @@ import { CacheModule } from '@nestjs/cache-manager';
     TypeOrmModule.forFeature([Account, Token]),
     JwtModule.registerAsync(options()),
     CacheModule.registerAsync({
-      useFactory: () => {
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
         return {
           stores: [
-            new Keyv(new KeyvRedis('redis://localhost:6379'), {
+            new Keyv(new KeyvRedis(configService.get<string>('REDIS_URL')), {
               namespace: 'myapp',
             }),
           ],

@@ -100,8 +100,7 @@ services:
       DB_NAME: ${POSTGRES_AUTH_DB}           
       PORT: ${AUTH_SERVICE_CONTAINER_PORT}
       JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_HOST_PORT}
+      REDIS_URL: ${REDIS_URL}
     networks:
       - iot_network
     depends_on:
