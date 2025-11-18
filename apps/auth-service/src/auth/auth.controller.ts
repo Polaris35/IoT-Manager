@@ -60,7 +60,8 @@ export class AuthController implements AuthServiceController {
     if (!dto) {
       throw new GrpcInvalidArgumentException('refreshToken is required');
     }
-    await this.tokenService.deleteRefreshToken(dto.refreshToken);
+    const rezult = await this.tokenService.deleteRefreshToken(dto.refreshToken);
+    console.log(rezult);
 
     return {
       status: ResponseStatus.OK,

@@ -4,25 +4,27 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account, Token } from '@entities';
 import { JwtModule } from '@nestjs/jwt';
 import { options } from './config';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Cacheable, CacheableMemory, Keyv } from 'cacheable';
+import KeyvRedis, { createKeyv } from '@keyv/redis';
+import { ConfigService } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
-import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   providers: [TokenService],
   imports: [
-    ConfigModule,
     TypeOrmModule.forFeature([Account, Token]),
     JwtModule.registerAsync(options()),
     CacheModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        store: redisStore,
-        host: configService.get<string>('REDIS_HOST'),
-        port: configService.get<number>('REDIS_PORT'),
-        ttl: 0,
-      }),
+      useFactory: () => {
+        return {
+          stores: [
+            new Keyv({
+              store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }),
+            }),
+            new KeyvRedis('redis://localhost:6379'),
+          ],
+        };
+      },
     }),
   ],
   exports: [TokenService],

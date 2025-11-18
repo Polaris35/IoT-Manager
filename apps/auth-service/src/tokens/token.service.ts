@@ -1,9 +1,9 @@
 import { Account, Token } from '@entities';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AccessTokenPayload, Tokens } from './interfaces';
+import type { AccessTokenPayload, Tokens } from './interfaces';
 import { v4 } from 'uuid';
 import { add } from 'date-fns';
 import {
@@ -12,9 +12,11 @@ import {
 } from 'nestjs-grpc-exceptions';
 import { ConfigService } from '@nestjs/config';
 import { ValidateTokenResponse } from '@iot-manager/proto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
-export class TokenService {
+export class TokenService implements OnModuleInit {
   logger = new Logger(TokenService.name);
   constructor(
     private readonly jwtService: JwtService,
@@ -23,26 +25,50 @@ export class TokenService {
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
     private readonly configSerice: ConfigService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  async refreshToken(refreshTokens: string, agent: string): Promise<Tokens> {
-    const token = await this.tokenRepository.findOne({
-      where: {
-        token: refreshTokens,
-      },
-      relations: ['account'],
-    });
-    if (!token || token.exp < new Date()) {
-      throw new GrpcUnauthenticatedException(
-        "don't have token or token expired",
+  onModuleInit() {
+    this.logger.log('==> [4/4] TokenService has been initialized.');
+    // Проверяем, какой store реально используется
+    // (this.cacheManager as any) - это хак, чтобы добраться до приватного свойства store
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const store = (this.cacheManager as any).store;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const storeName = store?.constructor?.name;
+    this.logger.log(`==> Injected cache store is: "${storeName}"`);
+    if (storeName === 'Keyv') {
+      this.logger.log('==> SUCCESS: Redis-based Keyv store is in use!');
+    } else {
+      this.logger.error(
+        `==> FAILURE: Default in-memory store is in use ("${storeName}"). Check CacheModule configuration.`,
       );
     }
+  }
 
-    await this.tokenRepository.delete({ token: refreshTokens });
+  async refreshToken(
+    refreshTokenValue: string,
+    agent: string,
+  ): Promise<Tokens> {
+    // Делегируем поиск токена приватному методу, который "знает" о кэше
+    const tokenEntity = await this.findTokenByValue(refreshTokenValue);
+
+    if (!tokenEntity || new Date(tokenEntity.exp) < new Date()) {
+      throw new GrpcUnauthenticatedException('Token not found or has expired');
+    }
+
+    // Делегируем удаление токена методу, который "знает" о кэше
+    await this.deleteTokenByValue(tokenEntity.token);
+
     const account = await this.accountRepository.findOneBy({
-      id: token.account.id,
+      id: tokenEntity.account.id,
     });
-    return this.generateTokens(account!, agent);
+    if (!account) {
+      throw new GrpcUnknownException('Account associated with token not found');
+    }
+
+    // Делегируем создание и кэширование нового токена
+    return this.generateTokens(account, agent);
   }
 
   async generateTokens(account: Account, agent: string): Promise<Tokens> {
@@ -51,34 +77,12 @@ export class TokenService {
       email: account.email,
     });
 
-    const refreshToken = await this.getRefreshToken(account.id, agent);
+    const refreshToken = await this.createAndCacheRefreshToken(
+      account.id,
+      agent,
+    );
 
     return { accessToken, refreshToken };
-  }
-
-  async getRefreshToken(accountId: string, agent: string): Promise<Token> {
-    const [tokenId] = (
-      await this.tokenRepository.upsert(
-        {
-          token: v4(),
-          exp: add(new Date(), { months: 1 }),
-          account: {
-            id: accountId,
-          },
-          userAgent: agent,
-        },
-        ['token'],
-      )
-    ).raw as { id: string }[];
-
-    const token = await this.tokenRepository.findOneBy({ id: tokenId.id });
-    if (!token) {
-      this.logger.error("Can't find updated token with id: " + tokenId.id);
-      throw new GrpcUnknownException(
-        "Can't find updated token with id: " + tokenId.id,
-      );
-    }
-    return token;
   }
 
   async validateAccessToken(
@@ -103,14 +107,83 @@ export class TokenService {
       return response;
     } catch (error) {
       throw new GrpcUnauthenticatedException(
-        error.message || 'Invalid or expired token',
+        error.message || 'Invalid or expired  token',
       );
     }
   }
 
-  deleteRefreshToken(token: string) {
-    return this.tokenRepository.delete({
+  async deleteRefreshToken(token: string): Promise<void> {
+    await this.tokenRepository.delete({
       token,
     });
+  }
+
+  private async findTokenByValue(tokenValue: string) {
+    const key = `refresh-token:${tokenValue}`;
+
+    const cachedToken = await this.cacheManager.get<Token>(key);
+    console.log(cachedToken);
+    if (cachedToken) {
+      this.logger.log(`Cache HIT for token!`);
+      cachedToken.exp = new Date(cachedToken.exp);
+      return cachedToken;
+    }
+
+    this.logger.log(`Cache MISS for token.`);
+    const tokenFromDb = await this.tokenRepository.findOne({
+      where: { token: tokenValue },
+      relations: ['account'],
+    });
+
+    if (tokenFromDb) {
+      await this.setTokenInCache(tokenFromDb);
+    }
+
+    return tokenFromDb;
+  }
+
+  private async createAndCacheRefreshToken(
+    accountId: string,
+    agent: string,
+  ): Promise<Token> {
+    const tokenEntity = this.tokenRepository.create({
+      token: v4(),
+      exp: add(new Date(), { months: 1 }),
+      account: { id: accountId },
+      userAgent: agent,
+    });
+
+    // Сначала сохраняем в источник правды (PostgreSQL)
+    const savedToken = await this.tokenRepository.save(tokenEntity);
+
+    // Затем сохраняем в кэш
+    await this.setTokenInCache(savedToken);
+
+    return savedToken;
+  }
+
+  private async deleteTokenByValue(tokenValue: string): Promise<void> {
+    const key = `refresh-token:${tokenValue}`;
+    await Promise.all([
+      this.tokenRepository.delete({ token: tokenValue }),
+      this.cacheManager.del(key),
+    ]);
+  }
+
+  private async setTokenInCache(token: Token): Promise<void> {
+    const key = `refresh-token:${token.token}`;
+    const ttl = (new Date(token.exp).getTime() - Date.now()) / 1000;
+
+    if (ttl > 0) {
+      await this.cacheManager.set(key, token, ttl);
+      this.logger.debug(
+        'added token to cache, key: ',
+        key,
+        'ttl: ',
+        ttl,
+        'token: ',
+        token,
+      );
+    }
   }
 }

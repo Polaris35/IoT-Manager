@@ -101,7 +101,7 @@ services:
       PORT: ${AUTH_SERVICE_CONTAINER_PORT}
       JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
       REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PORT: ${REDIS_HOST_PORT}
     networks:
       - iot_network
     depends_on:
