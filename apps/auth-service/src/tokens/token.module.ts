@@ -4,9 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account, Token } from '@entities';
 import { JwtModule } from '@nestjs/jwt';
 import { options } from './config';
-import { Cacheable, CacheableMemory, Keyv } from 'cacheable';
-import KeyvRedis, { createKeyv } from '@keyv/redis';
-import { ConfigService } from '@nestjs/config';
+import KeyvRedis from '@keyv/redis';
+import { Keyv } from 'cacheable';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
@@ -18,10 +17,9 @@ import { CacheModule } from '@nestjs/cache-manager';
       useFactory: () => {
         return {
           stores: [
-            new Keyv({
-              store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }),
+            new Keyv(new KeyvRedis('redis://localhost:6379'), {
+              namespace: 'myapp',
             }),
-            new KeyvRedis('redis://localhost:6379'),
           ],
         };
       },

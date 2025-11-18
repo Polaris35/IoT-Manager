@@ -30,11 +30,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/proto
       '@keyv/redis':
-        specifier: ^5.1.4
-        version: 5.1.4(keyv@5.5.4)
+        specifier: 4.2.0
+        version: 4.2.0
       '@nestjs/cache-manager':
-        specifier: ^3.0.1
-        version: 3.0.1(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@7.2.4)(keyv@5.5.4)(rxjs@7.8.2)
+        specifier: 3.0.0
+        version: 3.0.0(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@6.4.0)(rxjs@7.8.2)
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -49,7 +49,7 @@ importers:
         version: 11.0.1(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))
       '@nestjs/microservices':
         specifier: ^11.1.5
-        version: 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@7.2.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+        version: 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@6.4.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^11.0.1
         version: 11.1.8(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)
@@ -60,8 +60,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       cache-manager:
-        specifier: ^7.2.4
-        version: 7.2.4
+        specifier: 6.4.0
+        version: 6.4.0
       cacheable:
         specifier: ^2.2.0
         version: 2.2.0
@@ -71,9 +71,6 @@ importers:
       google-protobuf:
         specifier: ^3.21.4
         version: 3.21.4
-      keyv:
-        specifier: ^5.5.4
-        version: 5.5.4
       nestjs-grpc-exceptions:
         specifier: ^0.2.2
         version: 0.2.2(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(@nestjs/microservices@11.1.8)
@@ -697,9 +694,6 @@ packages:
   '@cacheable/memory@2.0.5':
     resolution: {integrity: sha512-fkiAxCvssEyJZ5fxX4tcdZFRmW9JehSTGvvqmXn6rTzG5cH6V/3C4ad8yb01vOjp2xBydHkHrgpW0qeGtzt6VQ==}
 
-  '@cacheable/utils@2.2.0':
-    resolution: {integrity: sha512-7xaQayO3msdVcxXLYcLU5wDqJBNdQcPPPHr6mdTEIQI7N7TbtSVVTpWOTfjyhg0L6AQwQdq7miKdWtTDBoBldQ==}
-
   '@cacheable/utils@2.3.1':
     resolution: {integrity: sha512-38NJXjIr4W1Sghun8ju+uYWD8h2c61B4dKwfnQHVDFpAJ9oS28RpfqZQJ6Dgd3RceGkILDY9YT+72HJR3LoeSQ==}
 
@@ -1247,11 +1241,9 @@ packages:
     peerDependencies:
       keyv: ^5.5.4
 
-  '@keyv/redis@5.1.4':
-    resolution: {integrity: sha512-ZBt8imW+dRWOjJn9RTAglQdktXRYqkn8rmIB8vF/BwhEPt+OxQm7Jq706FKJFzM3Ykx9t/0jBE5CudU3SeGI5w==}
+  '@keyv/redis@4.2.0':
+    resolution: {integrity: sha512-QszmBfZZ3wOKJ5z1hn0CTLf04WN/552ITrSDYC3Yg4jT6yVdlz2fJxi5CNrnZ8NIu/Qaj7OAkbSL+pyFUXp6oA==}
     engines: {node: '>= 18'}
-    peerDependencies:
-      keyv: ^5.5.4
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
@@ -1463,13 +1455,12 @@ packages:
     resolution: {integrity: sha512-xJIPs+bYuc9ASBl+cvGsKbGrJmS6fAKaSZCnT0lhahT5rhA2VVy9/EcIgd2JhtEuFOJNx7UHNn/qiTPTY4nrQw==}
     engines: {node: '>= 10'}
 
-  '@nestjs/cache-manager@3.0.1':
-    resolution: {integrity: sha512-4UxTnR0fsmKL5YDalU2eLFVnL+OBebWUpX+hEduKGncrVKH4PPNoiRn1kXyOCjmzb0UvWgqubpssNouc8e0MCw==}
+  '@nestjs/cache-manager@3.0.0':
+    resolution: {integrity: sha512-csKvxHSQWfC0OiDo0bNEhLqrmYDopHEvRyC81MxV9xFj1AO+rOKocpHa4M1ZGH//6uKFIPGN9oiR0mvZY77APA==}
     peerDependencies:
       '@nestjs/common': ^9.0.0 || ^10.0.0 || ^11.0.0
       '@nestjs/core': ^9.0.0 || ^10.0.0 || ^11.0.0
       cache-manager: '>=6'
-      keyv: '>=5'
       rxjs: ^7.8.1
 
   '@nestjs/cli@11.0.10':
@@ -1767,10 +1758,6 @@ packages:
   '@redis/client@1.6.1':
     resolution: {integrity: sha512-/KCsg3xSlR+nCK8/8ZYSknYxvXHwubJrU82F3Lm1Fp6789VQ0/3RJKfsmRXjqfaTA++23CvC3hqmqe/2GEt6Kw==}
     engines: {node: '>=14'}
-
-  '@redis/client@5.9.0':
-    resolution: {integrity: sha512-EI0Ti5pojD2p7TmcS7RRa+AJVahdQvP/urpcSbK/K9Rlk6+dwMJTQ354pCNGCwfke8x4yKr5+iH85wcERSkwLQ==}
-    engines: {node: '>= 18'}
 
   '@redis/graph@1.1.1':
     resolution: {integrity: sha512-FEMTcTHZozZciLRl6GiiIB4zGm5z5F3F6a6FZCyrfxdKOhFlGkiAqlexWMBzCi4DcRoyiOsuLfW+cjlGWyExOw==}
@@ -2706,6 +2693,9 @@ packages:
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
     engines: {node: '>=8'}
+
+  cache-manager@6.4.0:
+    resolution: {integrity: sha512-eUmPyVqQYzWCt7hx1QrYzQ7oC3MGKM1etxxe8zuq1o7IB4NzdBeWcUGDSWYahaI8fkd538SEZRGadyZWQfvOzQ==}
 
   cache-manager@7.2.4:
     resolution: {integrity: sha512-skmhkqXjPCBmrb70ctEx4zwFk7vb0RdFXlVGYWnFZ8pKvkzdFrFFKSJ1IaKduGfkryHOJvb7q2PkGmonmL+UGw==}
@@ -6207,10 +6197,6 @@ snapshots:
       hookified: 1.13.0
       keyv: 5.5.4
 
-  '@cacheable/utils@2.2.0':
-    dependencies:
-      keyv: 5.5.4
-
   '@cacheable/utils@2.3.1':
     dependencies:
       hashery: 1.2.0
@@ -6819,12 +6805,11 @@ snapshots:
       hookified: 1.13.0
       keyv: 5.5.4
 
-  '@keyv/redis@5.1.4(keyv@5.5.4)':
+  '@keyv/redis@4.2.0':
     dependencies:
-      '@redis/client': 5.9.0
       cluster-key-slot: 1.1.2
-      hookified: 1.13.0
       keyv: 5.5.4
+      redis: 4.7.1
 
   '@keyv/serialize@1.1.1': {}
 
@@ -6993,12 +6978,11 @@ snapshots:
       '@napi-rs/nice-win32-x64-msvc': 1.1.1
     optional: true
 
-  '@nestjs/cache-manager@3.0.1(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@7.2.4)(keyv@5.5.4)(rxjs@7.8.2)':
+  '@nestjs/cache-manager@3.0.0(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@6.4.0)(rxjs@7.8.2)':
     dependencies:
       '@nestjs/common': 11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.8(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.8)(@nestjs/platform-express@11.1.8)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      cache-manager: 7.2.4
-      keyv: 5.5.4
+      cache-manager: 6.4.0
       rxjs: 7.8.2
 
   '@nestjs/cli@11.0.10(@swc/cli@0.6.0(@swc/core@1.15.1)(chokidar@4.0.3))(@swc/core@1.15.1)(@types/node@22.19.1)':
@@ -7065,7 +7049,7 @@ snapshots:
       tslib: 2.8.1
       uid: 2.0.2
     optionalDependencies:
-      '@nestjs/microservices': 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@7.2.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/microservices': 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@6.4.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/platform-express': 11.1.8(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)
 
   '@nestjs/jwt@11.0.1(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))':
@@ -7080,6 +7064,18 @@ snapshots:
       reflect-metadata: 0.2.2
     optionalDependencies:
       class-validator: 0.14.2
+
+  '@nestjs/microservices@11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@6.4.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
+    dependencies:
+      '@nestjs/common': 11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core': 11.1.8(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.8)(@nestjs/platform-express@11.1.8)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      iterare: 1.2.1
+      reflect-metadata: 0.2.2
+      rxjs: 7.8.2
+      tslib: 2.8.1
+    optionalDependencies:
+      '@grpc/grpc-js': 1.14.1
+      cache-manager: 6.4.0
 
   '@nestjs/microservices@11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@7.2.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
     dependencies:
@@ -7147,7 +7143,7 @@ snapshots:
       '@nestjs/core': 11.1.8(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.8)(@nestjs/platform-express@11.1.8)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       tslib: 2.8.1
     optionalDependencies:
-      '@nestjs/microservices': 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@7.2.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/microservices': 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@6.4.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/platform-express': 11.1.8(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)
 
   '@nestjs/typeorm@11.0.0(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.27(babel-plugin-macros@3.1.0)(pg@8.16.3)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.15.1)(@types/node@22.19.1)(typescript@5.9.3)))':
@@ -7329,38 +7325,28 @@ snapshots:
   '@redis/bloom@1.2.0(@redis/client@1.6.1)':
     dependencies:
       '@redis/client': 1.6.1
-    optional: true
 
   '@redis/client@1.6.1':
     dependencies:
       cluster-key-slot: 1.1.2
       generic-pool: 3.9.0
       yallist: 4.0.0
-    optional: true
-
-  '@redis/client@5.9.0':
-    dependencies:
-      cluster-key-slot: 1.1.2
 
   '@redis/graph@1.1.1(@redis/client@1.6.1)':
     dependencies:
       '@redis/client': 1.6.1
-    optional: true
 
   '@redis/json@1.0.7(@redis/client@1.6.1)':
     dependencies:
       '@redis/client': 1.6.1
-    optional: true
 
   '@redis/search@1.2.0(@redis/client@1.6.1)':
     dependencies:
       '@redis/client': 1.6.1
-    optional: true
 
   '@redis/time-series@1.1.0(@redis/client@1.6.1)':
     dependencies:
       '@redis/client': 1.6.1
-    optional: true
 
   '@rollup/rollup-android-arm-eabi@4.53.2':
     optional: true
@@ -8394,10 +8380,15 @@ snapshots:
 
   cac@6.7.14: {}
 
+  cache-manager@6.4.0:
+    dependencies:
+      keyv: 5.5.4
+
   cache-manager@7.2.4:
     dependencies:
-      '@cacheable/utils': 2.2.0
+      '@cacheable/utils': 2.3.1
       keyv: 5.5.4
+    optional: true
 
   cacheable-lookup@7.0.0: {}
 
@@ -9354,8 +9345,7 @@ snapshots:
 
   generator-function@2.0.1: {}
 
-  generic-pool@3.9.0:
-    optional: true
+  generic-pool@3.9.0: {}
 
   gensync@1.0.0-beta.2: {}
 
@@ -10423,7 +10413,7 @@ snapshots:
       '@grpc/grpc-js': 1.14.1
       '@nestjs/common': 11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.8(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.8)(@nestjs/platform-express@11.1.8)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/microservices': 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@7.2.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/microservices': 11.1.8(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.8(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(cache-manager@6.4.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)
 
   nice-try@1.0.5: {}
 
@@ -10856,7 +10846,6 @@ snapshots:
       '@redis/json': 1.0.7(@redis/client@1.6.1)
       '@redis/search': 1.2.0(@redis/client@1.6.1)
       '@redis/time-series': 1.1.0(@redis/client@1.6.1)
-    optional: true
 
   reflect-metadata@0.2.2: {}
 
@@ -11919,8 +11908,7 @@ snapshots:
 
   yallist@3.1.1: {}
 
-  yallist@4.0.0:
-    optional: true
+  yallist@4.0.0: {}
 
   yaml@1.10.2: {}
 
