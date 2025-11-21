@@ -11,7 +11,7 @@ import {
   GrpcUnknownException,
 } from 'nestjs-grpc-exceptions';
 import { ConfigService } from '@nestjs/config';
-import { ValidateTokenResponse } from '@iot-manager/proto';
+import { auth } from '@iot-manager/proto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
@@ -66,7 +66,7 @@ export class TokenService {
 
   async validateAccessToken(
     accessToken: string,
-  ): Promise<ValidateTokenResponse> {
+  ): Promise<auth.ValidateTokenResponse> {
     try {
       const data = await this.jwtService.verifyAsync<AccessTokenPayload>(
         accessToken,
@@ -75,7 +75,7 @@ export class TokenService {
         },
       );
 
-      const response: ValidateTokenResponse = {
+      const response: auth.ValidateTokenResponse = {
         id: data.id,
         email: data.email,
         // * 1000 for converting seconds to milliseconds

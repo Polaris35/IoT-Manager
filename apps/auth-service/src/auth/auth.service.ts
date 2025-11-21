@@ -7,7 +7,7 @@ import { ProviderMap } from './providers/types';
 import { LoginDto } from './dto/login.dto';
 import { Provider } from './providers';
 import { TokenService } from 'src/tokens/token.service';
-import { RegisterRequest, LoginResponse } from '@iot-manager/proto';
+import { auth } from '@iot-manager/proto';
 import {
   GrpcAlreadyExistsException,
   GrpcInvalidArgumentException,
@@ -23,7 +23,7 @@ export class AuthService {
     private readonly tokensServise: TokenService,
   ) {}
 
-  async register(dto: RegisterRequest): Promise<Account> {
+  async register(dto: auth.RegisterRequest): Promise<Account> {
     const existedAccount = await this.accountsRepository.findOneBy({
       email: dto.email,
     });
@@ -44,7 +44,7 @@ export class AuthService {
     dto: T,
     agent: string,
     providerType: AccountProvider,
-  ): Promise<LoginResponse> {
+  ): Promise<auth.LoginResponse> {
     const provider = this.providers[providerType] as Provider<T>;
     if (!provider) {
       throw new GrpcInvalidArgumentException(

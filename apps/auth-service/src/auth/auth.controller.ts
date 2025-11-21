@@ -3,30 +3,21 @@ import { AuthService } from './auth.service';
 import { AccountProvider } from '@entities';
 import { TokenService } from '@tokens/token.service';
 import { GrpcMethod } from '@nestjs/microservices';
-import type {
-  AuthServiceController,
-  CredentialsLoginRequest,
-  LoginResponse,
-  LogoutRequest,
-  RefreshTokensRequest,
-  RegisterRequest,
-  ValidateTokenRequest,
-} from '@iot-manager/proto';
-import { AUTH_SERVICE_NAME, ResponseStatus } from '@iot-manager/proto';
+import { auth } from '@iot-manager/proto';
 import {
   GrpcInvalidArgumentException,
   GrpcUnknownException,
 } from 'nestjs-grpc-exceptions';
 
 @Controller()
-export class AuthController implements AuthServiceController {
+export class AuthController implements auth.AuthServiceController {
   constructor(
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
   ) {}
 
-  @GrpcMethod(AUTH_SERVICE_NAME)
-  async credentialsRegister(dto: RegisterRequest) {
+  @GrpcMethod(auth.AUTH_SERVICE_NAME)
+  async credentialsRegister(dto: auth.RegisterRequest) {
     const account = await this.authService.register(dto);
 
     if (!account) {
@@ -35,12 +26,14 @@ export class AuthController implements AuthServiceController {
       );
     }
     return {
-      status: ResponseStatus.OK,
+      status: auth.ResponseStatus.OK,
     };
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME)
-  async credentialsLogin(dto: CredentialsLoginRequest): Promise<LoginResponse> {
+  @GrpcMethod(auth.AUTH_SERVICE_NAME)
+  async credentialsLogin(
+    dto: auth.CredentialsLoginRequest,
+  ): Promise<auth.LoginResponse> {
     const { agent, ...dtoWithoutAgent } = dto;
 
     const userWithTokens = await this.authService.authorize(
@@ -55,8 +48,8 @@ export class AuthController implements AuthServiceController {
     return userWithTokens;
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME)
-  async logout(dto: LogoutRequest) {
+  @GrpcMethod(auth.AUTH_SERVICE_NAME)
+  async logout(dto: auth.LogoutRequest) {
     if (!dto) {
       throw new GrpcInvalidArgumentException('refreshToken is required');
     }
@@ -64,12 +57,12 @@ export class AuthController implements AuthServiceController {
     console.log(rezult);
 
     return {
-      status: ResponseStatus.OK,
+      status: auth.ResponseStatus.OK,
     };
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME)
-  async refreshTokens(dto: RefreshTokensRequest) {
+  @GrpcMethod(auth.AUTH_SERVICE_NAME)
+  async refreshTokens(dto: auth.RefreshTokensRequest) {
     if (!dto) {
       throw new GrpcInvalidArgumentException('no data provided in dto');
     }
@@ -89,8 +82,8 @@ export class AuthController implements AuthServiceController {
     };
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME)
-  async validateAccessToken(request: ValidateTokenRequest) {
+  @GrpcMethod(auth.AUTH_SERVICE_NAME)
+  async validateAccessToken(request: auth.ValidateTokenRequest) {
     return this.tokenService.validateAccessToken(request.accessToken);
   }
 }

@@ -11,14 +11,15 @@ import { Reflector } from '@nestjs/core';
 import { firstValueFrom } from 'rxjs';
 import { Request } from 'express';
 import { ClientGrpc } from '@nestjs/microservices';
-import { AUTH_SERVICE_NAME, AuthServiceClient } from '@iot-manager/proto';
+import { auth } from '@iot-manager/proto';
 
 @Injectable()
 export class AuthGuard implements CanActivate, OnModuleInit {
-  private authServiceClient: AuthServiceClient;
+  private authServiceClient: auth.AuthServiceClient;
   onModuleInit() {
-    this.authServiceClient =
-      this.client.getService<AuthServiceClient>(AUTH_SERVICE_NAME);
+    this.authServiceClient = this.client.getService<auth.AuthServiceClient>(
+      auth.AUTH_SERVICE_NAME,
+    );
   }
 
   constructor(

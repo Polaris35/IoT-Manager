@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
-import { AUTH_PACKAGE_NAME } from '@iot-manager/proto';
+import { auth } from '@iot-manager/proto';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -16,7 +16,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           transport: Transport.GRPC,
           options: {
             url: configService.get<string>('AUTH_SERVICE_GRPC_URL'),
-            package: AUTH_PACKAGE_NAME,
+            package: auth.AUTH_PACKAGE_NAME,
             protoPath: require.resolve('@iot-manager/proto/proto/auth.proto'),
             loader: {
               keepCase: true,

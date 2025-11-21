@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package device;
+
+// Импортируем стандартные типы protobuf для работы с JSON, пустыми ответами,
+// обертками для опциональных полей и временными метками.
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+// Сервис, который будет реализован в DeviceManagementService
+// и вызываться из API Gateway.
+service DeviceManagementService {
+  // Создает новое устройство
+  rpc CreateDevice (CreateDeviceRequest) returns (Device);
+  // Получает устройство по ID
+  rpc GetDevice (GetDeviceRequest) returns (Device);
+  // Получает список устройств с фильтрацией и пагинацией
+  rpc FindDevices (FindDevicesRequest) returns (FindDevicesResponse);
+  // Обновляет данные устройства (частичное обновление)
+  rpc UpdateDevice (UpdateDeviceRequest) returns (Device);
+  // Удаляет устройство
+  rpc DeleteDevice (DeleteDeviceRequest) returns (google.protobuf.Empty);
+}
+
+// --- Enums ---
+
+enum DeviceProtocol {
+  PROTOCOL_UNSPECIFIED = 0;
+  MQTT = 1;
+  ZIGBEE = 2;
+  TUYA = 3;
+}
+
+enum DeviceStatus {
+  STATUS_UNSPECIFIED = 0;
+  ONLINE = 1;
+  OFFLINE = 2;
+}
+
+// --- Основные сообщения ---
+
+// Основная сущность устройства. Используется в ответах.
+message Device {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  DeviceProtocol protocol = 4;
+  DeviceStatus status = 5;
+  optional string group_id = 6;
+  google.protobuf.Struct connection_config = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+
+// --- Сообщения для запросов и ответов ---
+
+// Запрос на создание устройства
+message CreateDeviceRequest {
+  string user_id = 1; // API Gateway добавит это поле из JWT токена
+  string name = 2;
+  DeviceProtocol protocol = 3;
+  optional string group_id = 4;
+  google.protobuf.Struct connection_config = 5; // Гибкая структура для любых JSON данных
+}
+
+// Запрос на получение одного устройства
+message GetDeviceRequest {
+  string id = 1;
+  string user_id = 2; // Для проверки прав доступа
+}
+
+// Запрос на получение списка устройств
+message FindDevicesRequest {
+  string user_id = 1; // Обязательно, чтобы искать устройства только этого пользователя
+  optional int32 page = 2;
+  optional int32 limit = 3;
+  optional DeviceProtocol protocol = 4; // Фильтр по протоколу
+  optional string group_id = 5;       // Фильтр по группе
+}
+
+// Ответ со списком устройств
+message FindDevicesResponse {
+  repeated Device devices = 1;
+  int32 total = 2; // Общее количество найденных устройств для пагинации
+}
+
+// Запрос на обновление устройства
+message UpdateDeviceRequest {
+  string id = 1;
+  string user_id = 2; // Для проверки прав доступа
+
+  // Используем обертки (wrappers) для полей, которые можно обновлять.
+  // Это позволяет нам отличить "не передано" (поле не обновляется)
+  // от "передана пустая строка".
+  optional google.protobuf.StringValue name = 3;
+  
+  // Для groupId нам нужно иметь возможность установить его в null.
+  // Обертка StringValue здесь идеально подходит. Если передать wrapper
+  // с пустым string, мы можем интерпретировать это как "убрать из группы".
+  optional google.protobuf.StringValue group_id = 4;
+}
+ 
+// Запрос на удаление устройства
+message DeleteDeviceRequest {
+  string id = 1;
+  string user_id = 2; // Для проверки прав доступа
+}
