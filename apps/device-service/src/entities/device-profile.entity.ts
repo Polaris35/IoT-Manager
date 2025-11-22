@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { DeviceEntity } from './device.entity';
 
@@ -17,15 +17,18 @@ export enum DeviceProfileProtocol {
 
 @Entity('device_profiles')
 export class DeviceProfileEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string;
 
+  /** Name witch used for searching needed device  */
   @Column({ unique: true })
   name: string;
 
+  /** Name of company who develope device */
   @Column()
   vendor: string;
 
+  /** Description of device */
   @Column({ nullable: true })
   description: string;
 

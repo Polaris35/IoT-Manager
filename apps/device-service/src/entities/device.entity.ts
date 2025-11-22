@@ -16,21 +16,26 @@ export enum DeviceEntityProtocol {
 
 @Entity('devices')
 export class DeviceEntity {
+  /** Primary key for relations */
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  /** Account id from jwt token */
   @Column()
   userId: string;
 
+  /** Displayed name of device */
   @Column()
   name: string;
 
   @Column({ unique: true })
   externalId: string;
 
+  /** The Protocol for communication with a device */
   @Column({ type: 'enum', enum: DeviceEntityProtocol })
   protocol: string;
 
+  /** Id id of a group where device will be displayed */
   @Column({ nullable: true })
   groupId: string;
 
@@ -44,9 +49,11 @@ export class DeviceEntity {
   @JoinColumn({ name: 'profileId' })
   profile: DeviceProfileEntity;
 
+  /** The Profile wich used for handle device response */
   @Column()
   profileId: string;
 
+  /** Addictional information for connections. For Tuya Wi-Fi localKey and version, for HTTP token */
   @Column({ type: 'jsonb', default: {} })
   credentials: Record<string, any>;
 }

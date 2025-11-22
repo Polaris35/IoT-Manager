@@ -61,9 +61,10 @@ message Device {
 message CreateDeviceRequest {
   string user_id = 1; // API Gateway добавит это поле из JWT токена
   string name = 2;
-  DeviceProtocol protocol = 3;
-  optional string group_id = 4;
-  google.protobuf.Struct connection_config = 5; // Гибкая структура для любых JSON данных
+  string external_id = 3;
+  DeviceProtocol protocol = 4;
+  optional string group_id = 5;
+  google.protobuf.Struct connection_config = 6; // Гибкая структура для любых JSON данных
 }
 
 // Запрос на получение одного устройства
@@ -107,4 +108,41 @@ message UpdateDeviceRequest {
 message DeleteDeviceRequest {
   string id = 1;
   string user_id = 2; // Для проверки прав доступа
+}
+
+// --- Profiles section ---
+
+service ProfilesService {
+  // Поиск профилей (для выпадающего списка)
+  rpc Search (SearchProfilesRequest) returns (SearchProfilesResponse);
+  // Получение одного профиля (для валидации или просмотра деталей)
+  rpc FindOne (FindOneProfileRequest) returns (ProfileResponse);
+}
+
+// --- Profile Messages ---
+
+message SearchProfilesRequest {
+  string query = 1;     // Поисковая строка ("sonoff")
+  string protocol = 2;  // Фильтр ("WIFI", "ZIGBEE") - пустая строка если не выбран
+  int32 limit = 3;      // Сколько записей вернуть (по умолчанию 20)
+}
+
+message SearchProfilesResponse {
+  repeated ProfileResponse profiles = 1;
+}
+
+message FindOneProfileRequest {
+  string id = 1;
+}
+
+message ProfileResponse {
+  string id = 1;
+  string name = 2;
+  string vendor = 3;
+  string protocol = 4;
+  string description = 5;
+  
+  // Mappings передаем как структуру (JSON), 
+  // но для поиска (Search) это поле можно оставлять пустым для экономии трафика
+  google.protobuf.Struct mappings = 6; 
 }

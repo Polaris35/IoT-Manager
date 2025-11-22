@@ -29,6 +29,8 @@
     "@nestjs/microservices": "^11.1.9",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
+    "nestjs-grpc-exceptions": "^0.2.2",
+    "pb-util": "^1.0.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.27"

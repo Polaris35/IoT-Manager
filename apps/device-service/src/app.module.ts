@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DevicesModule } from './devices/devices.module';
+import { ProfilesModule } from './profiles/profiles.module';
+import { APP_FILTER } from '@nestjs/core';
+import { GrpcServerExceptionFilter } from 'nestjs-grpc-exceptions';
 
 @Module({
   imports: [
@@ -23,8 +25,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: true, // Только для разработки
       }),
     }),
+    DevicesModule,
+    ProfilesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GrpcServerExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

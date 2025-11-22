@@ -47,6 +47,7 @@ export interface CreateDeviceRequest {
   /** API Gateway добавит это поле из JWT токена */
   userId: string;
   name: string;
+  externalId: string;
   protocol: DeviceProtocol;
   groupId?:
     | string
@@ -111,6 +112,36 @@ export interface DeleteDeviceRequest {
   id: string;
   /** Для проверки прав доступа */
   userId: string;
+}
+
+export interface SearchProfilesRequest {
+  /** Поисковая строка ("sonoff") */
+  query: string;
+  /** Фильтр ("WIFI", "ZIGBEE") - пустая строка если не выбран */
+  protocol: string;
+  /** Сколько записей вернуть (по умолчанию 20) */
+  limit: number;
+}
+
+export interface SearchProfilesResponse {
+  profiles: ProfileResponse[];
+}
+
+export interface FindOneProfileRequest {
+  id: string;
+}
+
+export interface ProfileResponse {
+  id: string;
+  name: string;
+  vendor: string;
+  protocol: string;
+  description: string;
+  /**
+   * Mappings передаем как структуру (JSON),
+   * но для поиска (Search) это поле можно оставлять пустым для экономии трафика
+   */
+  mappings: { [key: string]: any } | undefined;
 }
 
 export const DEVICE_PACKAGE_NAME = "device";
@@ -189,3 +220,42 @@ export function DeviceManagementServiceControllerMethods() {
 }
 
 export const DEVICE_MANAGEMENT_SERVICE_NAME = "DeviceManagementService";
+
+export interface ProfilesServiceClient {
+  /** Поиск профилей (для выпадающего списка) */
+
+  search(request: SearchProfilesRequest): Observable<SearchProfilesResponse>;
+
+  /** Получение одного профиля (для валидации или просмотра деталей) */
+
+  findOne(request: FindOneProfileRequest): Observable<ProfileResponse>;
+}
+
+export interface ProfilesServiceController {
+  /** Поиск профилей (для выпадающего списка) */
+
+  search(
+    request: SearchProfilesRequest,
+  ): Promise<SearchProfilesResponse> | Observable<SearchProfilesResponse> | SearchProfilesResponse;
+
+  /** Получение одного профиля (для валидации или просмотра деталей) */
+
+  findOne(request: FindOneProfileRequest): Promise<ProfileResponse> | Observable<ProfileResponse> | ProfileResponse;
+}
+
+export function ProfilesServiceControllerMethods() {
+  return function (constructor: Function) {
+    const grpcMethods: string[] = ["search", "findOne"];
+    for (const method of grpcMethods) {
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
+      GrpcMethod("ProfilesService", method)(constructor.prototype[method], method, descriptor);
+    }
+    const grpcStreamMethods: string[] = [];
+    for (const method of grpcStreamMethods) {
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
+      GrpcStreamMethod("ProfilesService", method)(constructor.prototype[method], method, descriptor);
+    }
+  };
+}
+
+export const PROFILES_SERVICE_NAME = "ProfilesService";
