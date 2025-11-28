@@ -6,10 +6,12 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { device } from '@iot-manager/proto';
 import { ProfilesController } from './profiles.controller';
 import { ProfilesService } from './profiles.service';
+import { GroupsService } from './groups.service';
+import { GroupsController } from './groups.controller';
 
 @Module({
-  controllers: [DevicesController, ProfilesController],
-  providers: [DevicesService, ProfilesService],
+  controllers: [DevicesController, ProfilesController, GroupsController],
+  providers: [DevicesService, ProfilesService, GroupsService],
   imports: [
     ClientsModule.registerAsync([
       {
