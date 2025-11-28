@@ -10,7 +10,6 @@ import { wrappers } from "protobufjs";
 import { Observable } from "rxjs";
 import { Empty } from "./google/protobuf/empty";
 import { Struct } from "./google/protobuf/struct";
-import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "device";
 
@@ -22,24 +21,20 @@ export enum DeviceProtocol {
   UNRECOGNIZED = -1,
 }
 
-export enum DeviceStatus {
-  STATUS_UNSPECIFIED = 0,
-  ONLINE = 1,
-  OFFLINE = 2,
-  UNRECOGNIZED = -1,
-}
-
 /** Основная сущность устройства. Используется в ответах. */
 export interface Device {
   id: string;
   userId: string;
   name: string;
   protocol: DeviceProtocol;
-  status: DeviceStatus;
-  groupId?: string | undefined;
+  groupId?:
+    | string
+    | undefined;
+  /**
+   * google.protobuf.Timestamp created_at = 7;
+   * google.protobuf.Timestamp updated_at = 8;
+   */
   connectionConfig: { [key: string]: any } | undefined;
-  createdAt: Timestamp | undefined;
-  updatedAt: Timestamp | undefined;
 }
 
 /** Запрос на создание устройства */
@@ -49,9 +44,8 @@ export interface CreateDeviceRequest {
   name: string;
   externalId: string;
   protocol: DeviceProtocol;
-  groupId?:
-    | string
-    | undefined;
+  groupId?: string | undefined;
+  profileId: string;
   /** Гибкая структура для любых JSON данных */
   connectionConfig: { [key: string]: any } | undefined;
 }

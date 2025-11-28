@@ -15,6 +15,4 @@ export class ProfileResponseDto {
 
   @ApiProperty({ example: 'Реле Tasmota', required: false })
   description: string;
-
-  // Mappings в списке поиска обычно не нужны, поэтому скрываем или делаем optional
 }

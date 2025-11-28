@@ -1,30 +1,38 @@
+import { DeviceProtocol } from '@iot-manager/nest-libs/enums';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
-
-// Твой Enum протоколов (лучше вынести в shared, но можно и продублировать)
-export enum DeviceProtocol {
-  MQTT = 'MQTT',
-  ZIGBEE = 'ZIGBEE',
-  TUYA = 'TUYA',
-  WIFI = 'WIFI',
-  HTTP = 'HTTP',
-}
+import { Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class SearchProfileDto {
   @ApiPropertyOptional({
-    description: 'Поисковая строка (имя устройства или вендор)',
+    description: 'Search field (device name or vendor)',
     example: 'Sonoff',
   })
-  @IsOptional()
   @IsString()
-  @MinLength(2) // Не искать по 1 букве
-  q?: string;
+  @MinLength(2)
+  q: string;
 
   @ApiPropertyOptional({
-    description: 'Фильтр по протоколу',
+    description: 'Filter by protocol',
     enum: DeviceProtocol,
   })
   @IsOptional()
   @IsEnum(DeviceProtocol)
-  protocol?: DeviceProtocol;
+  protocol: DeviceProtocol;
+
+  @ApiPropertyOptional({
+    default: 20,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit: number;
 }

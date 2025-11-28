@@ -177,6 +177,9 @@ importers:
       '@grpc/proto-loader':
         specifier: ^0.8.0
         version: 0.8.0
+      '@iot-manager/nest-libs':
+        specifier: workspace:*
+        version: link:../../packages/nest-libs
       '@iot-manager/proto':
         specifier: workspace:*
         version: link:../../packages/proto
@@ -331,6 +334,9 @@ importers:
       nestjs-grpc-exceptions:
         specifier: ^0.2.2
         version: 0.2.2(@grpc/grpc-js@1.14.1)(@nestjs/common@11.1.9(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(@nestjs/microservices@11.1.9)
+      pb-util:
+        specifier: ^1.0.3
+        version: 1.0.3
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -510,6 +516,9 @@ importers:
 
   packages/nest-libs:
     dependencies:
+      '@iot-manager/proto':
+        specifier: workspace:*
+        version: link:../proto
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.9(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)

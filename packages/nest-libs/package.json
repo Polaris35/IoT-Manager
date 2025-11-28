@@ -15,6 +15,14 @@
     "./decorators": {
       "types": "./dist/decorators/index.d.ts",
       "default": "./dist/decorators/index.js"
+    },
+    "./mappers": {
+      "types": "./dist/mappers/index.d.ts",
+      "default": "./dist/mappers/index.js"
+    },
+    "./enums": {
+      "types": "./dist/types/enums/index.d.ts",
+      "default": "./dist/types/enums/index.js"
     }
   },
   "files": [
@@ -24,6 +32,7 @@
     "build-libs": "tsc"
   },
   "dependencies": {
+    "@iot-manager/proto": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
