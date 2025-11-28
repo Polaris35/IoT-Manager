@@ -39,13 +39,16 @@ export class AuthGuard implements CanActivate, OnModuleInit {
       throw new UnauthorizedException('Authorization token not found');
     }
 
-    const { id, email } = await firstValueFrom(
-      this.authServiceClient.validateAccessToken({ accessToken: token }),
-    );
+    try {
+      const { id, email } = await firstValueFrom(
+        this.authServiceClient.validateAccessToken({ accessToken: token }),
+      );
+      request['user'] = { id, email };
 
-    request['user'] = { id, email };
-
-    return true;
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
