@@ -1,0 +1,213 @@
+syntax = "proto3";
+
+package device;
+
+// Import standard protobuf types for JSON handling, empty responses,
+// wrappers for optional fields, and timestamps.
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+// Service implemented in DeviceManagementService
+// and called from the API Gateway.
+service DeviceManagementService {
+  // Creates a new device
+  rpc CreateDevice (CreateDeviceRequest) returns (Device);
+  // Retrieves a device by ID
+  rpc GetDevice (GetDeviceRequest) returns (Device);
+  // Retrieves a list of devices with filtering and pagination
+  rpc FindDevices (FindDevicesRequest) returns (FindDevicesResponse);
+  // Updates device data (partial update)
+  rpc UpdateDevice (UpdateDeviceRequest) returns (Device);
+  // Deletes a device
+  rpc DeleteDevice (DeleteDeviceRequest) returns (google.protobuf.Empty);
+
+  // --- GROUP METHODS ---
+
+  // Creates a new device group
+  rpc CreateGroup (CreateGroupRequest) returns (Group);
+
+  // Retrieves a single group by ID
+  rpc GetGroup (GetGroupRequest) returns (Group);
+
+  // Retrieves a list of groups with pagination
+  rpc FindGroups (FindGroupsRequest) returns (FindGroupsResponse);
+
+  // Updates group details
+  rpc UpdateGroup (UpdateGroupRequest) returns (Group);
+
+  // Deletes a group
+  rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupResponse);
+}
+
+// --- Enums ---
+
+enum DeviceProtocol {
+  PROTOCOL_UNSPECIFIED = 0;
+  MQTT = 1;
+  ZIGBEE = 2;
+  TUYA = 3;
+}
+
+// --- Core Messages ---
+
+// Core device entity used in responses.
+message Device {
+  string id = 1;
+  string userId = 2;
+  string name = 3;
+  DeviceProtocol protocol = 4;
+  optional string group_id = 5;
+  google.protobuf.Struct connection_config = 6;
+  // google.protobuf.Timestamp created_at = 7;
+  // google.protobuf.Timestamp updated_at = 8;
+}
+
+
+// --- Request and Response Messages ---
+
+// Request to create a device
+message CreateDeviceRequest {
+  string userId = 1; // API Gateway will inject this field from the JWT token
+  string name = 2;
+  string external_id = 3;
+  DeviceProtocol protocol = 4;
+  optional string group_id = 5;
+  string profile_id = 6;
+  google.protobuf.Struct connection_config = 7; // Flexible structure for arbitrary JSON data
+}
+
+// Request to get a single device
+message GetDeviceRequest {
+  string id = 1;
+  string userId = 2; // Used for access control checks
+}
+
+// Request to retrieve a list of devices
+message FindDevicesRequest {
+  string userId = 1; // Mandatory: restricts search to this user's devices
+  optional int32 page = 2;
+  optional int32 limit = 3;
+  optional DeviceProtocol protocol = 4; // Filter by protocol
+  optional string group_id = 5; // Filter by group
+}
+
+// Response containing a list of devices
+message FindDevicesResponse {
+  repeated Device devices = 1;
+  int32 total = 2; // Total count of found devices (for pagination)
+}
+
+// Request to update a device
+message UpdateDeviceRequest {
+  string id = 1;
+  string userId = 2; // Used for access control checks
+
+  // Use wrappers for fields that can be updated.
+  // This allows distinguishing between "undefined" (field is not being updated)
+  // and "empty string/value" (field should be cleared).
+  optional google.protobuf.StringValue name = 3;
+  
+  // For group_id, we need the ability to set it to null.
+  // StringValue wrapper is perfect here. If an empty string (or specific value)
+  // is passed within the wrapper, we can interpret it as "remove from group".
+  optional google.protobuf.StringValue group_id = 4;
+}
+ 
+// Request to delete a device
+message DeleteDeviceRequest {
+  string id = 1;
+  string userId = 2; // Used for access control checks
+}
+
+// ==========================================
+// GROUP MESSAGES
+// ==========================================
+
+message Group {
+  string id = 1;
+  string userId = 2;
+  string name = 3;
+  optional string description = 4;
+  // Creation timestamp
+  google.protobuf.Timestamp created_at = 5;
+  int32 devices_count = 6;
+}
+
+message CreateGroupRequest {
+  string userId = 1; // Extracted from JWT
+  string name = 2;
+  optional string description = 3;
+}
+
+message GetGroupRequest {
+  string id = 1;
+  string userId = 2; // For permission check
+}
+
+message FindGroupsRequest {
+  string userId = 1;
+  optional int32 page = 2;
+  optional int32 limit = 3;
+}
+
+message FindGroupsResponse {
+  repeated Group groups = 1;
+  int32 total = 2;
+}
+
+message UpdateGroupRequest {
+  string id = 1;
+  string userId = 2;
+  
+  // Using optional to distinguish between "undefined" (do not update) and empty string
+  optional string name = 3; 
+  optional string description = 4;
+}
+
+message DeleteGroupRequest {
+  string id = 1;
+  string userId = 2;
+}
+
+message DeleteGroupResponse {
+  bool success = 1;
+}
+
+// --- Profiles section ---
+
+service ProfilesService {
+  // Search profiles (e.g., for UI dropdown/autocomplete)
+  rpc Search (SearchProfilesRequest) returns (SearchProfilesResponse);
+  // Retrieve a single profile (for validation or detailed view)
+  rpc FindOne (FindOneProfileRequest) returns (ProfileResponse);
+}
+
+// --- Profile Messages ---
+
+message SearchProfilesRequest {
+  string query = 1;     // Search string (e.g., "sonoff")
+  string protocol = 2;  // Filter (e.g., "WIFI", "ZIGBEE") - empty string if not selected
+  int32 limit = 3;      // Number of records to return (default: 20)
+}
+
+message SearchProfilesResponse {
+  repeated ProfileResponse profiles = 1;
+}
+
+message FindOneProfileRequest {
+  string id = 1;
+}
+
+message ProfileResponse {
+  string id = 1;
+  string name = 2;
+  string vendor = 3;
+  string protocol = 4;
+  string description = 5;
+  
+  // Mappings are transferred as a Structure (JSON).
+  // For Search operations, this field can be left empty to save bandwidth.
+  google.protobuf.Struct mappings = 6; 
+}

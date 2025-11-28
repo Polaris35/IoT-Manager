@@ -17,57 +17,82 @@ export enum ResponseStatus {
 }
 
 export interface ValidateTokenRequest {
+  /** The JWT access token to verify */
   accessToken: string;
 }
 
+/** Represents the decoded payload of a valid token */
 export interface ValidateTokenResponse {
+  /** User ID extracted from the token */
   id: string;
+  /** User email extracted from the token */
   email: string;
+  /** Issued At timestamp */
   iat: string;
+  /** Expiration timestamp */
   exp: string;
 }
 
 export interface RefreshTokensRequest {
+  /** User Agent string (browser/device info) for security tracking */
   agent: string;
+  /** The current valid refresh token */
   refreshToken: string;
 }
 
 export interface RefreshTokensResponse {
+  /** Newly generated short-lived access token */
   accessToken: string;
+  /** Newly generated long-lived refresh token (token rotation) */
   refreshToken: RefreshToken | undefined;
 }
 
 export interface LogoutRequest {
+  /** The token to be removed from the database/whitelist */
   refreshToken: string;
 }
 
 export interface RegisterRequest {
   fullName: string;
   email: string;
+  /** Raw password (should be hashed by the service before storage) */
   password: string;
 }
 
+/**
+ * Generic response wrapper for operations that don't return specific data.
+ * Note: gRPC native status codes can also be used, but this allows explicit status handling.
+ */
 export interface EmptyResponseWithStatus {
   status: ResponseStatus;
+  /** Present only if status is ERROR */
   errorMessage?: string | undefined;
 }
 
 export interface CredentialsLoginRequest {
   email: string;
   password: string;
+  /** User Agent for session identification */
   agent: string;
 }
 
+/** Minimal user information returned upon successful login */
 export interface Account {
   id: string;
   fullName: string;
+  /** Note: field index 3 is skipped (or reserved) */
   email: string;
 }
 
+/** Represents the persistent refresh token entity */
 export interface RefreshToken {
+  /** Unique identifier of the token record in DB */
   id: string;
+  /** The actual token string (UUID or JWT) */
   token: string;
+  /** Expiration date in ISO 8601 format */
   expInISOString: string;
+  /** Device/Browser information associated with this token */
   userAgent: string;
 }
 
@@ -76,6 +101,7 @@ export interface RefreshAndAccessTokens {
   accessToken: string;
 }
 
+/** Composite response for login: contains user profile and security tokens */
 export interface LoginResponse {
   account: Account | undefined;
   tokens: RefreshAndAccessTokens | undefined;
@@ -83,34 +109,76 @@ export interface LoginResponse {
 
 export const AUTH_PACKAGE_NAME = "auth";
 
+/**
+ * Service responsible for user authentication, registration,
+ * session management, and JWT token validation.
+ */
+
 export interface AuthServiceClient {
+  /** Registers a new user account using email and password credentials. */
+
   credentialsRegister(request: RegisterRequest): Observable<EmptyResponseWithStatus>;
+
+  /** Authenticates a user via email/password and returns a session (tokens + account info). */
 
   credentialsLogin(request: CredentialsLoginRequest): Observable<LoginResponse>;
 
+  /** Invalidates a user session by revoking the specific refresh token. */
+
   logout(request: LogoutRequest): Observable<EmptyResponseWithStatus>;
 
+  /**
+   * Generates a new pair of tokens (Access + Refresh) using a valid existing refresh token.
+   * Used to maintain the session without re-entering credentials.
+   */
+
   refreshTokens(request: RefreshTokensRequest): Observable<RefreshTokensResponse>;
+
+  /**
+   * Verifies the validity of an Access Token.
+   * Typically used by the API Gateway or Guards to authorize incoming requests.
+   */
 
   validateAccessToken(request: ValidateTokenRequest): Observable<ValidateTokenResponse>;
 }
 
+/**
+ * Service responsible for user authentication, registration,
+ * session management, and JWT token validation.
+ */
+
 export interface AuthServiceController {
+  /** Registers a new user account using email and password credentials. */
+
   credentialsRegister(
     request: RegisterRequest,
   ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
+
+  /** Authenticates a user via email/password and returns a session (tokens + account info). */
 
   credentialsLogin(
     request: CredentialsLoginRequest,
   ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
+  /** Invalidates a user session by revoking the specific refresh token. */
+
   logout(
     request: LogoutRequest,
   ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
 
+  /**
+   * Generates a new pair of tokens (Access + Refresh) using a valid existing refresh token.
+   * Used to maintain the session without re-entering credentials.
+   */
+
   refreshTokens(
     request: RefreshTokensRequest,
   ): Promise<RefreshTokensResponse> | Observable<RefreshTokensResponse> | RefreshTokensResponse;
+
+  /**
+   * Verifies the validity of an Access Token.
+   * Typically used by the API Gateway or Guards to authorize incoming requests.
+   */
 
   validateAccessToken(
     request: ValidateTokenRequest,

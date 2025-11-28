@@ -16,21 +16,27 @@ export enum DeviceEntityProtocol {
 
 @Entity('devices')
 export class DeviceEntity {
+  /** Unique identifier for the device (UUID) */
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  /** The ID of the user account (extracted from the JWT token) */
   @Column()
   userId: string;
 
+  /** The display name of the device */
   @Column()
   name: string;
 
+  /** Unique external identifier (e.g., hardware MAC address or serial number) */
   @Column({ unique: true })
   externalId: string;
 
+  /** The communication protocol used by the device */
   @Column({ type: 'enum', enum: DeviceEntityProtocol })
   protocol: string;
 
+  /** The ID of the group to which the device belongs */
   @Column({ nullable: true })
   groupId: string;
 
@@ -44,9 +50,14 @@ export class DeviceEntity {
   @JoinColumn({ name: 'profileId' })
   profile: DeviceProfileEntity;
 
+  /** The ID of the profile used to process device data */
   @Column()
   profileId: string;
 
+  /**
+   * Additional connection credentials or configuration.
+   * Examples: 'localKey' and 'version' for Tuya, or 'token' for HTTP.
+   */
   @Column({ type: 'jsonb', default: {} })
   credentials: Record<string, any>;
 }

@@ -1,8 +1,4 @@
-import {
-  AUTH_SERVICE_NAME,
-  AuthServiceClient,
-  LoginResponse,
-} from '@iot-manager/proto';
+import { auth } from '@iot-manager/proto';
 import {
   BadRequestException,
   Inject,
@@ -21,10 +17,11 @@ import { AccountWithTokens } from './types/account-with-tokens';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
-  private authServiceClient: AuthServiceClient;
+  private authServiceClient: auth.AuthServiceClient;
   onModuleInit() {
-    this.authServiceClient =
-      this.client.getService<AuthServiceClient>(AUTH_SERVICE_NAME);
+    this.authServiceClient = this.client.getService<auth.AuthServiceClient>(
+      auth.AUTH_SERVICE_NAME,
+    );
   }
 
   constructor(@Inject('AUTH_PACKAGE') private client: ClientGrpc) {}
@@ -59,7 +56,9 @@ export class AuthService implements OnModuleInit {
     return await lastValueFrom(this.authServiceClient.refreshTokens(dto));
   }
 
-  private constructLoginRespose(loginData: LoginResponse): AccountWithTokens {
+  private constructLoginRespose(
+    loginData: auth.LoginResponse,
+  ): AccountWithTokens {
     return {
       account: loginData.account!,
       accessToken: loginData.tokens?.accessToken!,

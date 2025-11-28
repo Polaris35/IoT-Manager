@@ -15,8 +15,13 @@ import {
 } from '@iot-manager/nest-libs/dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GrpcToHttpInterceptor } from 'nestjs-grpc-exceptions';
-import { CurrentUser, UserAgent } from '@iot-manager/nest-libs/decorators';
+import {
+  CurrentUser,
+  Public,
+  UserAgent,
+} from '@iot-manager/nest-libs/decorators';
 
+@Public()
 @ApiTags('cats')
 @Controller('auth')
 @UseInterceptors(new GrpcToHttpInterceptor())
