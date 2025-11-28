@@ -8,7 +8,7 @@ import { GroupWithCount } from './types';
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
-  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME, 'CreateGroup')
+  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async createGroup(request: device.CreateGroupRequest): Promise<device.Group> {
     const group = await this.groupsService.create(
       request.userId,
@@ -18,13 +18,13 @@ export class GroupsController {
     return this.mapGroupToProto({ ...group, devicesCount: 0 });
   }
 
-  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME, 'GetGroup')
+  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async getGroup(request: device.GetGroupRequest) {
     const group = await this.groupsService.findOne(request.id, request.userId);
     return this.mapGroupToProto(group);
   }
 
-  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME, 'FindGroups')
+  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async findGroups(request: device.FindGroupsRequest) {
     const { groups, total } = await this.groupsService.findAll(
       request.userId,
@@ -38,7 +38,7 @@ export class GroupsController {
     };
   }
 
-  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME, 'UpdateGroup')
+  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async updateGroup(request: device.UpdateGroupRequest) {
     const updates: any = {};
     if (request.name) updates.name = request.name;
@@ -53,7 +53,7 @@ export class GroupsController {
     return this.mapGroupToProto(group);
   }
 
-  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME, 'DeleteGroup')
+  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async deleteGroup(request: device.DeleteGroupRequest) {
     const success = await this.groupsService.delete(request.id, request.userId);
     return { success };

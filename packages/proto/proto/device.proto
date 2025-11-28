@@ -55,7 +55,7 @@ enum DeviceProtocol {
 // Core device entity used in responses.
 message Device {
   string id = 1;
-  string user_id = 2;
+  string userId = 2;
   string name = 3;
   DeviceProtocol protocol = 4;
   optional string group_id = 5;
@@ -69,7 +69,7 @@ message Device {
 
 // Request to create a device
 message CreateDeviceRequest {
-  string user_id = 1; // API Gateway will inject this field from the JWT token
+  string userId = 1; // API Gateway will inject this field from the JWT token
   string name = 2;
   string external_id = 3;
   DeviceProtocol protocol = 4;
@@ -81,12 +81,12 @@ message CreateDeviceRequest {
 // Request to get a single device
 message GetDeviceRequest {
   string id = 1;
-  string user_id = 2; // Used for access control checks
+  string userId = 2; // Used for access control checks
 }
 
 // Request to retrieve a list of devices
 message FindDevicesRequest {
-  string user_id = 1; // Mandatory: restricts search to this user's devices
+  string userId = 1; // Mandatory: restricts search to this user's devices
   optional int32 page = 2;
   optional int32 limit = 3;
   optional DeviceProtocol protocol = 4; // Filter by protocol
@@ -102,7 +102,7 @@ message FindDevicesResponse {
 // Request to update a device
 message UpdateDeviceRequest {
   string id = 1;
-  string user_id = 2; // Used for access control checks
+  string userId = 2; // Used for access control checks
 
   // Use wrappers for fields that can be updated.
   // This allows distinguishing between "undefined" (field is not being updated)
@@ -118,7 +118,7 @@ message UpdateDeviceRequest {
 // Request to delete a device
 message DeleteDeviceRequest {
   string id = 1;
-  string user_id = 2; // Used for access control checks
+  string userId = 2; // Used for access control checks
 }
 
 // ==========================================
@@ -127,7 +127,7 @@ message DeleteDeviceRequest {
 
 message Group {
   string id = 1;
-  string user_id = 2;
+  string userId = 2;
   string name = 3;
   optional string description = 4;
   // Creation timestamp
@@ -136,18 +136,18 @@ message Group {
 }
 
 message CreateGroupRequest {
-  string user_id = 1; // Extracted from JWT
+  string userId = 1; // Extracted from JWT
   string name = 2;
   optional string description = 3;
 }
 
 message GetGroupRequest {
   string id = 1;
-  string user_id = 2; // For permission check
+  string userId = 2; // For permission check
 }
 
 message FindGroupsRequest {
-  string user_id = 1;
+  string userId = 1;
   optional int32 page = 2;
   optional int32 limit = 3;
 }
@@ -159,7 +159,7 @@ message FindGroupsResponse {
 
 message UpdateGroupRequest {
   string id = 1;
-  string user_id = 2;
+  string userId = 2;
   
   // Using optional to distinguish between "undefined" (do not update) and empty string
   optional string name = 3; 
@@ -168,7 +168,7 @@ message UpdateGroupRequest {
 
 message DeleteGroupRequest {
   string id = 1;
-  string user_id = 2;
+  string userId = 2;
 }
 
 message DeleteGroupResponse {
