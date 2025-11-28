@@ -10,9 +10,7 @@ import {
 import { DeviceProtocol } from '@iot-manager/nest-libs/enums';
 
 @Controller('devices')
-export class DevicesController
-  implements device.DeviceManagementServiceController
-{
+export class DevicesController {
   constructor(private readonly devicesService: DevicesService) {}
   @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async createDevice(

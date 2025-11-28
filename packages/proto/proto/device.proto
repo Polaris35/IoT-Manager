@@ -22,6 +22,23 @@ service DeviceManagementService {
   rpc UpdateDevice (UpdateDeviceRequest) returns (Device);
   // Deletes a device
   rpc DeleteDevice (DeleteDeviceRequest) returns (google.protobuf.Empty);
+
+  // --- GROUP METHODS ---
+
+  // Creates a new device group
+  rpc CreateGroup (CreateGroupRequest) returns (Group);
+
+  // Retrieves a single group by ID
+  rpc GetGroup (GetGroupRequest) returns (Group);
+
+  // Retrieves a list of groups with pagination
+  rpc FindGroups (FindGroupsRequest) returns (FindGroupsResponse);
+
+  // Updates group details
+  rpc UpdateGroup (UpdateGroupRequest) returns (Group);
+
+  // Deletes a group
+  rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupResponse);
 }
 
 // --- Enums ---
@@ -102,6 +119,60 @@ message UpdateDeviceRequest {
 message DeleteDeviceRequest {
   string id = 1;
   string user_id = 2; // Used for access control checks
+}
+
+// ==========================================
+// GROUP MESSAGES
+// ==========================================
+
+message Group {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  optional string description = 4;
+  // Creation timestamp
+  google.protobuf.Timestamp created_at = 5;
+  int32 devices_count = 6;
+}
+
+message CreateGroupRequest {
+  string user_id = 1; // Extracted from JWT
+  string name = 2;
+  optional string description = 3;
+}
+
+message GetGroupRequest {
+  string id = 1;
+  string user_id = 2; // For permission check
+}
+
+message FindGroupsRequest {
+  string user_id = 1;
+  optional int32 page = 2;
+  optional int32 limit = 3;
+}
+
+message FindGroupsResponse {
+  repeated Group groups = 1;
+  int32 total = 2;
+}
+
+message UpdateGroupRequest {
+  string id = 1;
+  string user_id = 2;
+  
+  // Using optional to distinguish between "undefined" (do not update) and empty string
+  optional string name = 3; 
+  optional string description = 4;
+}
+
+message DeleteGroupRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message DeleteGroupResponse {
+  bool success = 1;
 }
 
 // --- Profiles section ---

@@ -2,11 +2,15 @@ import { Module } from '@nestjs/common';
 import { DevicesController } from './devices.controller';
 import { DevicesService } from './devices.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DeviceEntity, DeviceProfileEntity } from '@entities';
+import { DeviceEntity, DeviceProfileEntity, GroupEntity } from '@entities';
+import { GroupsService } from './groups.service';
+import { GroupsController } from './groups.controller';
 
 @Module({
-  controllers: [DevicesController],
-  providers: [DevicesService],
-  imports: [TypeOrmModule.forFeature([DeviceEntity, DeviceProfileEntity])],
+  controllers: [DevicesController, GroupsController],
+  providers: [DevicesService, GroupsService],
+  imports: [
+    TypeOrmModule.forFeature([DeviceEntity, DeviceProfileEntity, GroupEntity]),
+  ],
 })
 export class DevicesModule {}

@@ -10,6 +10,7 @@ import { wrappers } from "protobufjs";
 import { Observable } from "rxjs";
 import { Empty } from "./google/protobuf/empty";
 import { Struct } from "./google/protobuf/struct";
+import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "device";
 
@@ -108,6 +109,59 @@ export interface DeleteDeviceRequest {
   userId: string;
 }
 
+export interface Group {
+  id: string;
+  userId: string;
+  name: string;
+  description?:
+    | string
+    | undefined;
+  /** Creation timestamp */
+  createdAt: Timestamp | undefined;
+  devicesCount: number;
+}
+
+export interface CreateGroupRequest {
+  /** Extracted from JWT */
+  userId: string;
+  name: string;
+  description?: string | undefined;
+}
+
+export interface GetGroupRequest {
+  id: string;
+  /** For permission check */
+  userId: string;
+}
+
+export interface FindGroupsRequest {
+  userId: string;
+  page?: number | undefined;
+  limit?: number | undefined;
+}
+
+export interface FindGroupsResponse {
+  groups: Group[];
+  total: number;
+}
+
+export interface UpdateGroupRequest {
+  id: string;
+  userId: string;
+  /** Using optional to distinguish between "undefined" (do not update) and empty string */
+  name?: string | undefined;
+  description?: string | undefined;
+}
+
+export interface DeleteGroupRequest {
+  id: string;
+  userId: string;
+}
+
+export interface DeleteGroupResponse {
+  success: boolean;
+}
+
 export interface SearchProfilesRequest {
   /** Search string (e.g., "sonoff") */
   query: string;
@@ -167,6 +221,26 @@ export interface DeviceManagementServiceClient {
   /** Deletes a device */
 
   deleteDevice(request: DeleteDeviceRequest): Observable<Empty>;
+
+  /** Creates a new device group */
+
+  createGroup(request: CreateGroupRequest): Observable<Group>;
+
+  /** Retrieves a single group by ID */
+
+  getGroup(request: GetGroupRequest): Observable<Group>;
+
+  /** Retrieves a list of groups with pagination */
+
+  findGroups(request: FindGroupsRequest): Observable<FindGroupsResponse>;
+
+  /** Updates group details */
+
+  updateGroup(request: UpdateGroupRequest): Observable<Group>;
+
+  /** Deletes a group */
+
+  deleteGroup(request: DeleteGroupRequest): Observable<DeleteGroupResponse>;
 }
 
 /**
@@ -196,11 +270,46 @@ export interface DeviceManagementServiceController {
   /** Deletes a device */
 
   deleteDevice(request: DeleteDeviceRequest): void;
+
+  /** Creates a new device group */
+
+  createGroup(request: CreateGroupRequest): Promise<Group> | Observable<Group> | Group;
+
+  /** Retrieves a single group by ID */
+
+  getGroup(request: GetGroupRequest): Promise<Group> | Observable<Group> | Group;
+
+  /** Retrieves a list of groups with pagination */
+
+  findGroups(
+    request: FindGroupsRequest,
+  ): Promise<FindGroupsResponse> | Observable<FindGroupsResponse> | FindGroupsResponse;
+
+  /** Updates group details */
+
+  updateGroup(request: UpdateGroupRequest): Promise<Group> | Observable<Group> | Group;
+
+  /** Deletes a group */
+
+  deleteGroup(
+    request: DeleteGroupRequest,
+  ): Promise<DeleteGroupResponse> | Observable<DeleteGroupResponse> | DeleteGroupResponse;
 }
 
 export function DeviceManagementServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["createDevice", "getDevice", "findDevices", "updateDevice", "deleteDevice"];
+    const grpcMethods: string[] = [
+      "createDevice",
+      "getDevice",
+      "findDevices",
+      "updateDevice",
+      "deleteDevice",
+      "createGroup",
+      "getGroup",
+      "findGroups",
+      "updateGroup",
+      "deleteGroup",
+    ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("DeviceManagementService", method)(constructor.prototype[method], method, descriptor);
