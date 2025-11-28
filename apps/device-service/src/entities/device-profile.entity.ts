@@ -17,21 +17,23 @@ export enum DeviceProfileProtocol {
 
 @Entity('device_profiles')
 export class DeviceProfileEntity {
+  /** Unique identifier for the device profile */
   @PrimaryColumn()
   id: string;
 
-  /** Name witch used for searching needed device  */
+  /** The name used to search for or identify the device profile */
   @Column({ unique: true })
   name: string;
 
-  /** Name of company who develope device */
+  /** The name of the company that manufactured the device */
   @Column()
   vendor: string;
 
-  /** Description of device */
+  /** A description of the device */
   @Column({ nullable: true })
   description: string;
 
+  /** The communication protocol used by the device (e.g., MQTT, Zigbee) */
   @Column({
     type: 'enum',
     enum: DeviceProfileProtocol,
@@ -39,6 +41,7 @@ export class DeviceProfileEntity {
   })
   protocol: string;
 
+  /** JSON mapping configuration to translate device-specific data to the system format */
   @Column({ type: 'jsonb', default: {} })
   mappings: Record<string, any>;
 

@@ -22,7 +22,7 @@ import { GrpcServerExceptionFilter } from 'nestjs-grpc-exceptions';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // Только для разработки
+        synchronize: true, // Only in develope mode
       }),
     }),
     DevicesModule,

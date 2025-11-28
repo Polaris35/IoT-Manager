@@ -17,6 +17,15 @@ export class DevicesService {
   ) {}
 
   // --- CREATE ---
+  /**
+   * Creates a new device for a specific user.
+   * Verifies if the device profile exists and ensures the external ID is unique.
+   *
+   * @param data - The data required to create a device
+   * @returns The created device entity
+   * @throws GrpcNotFoundException if the profile does not exist
+   * @throws GrpcAlreadyExistsException if a device with the same external ID already exists
+   */
   async create(data: {
     userId: string;
     name: string;
@@ -37,7 +46,9 @@ export class DevicesService {
       where: { externalId: data.externalId },
     });
     if (existing) {
-      throw new GrpcAlreadyExistsException('Device with this ID already exist');
+      throw new GrpcAlreadyExistsException(
+        'Device with this external ID already exists',
+      );
     }
 
     const device = this.deviceRepository.create({
@@ -54,6 +65,14 @@ export class DevicesService {
   }
 
   // --- GET ONE ---
+  /**
+   * Finds a single device by its ID and ensures it belongs to the requesting user.
+   *
+   * @param id - The internal ID of the device
+   * @param userId - The ID of the user requesting the device
+   * @returns The device entity with relations
+   * @throws GrpcNotFoundException if the device is not found
+   */
   async findOne(id: string, userId: string) {
     const device = await this.deviceRepository.findOne({
       where: { id, userId },
@@ -67,6 +86,12 @@ export class DevicesService {
     return device;
   }
 
+  /**
+   * Retrieves a paginated list of devices for a specific user, optionally filtered by group.
+   *
+   * @param params - Pagination and filtering parameters
+   * @returns An object containing the list of items and the total count
+   */
   async findAll(params: {
     userId: string;
     page: number;
@@ -94,6 +119,14 @@ export class DevicesService {
     return { items, total };
   }
 
+  /**
+   * Updates an existing device.
+   *
+   * @param id - The ID of the device to update
+   * @param userId - The ID of the owner
+   * @param updates - Partial device data to update
+   * @returns The updated device entity
+   */
   async update(id: string, userId: string, updates: Partial<DeviceEntity>) {
     const device = await this.findOne(id, userId);
 
@@ -101,6 +134,13 @@ export class DevicesService {
     return this.deviceRepository.save(updatedDevice);
   }
 
+  /**
+   * Deletes a device by ID.
+   *
+   * @param id - The ID of the device to delete
+   * @param userId - The ID of the owner
+   * @throws GrpcNotFoundException if the device could not be found or deleted
+   */
   async delete(id: string, userId: string) {
     const result = await this.deviceRepository.delete({ id, userId });
     if (result.affected === 0) {

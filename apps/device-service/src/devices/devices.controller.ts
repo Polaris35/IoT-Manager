@@ -48,7 +48,6 @@ export class DevicesController
       groupId: request.groupId,
     });
 
-    console.log('findDevices total devices: ', total);
     return {
       devices: items.map((item) => this.mapEntityToProto(item)),
       total,
@@ -60,7 +59,7 @@ export class DevicesController
   ): Promise<device.Device> {
     const updates: Partial<DeviceEntity> = {};
     if (request.name) updates.name = request.name;
-    // Логика для groupId: если пришла пустая строка - сбрасываем, если ID - ставим
+    // Logic for groupId: if an empty string is received, reset the group (assign undefined); otherwise, set the provided group ID.
     if (request.groupId !== undefined) {
       updates.groupId = request.groupId === '' ? undefined : request.groupId;
     }

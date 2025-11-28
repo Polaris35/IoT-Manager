@@ -9,8 +9,6 @@ import { device } from '@iot-manager/proto';
 export class ProfilesController implements device.ProfilesServiceController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  // Имя метода должно совпадать с .proto (Search)
-  // Или можно указать явно: @GrpcMethod('ProfilesService', 'Search')
   @GrpcMethod(device.PROFILES_SERVICE_NAME)
   async search(data: { query: string; protocol: string; limit: number }) {
     const results = await this.profilesService.search(
@@ -19,15 +17,14 @@ export class ProfilesController implements device.ProfilesServiceController {
       data.limit,
     );
 
-    // 2. Мапим ответ в формат gRPC
+    // Map the results to the gRPC response format
     const mappedProfiles = results.map((p) => ({
       id: p.id,
       name: p.name,
       vendor: p.vendor,
       protocol: p.protocol,
       description: p.description || '',
-      // Конвертируем JSONB маппинг в gRPC Struct, если нужно передавать
-      // Но для поиска это поле часто можно не отправлять (будет null)
+      // Convert JSONB mappings to a gRPC Struct, if present
       mappings: p.mappings ? struct.encode(p.mappings) : undefined,
     }));
 
