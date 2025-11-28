@@ -21,7 +21,7 @@ export enum DeviceProtocol {
   UNRECOGNIZED = -1,
 }
 
-/** Основная сущность устройства. Используется в ответах. */
+/** Core device entity used in responses. */
 export interface Device {
   id: string;
   userId: string;
@@ -37,83 +37,83 @@ export interface Device {
   connectionConfig: { [key: string]: any } | undefined;
 }
 
-/** Запрос на создание устройства */
+/** Request to create a device */
 export interface CreateDeviceRequest {
-  /** API Gateway добавит это поле из JWT токена */
+  /** API Gateway will inject this field from the JWT token */
   userId: string;
   name: string;
   externalId: string;
   protocol: DeviceProtocol;
   groupId?: string | undefined;
   profileId: string;
-  /** Гибкая структура для любых JSON данных */
+  /** Flexible structure for arbitrary JSON data */
   connectionConfig: { [key: string]: any } | undefined;
 }
 
-/** Запрос на получение одного устройства */
+/** Request to get a single device */
 export interface GetDeviceRequest {
   id: string;
-  /** Для проверки прав доступа */
+  /** Used for access control checks */
   userId: string;
 }
 
-/** Запрос на получение списка устройств */
+/** Request to retrieve a list of devices */
 export interface FindDevicesRequest {
-  /** Обязательно, чтобы искать устройства только этого пользователя */
+  /** Mandatory: restricts search to this user's devices */
   userId: string;
   page?: number | undefined;
   limit?:
     | number
     | undefined;
-  /** Фильтр по протоколу */
+  /** Filter by protocol */
   protocol?:
     | DeviceProtocol
     | undefined;
-  /** Фильтр по группе */
+  /** Filter by group */
   groupId?: string | undefined;
 }
 
-/** Ответ со списком устройств */
+/** Response containing a list of devices */
 export interface FindDevicesResponse {
   devices: Device[];
-  /** Общее количество найденных устройств для пагинации */
+  /** Total count of found devices (for pagination) */
   total: number;
 }
 
-/** Запрос на обновление устройства */
+/** Request to update a device */
 export interface UpdateDeviceRequest {
   id: string;
-  /** Для проверки прав доступа */
+  /** Used for access control checks */
   userId: string;
   /**
-   * Используем обертки (wrappers) для полей, которые можно обновлять.
-   * Это позволяет нам отличить "не передано" (поле не обновляется)
-   * от "передана пустая строка".
+   * Use wrappers for fields that can be updated.
+   * This allows distinguishing between "undefined" (field is not being updated)
+   * and "empty string/value" (field should be cleared).
    */
   name?:
     | string
     | undefined;
   /**
-   * Для groupId нам нужно иметь возможность установить его в null.
-   * Обертка StringValue здесь идеально подходит. Если передать wrapper
-   * с пустым string, мы можем интерпретировать это как "убрать из группы".
+   * For group_id, we need the ability to set it to null.
+   * StringValue wrapper is perfect here. If an empty string (or specific value)
+   * is passed within the wrapper, we can interpret it as "remove from group".
    */
   groupId?: string | undefined;
 }
 
-/** Запрос на удаление устройства */
+/** Request to delete a device */
 export interface DeleteDeviceRequest {
   id: string;
-  /** Для проверки прав доступа */
+  /** Used for access control checks */
   userId: string;
 }
 
 export interface SearchProfilesRequest {
-  /** Поисковая строка ("sonoff") */
+  /** Search string (e.g., "sonoff") */
   query: string;
-  /** Фильтр ("WIFI", "ZIGBEE") - пустая строка если не выбран */
+  /** Filter (e.g., "WIFI", "ZIGBEE") - empty string if not selected */
   protocol: string;
-  /** Сколько записей вернуть (по умолчанию 20) */
+  /** Number of records to return (default: 20) */
   limit: number;
 }
 
@@ -132,8 +132,8 @@ export interface ProfileResponse {
   protocol: string;
   description: string;
   /**
-   * Mappings передаем как структуру (JSON),
-   * но для поиска (Search) это поле можно оставлять пустым для экономии трафика
+   * Mappings are transferred as a Structure (JSON).
+   * For Search operations, this field can be left empty to save bandwidth.
    */
   mappings: { [key: string]: any } | undefined;
 }
@@ -143,57 +143,57 @@ export const DEVICE_PACKAGE_NAME = "device";
 wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struct.unwrap } as any;
 
 /**
- * Сервис, который будет реализован в DeviceManagementService
- * и вызываться из API Gateway.
+ * Service implemented in DeviceManagementService
+ * and called from the API Gateway.
  */
 
 export interface DeviceManagementServiceClient {
-  /** Создает новое устройство */
+  /** Creates a new device */
 
   createDevice(request: CreateDeviceRequest): Observable<Device>;
 
-  /** Получает устройство по ID */
+  /** Retrieves a device by ID */
 
   getDevice(request: GetDeviceRequest): Observable<Device>;
 
-  /** Получает список устройств с фильтрацией и пагинацией */
+  /** Retrieves a list of devices with filtering and pagination */
 
   findDevices(request: FindDevicesRequest): Observable<FindDevicesResponse>;
 
-  /** Обновляет данные устройства (частичное обновление) */
+  /** Updates device data (partial update) */
 
   updateDevice(request: UpdateDeviceRequest): Observable<Device>;
 
-  /** Удаляет устройство */
+  /** Deletes a device */
 
   deleteDevice(request: DeleteDeviceRequest): Observable<Empty>;
 }
 
 /**
- * Сервис, который будет реализован в DeviceManagementService
- * и вызываться из API Gateway.
+ * Service implemented in DeviceManagementService
+ * and called from the API Gateway.
  */
 
 export interface DeviceManagementServiceController {
-  /** Создает новое устройство */
+  /** Creates a new device */
 
   createDevice(request: CreateDeviceRequest): Promise<Device> | Observable<Device> | Device;
 
-  /** Получает устройство по ID */
+  /** Retrieves a device by ID */
 
   getDevice(request: GetDeviceRequest): Promise<Device> | Observable<Device> | Device;
 
-  /** Получает список устройств с фильтрацией и пагинацией */
+  /** Retrieves a list of devices with filtering and pagination */
 
   findDevices(
     request: FindDevicesRequest,
   ): Promise<FindDevicesResponse> | Observable<FindDevicesResponse> | FindDevicesResponse;
 
-  /** Обновляет данные устройства (частичное обновление) */
+  /** Updates device data (partial update) */
 
   updateDevice(request: UpdateDeviceRequest): Promise<Device> | Observable<Device> | Device;
 
-  /** Удаляет устройство */
+  /** Deletes a device */
 
   deleteDevice(request: DeleteDeviceRequest): void;
 }
@@ -216,23 +216,23 @@ export function DeviceManagementServiceControllerMethods() {
 export const DEVICE_MANAGEMENT_SERVICE_NAME = "DeviceManagementService";
 
 export interface ProfilesServiceClient {
-  /** Поиск профилей (для выпадающего списка) */
+  /** Search profiles (e.g., for UI dropdown/autocomplete) */
 
   search(request: SearchProfilesRequest): Observable<SearchProfilesResponse>;
 
-  /** Получение одного профиля (для валидации или просмотра деталей) */
+  /** Retrieve a single profile (for validation or detailed view) */
 
   findOne(request: FindOneProfileRequest): Observable<ProfileResponse>;
 }
 
 export interface ProfilesServiceController {
-  /** Поиск профилей (для выпадающего списка) */
+  /** Search profiles (e.g., for UI dropdown/autocomplete) */
 
   search(
     request: SearchProfilesRequest,
   ): Promise<SearchProfilesResponse> | Observable<SearchProfilesResponse> | SearchProfilesResponse;
 
-  /** Получение одного профиля (для валидации или просмотра деталей) */
+  /** Retrieve a single profile (for validation or detailed view) */
 
   findOne(request: FindOneProfileRequest): Promise<ProfileResponse> | Observable<ProfileResponse> | ProfileResponse;
 }
