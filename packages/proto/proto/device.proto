@@ -2,25 +2,25 @@ syntax = "proto3";
 
 package device;
 
-// Импортируем стандартные типы protobuf для работы с JSON, пустыми ответами,
-// обертками для опциональных полей и временными метками.
+// Import standard protobuf types for JSON handling, empty responses,
+// wrappers for optional fields, and timestamps.
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
-// Сервис, который будет реализован в DeviceManagementService
-// и вызываться из API Gateway.
+// Service implemented in DeviceManagementService
+// and called from the API Gateway.
 service DeviceManagementService {
-  // Создает новое устройство
+  // Creates a new device
   rpc CreateDevice (CreateDeviceRequest) returns (Device);
-  // Получает устройство по ID
+  // Retrieves a device by ID
   rpc GetDevice (GetDeviceRequest) returns (Device);
-  // Получает список устройств с фильтрацией и пагинацией
+  // Retrieves a list of devices with filtering and pagination
   rpc FindDevices (FindDevicesRequest) returns (FindDevicesResponse);
-  // Обновляет данные устройства (частичное обновление)
+  // Updates device data (partial update)
   rpc UpdateDevice (UpdateDeviceRequest) returns (Device);
-  // Удаляет устройство
+  // Deletes a device
   rpc DeleteDevice (DeleteDeviceRequest) returns (google.protobuf.Empty);
 }
 
@@ -33,9 +33,9 @@ enum DeviceProtocol {
   TUYA = 3;
 }
 
-// --- Основные сообщения ---
+// --- Core Messages ---
 
-// Основная сущность устройства. Используется в ответах.
+// Core device entity used in responses.
 message Device {
   string id = 1;
   string user_id = 2;
@@ -48,77 +48,77 @@ message Device {
 }
 
 
-// --- Сообщения для запросов и ответов ---
+// --- Request and Response Messages ---
 
-// Запрос на создание устройства
+// Request to create a device
 message CreateDeviceRequest {
-  string user_id = 1; // API Gateway добавит это поле из JWT токена
+  string user_id = 1; // API Gateway will inject this field from the JWT token
   string name = 2;
   string external_id = 3;
   DeviceProtocol protocol = 4;
   optional string group_id = 5;
   string profile_id = 6;
-  google.protobuf.Struct connection_config = 7; // Гибкая структура для любых JSON данных
+  google.protobuf.Struct connection_config = 7; // Flexible structure for arbitrary JSON data
 }
 
-// Запрос на получение одного устройства
+// Request to get a single device
 message GetDeviceRequest {
   string id = 1;
-  string user_id = 2; // Для проверки прав доступа
+  string user_id = 2; // Used for access control checks
 }
 
-// Запрос на получение списка устройств
+// Request to retrieve a list of devices
 message FindDevicesRequest {
-  string user_id = 1; // Обязательно, чтобы искать устройства только этого пользователя
+  string user_id = 1; // Mandatory: restricts search to this user's devices
   optional int32 page = 2;
   optional int32 limit = 3;
-  optional DeviceProtocol protocol = 4; // Фильтр по протоколу
-  optional string group_id = 5;       // Фильтр по группе
+  optional DeviceProtocol protocol = 4; // Filter by protocol
+  optional string group_id = 5; // Filter by group
 }
 
-// Ответ со списком устройств
+// Response containing a list of devices
 message FindDevicesResponse {
   repeated Device devices = 1;
-  int32 total = 2; // Общее количество найденных устройств для пагинации
+  int32 total = 2; // Total count of found devices (for pagination)
 }
 
-// Запрос на обновление устройства
+// Request to update a device
 message UpdateDeviceRequest {
   string id = 1;
-  string user_id = 2; // Для проверки прав доступа
+  string user_id = 2; // Used for access control checks
 
-  // Используем обертки (wrappers) для полей, которые можно обновлять.
-  // Это позволяет нам отличить "не передано" (поле не обновляется)
-  // от "передана пустая строка".
+  // Use wrappers for fields that can be updated.
+  // This allows distinguishing between "undefined" (field is not being updated)
+  // and "empty string/value" (field should be cleared).
   optional google.protobuf.StringValue name = 3;
   
-  // Для groupId нам нужно иметь возможность установить его в null.
-  // Обертка StringValue здесь идеально подходит. Если передать wrapper
-  // с пустым string, мы можем интерпретировать это как "убрать из группы".
+  // For group_id, we need the ability to set it to null.
+  // StringValue wrapper is perfect here. If an empty string (or specific value)
+  // is passed within the wrapper, we can interpret it as "remove from group".
   optional google.protobuf.StringValue group_id = 4;
 }
  
-// Запрос на удаление устройства
+// Request to delete a device
 message DeleteDeviceRequest {
   string id = 1;
-  string user_id = 2; // Для проверки прав доступа
+  string user_id = 2; // Used for access control checks
 }
 
 // --- Profiles section ---
 
 service ProfilesService {
-  // Поиск профилей (для выпадающего списка)
+  // Search profiles (e.g., for UI dropdown/autocomplete)
   rpc Search (SearchProfilesRequest) returns (SearchProfilesResponse);
-  // Получение одного профиля (для валидации или просмотра деталей)
+  // Retrieve a single profile (for validation or detailed view)
   rpc FindOne (FindOneProfileRequest) returns (ProfileResponse);
 }
 
 // --- Profile Messages ---
 
 message SearchProfilesRequest {
-  string query = 1;     // Поисковая строка ("sonoff")
-  string protocol = 2;  // Фильтр ("WIFI", "ZIGBEE") - пустая строка если не выбран
-  int32 limit = 3;      // Сколько записей вернуть (по умолчанию 20)
+  string query = 1;     // Search string (e.g., "sonoff")
+  string protocol = 2;  // Filter (e.g., "WIFI", "ZIGBEE") - empty string if not selected
+  int32 limit = 3;      // Number of records to return (default: 20)
 }
 
 message SearchProfilesResponse {
@@ -136,7 +136,7 @@ message ProfileResponse {
   string protocol = 4;
   string description = 5;
   
-  // Mappings передаем как структуру (JSON), 
-  // но для поиска (Search) это поле можно оставлять пустым для экономии трафика
+  // Mappings are transferred as a Structure (JSON).
+  // For Search operations, this field can be left empty to save bandwidth.
   google.protobuf.Struct mappings = 6; 
 }
