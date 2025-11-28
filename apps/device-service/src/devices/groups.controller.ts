@@ -15,7 +15,7 @@ export class GroupsController {
       request.name,
       request.description,
     );
-    return this.mapGroupToProto({ ...group, devicesCount: 0 });
+    return this.mapGroupToProto(group);
   }
 
   @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
@@ -66,7 +66,7 @@ export class GroupsController {
       userId: entity.userId,
       name: entity.name,
       description: entity.description,
-      devicesCount: entity.devicesCount || 0, // Поле из loadRelationCountAndMap
+      devicesCount: entity.devicesCount || 0,
       createdAt: {
         seconds: Math.floor(entity.createdAt.getTime() / 1000),
         nanos: 0,

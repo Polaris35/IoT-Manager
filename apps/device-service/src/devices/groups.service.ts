@@ -1,5 +1,4 @@
 import { GroupEntity } from '@entities';
-import { device } from '@iot-manager/proto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GrpcNotFoundException } from 'nestjs-grpc-exceptions';
@@ -13,34 +12,67 @@ export class GroupsService {
     private groupRepository: Repository<GroupEntity>,
   ) {}
 
-  // --- CREATE ---
-  async create(userId: string, name: string, description?: string) {
+  /**
+   * Creates a new device group.
+   * Initializes with 0 devices.
+   *
+   * @param userId Owner's ID
+   * @param name Group name
+   * @param description Optional description
+   */
+  async create(
+    userId: string,
+    name: string,
+    description?: string,
+  ): Promise<GroupWithCount> {
     const group = this.groupRepository.create({
       userId,
       name,
       description,
     });
-    return this.groupRepository.save(group);
+
+    const savedGroup = await this.groupRepository.save(group);
+
+    // Return consistent structure with devicesCount
+    return {
+      ...savedGroup,
+      devicesCount: 0,
+    };
   }
 
-  // --- FIND ONE ---
+  /**
+   * Retrieves a single group by ID and User ID.
+   * Includes the count of associated devices.
+   *
+   * @param id Group UUID
+   * @param userId Owner UUID
+   * @throws RpcException if group is not found
+   */
   async findOne(id: string, userId: string): Promise<GroupWithCount> {
-    const group = await this.groupRepository.findOne({
-      where: { id, userId },
-      relations: ['devices'],
-    });
+    // Optimized: Use QueryBuilder to count devices without fetching them
+    const group = await this.groupRepository
+      .createQueryBuilder('group')
+      .where('group.id = :id', { id })
+      .andWhere('group.userId = :userId', { userId })
+      .loadRelationCountAndMap('group.devicesCount', 'group.devices')
+      .getOne();
 
     if (!group) {
       throw new GrpcNotFoundException('Group not found');
     }
 
-    return {
-      ...group,
-      devicesCount: group.devices?.length || 0,
-    };
+    // Cast is safe here because loadRelationCountAndMap populates the property
+    return group as GroupWithCount;
   }
 
-  // --- FIND ALL (With Count!) ---
+  /**
+   * Retrieves a paginated list of groups for a specific user.
+   * Results are ordered by creation date (newest first).
+   *
+   * @param userId Owner UUID
+   * @param page Page number (1-based)
+   * @param limit Number of items per page
+   */
   async findAll(
     userId: string,
     page: number,
@@ -52,9 +84,9 @@ export class GroupsService {
       .createQueryBuilder('group')
       .where('group.userId = :userId', { userId })
       .loadRelationCountAndMap('group.devicesCount', 'group.devices')
+      .orderBy('group.createdAt', 'DESC')
       .skip(skip)
       .take(limit)
-      .orderBy('group.createdAt', 'DESC')
       .getManyAndCount();
 
     return {
@@ -63,30 +95,48 @@ export class GroupsService {
     };
   }
 
-  // --- UPDATE ---
+  /**
+   * Updates an existing group.
+   * Performs a partial update and returns the updated entity.
+   *
+   * @param id Group UUID
+   * @param userId Owner UUID
+   * @param updates Partial group object
+   */
   async update(
     id: string,
     userId: string,
     updates: Partial<GroupEntity>,
   ): Promise<GroupWithCount> {
-    // findOne уже должен возвращать GroupWithCount (см. реализацию ниже)
+    // Ensure the group exists and belongs to the user
     const group = await this.findOne(id, userId);
 
+    // Merge updates into the existing entity
     this.groupRepository.merge(group, updates);
     const saved = await this.groupRepository.save(group);
 
     return {
       ...saved,
-      devicesCount: group.devicesCount || 0, // Сохраняем счетчик, который был при загрузке
+      // Persist the count we fetched in findOne
+      devicesCount: group.devicesCount,
     };
   }
 
-  // --- DELETE ---
-  async delete(id: string, userId: string) {
+  /**
+   * Deletes a group by ID.
+   *
+   * @param id Group UUID
+   * @param userId Owner UUID
+   * @returns true if deletion was successful
+   * @throws RpcException if group is not found
+   */
+  async delete(id: string, userId: string): Promise<boolean> {
     const result = await this.groupRepository.delete({ id, userId });
+
     if (result.affected === 0) {
       throw new GrpcNotFoundException('Group not found');
     }
+
     return true;
   }
 }
