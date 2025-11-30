@@ -7,7 +7,7 @@ import {
 
 export default [
   layout("./layouts/AuthLayout.tsx", [
-    route("auth/register", "pages/auth/RegisterPage.tsx"),
-    route("auth/login", "pages/auth/LoginPage.tsx"),
+    route("auth/register", "modules/auth/pages/RegisterPage.tsx"),
+    route("auth/login", "modules/auth/pages/LoginPage.tsx"),
   ]),
 ] satisfies RouteConfig;

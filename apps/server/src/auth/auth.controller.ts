@@ -22,7 +22,7 @@ import {
 } from '@iot-manager/nest-libs/decorators';
 
 @Public()
-@ApiTags('cats')
+@ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(new GrpcToHttpInterceptor())
 export class AuthController {
