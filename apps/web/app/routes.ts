@@ -6,8 +6,16 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-  layout("./layouts/AuthLayout.tsx", [
-    route("auth/register", "pages/auth/RegisterPage.tsx"),
-    route("auth/login", "pages/auth/LoginPage.tsx"),
+  // Public routes
+  layout("components/layouts/AuthLayout.tsx", [
+    route("auth/register", "modules/auth/pages/RegisterPage.tsx"),
+    route("auth/login", "modules/auth/pages/LoginPage.tsx"),
+  ]),
+
+  layout("components/ProtectedRoute.tsx", [
+    // Protected routes
+    layout("components/layouts/DashboardLayout.tsx", [
+      index("modules/dashboard/pages/DashboardPage.tsx"),
+    ]),
   ]),
 ] satisfies RouteConfig;

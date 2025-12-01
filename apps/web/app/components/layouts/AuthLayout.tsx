@@ -1,7 +1,7 @@
 import { CssBaseline, Stack, useColorScheme } from "@mui/material";
 import { Outlet } from "react-router";
-import AppTheme from "~/components/theme/AppTheme";
-import ColorModeSelect from "~/components/theme/ColorModeSelect";
+import AppTheme from "~/theme/AppTheme";
+import ColorModeSelect from "~/theme/ColorModeSelect";
 
 export default function AuthLayout() {
   return (

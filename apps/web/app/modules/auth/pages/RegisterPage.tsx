@@ -3,13 +3,13 @@ import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import MuiCard from "@mui/material/Card";
-import { FacebookButton, GoogleButton, LoginForm } from "~/features/auth";
+import { FacebookButton, GoogleButton, RegisterForm } from "~/modules/auth";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <MuiCard
       variant="outlined"
-      className="z-2 flex flex-col self-center w-full p-6 gap-4 mx-auto sm:max-w-[450px] shadow-[0_5px_15px_0_hsla(220,30%,5%,0.05),0_15px_35px_-5px_hsla(220,25%,10%,0.05)] [&[data-theme=dark]]:shadow-[0_5px_15px_0_hsla(220,30%,5%,0.5),0_15px_35px_-5px_hsla(220,25%,10%,0.08)]"
+      className="flex flex-col self-center w-full p-6 gap-4 mx-auto sm:w-[450px] shadow-[0_5px_15px_0_hsla(220,30%,5%,0.05),0_15px_35px_-5px_hsla(220,25%,10%,0.05)] data-[theme=dark]:shadow-[0_5px_15px_0_hsla(220,30%,5%,0.5),0_15px_35px_-5px_hsla(220,25%,10%,0.08)]"
     >
       {/* <SitemarkIcon /> */}
       <Typography
@@ -17,24 +17,23 @@ export default function LoginPage() {
         variant="h4"
         sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
       >
-        Sign in
+        Sign up
       </Typography>
 
-      <LoginForm />
+      <RegisterForm />
 
-      <Divider>or</Divider>
+      <Divider>
+        <Typography sx={{ color: "text.secondary" }}>or</Typography>
+      </Divider>
+
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <GoogleButton />
         <FacebookButton />
 
         <Typography sx={{ textAlign: "center" }}>
-          Don't have an account?{" "}
-          <Link
-            href="auth/register"
-            variant="body2"
-            sx={{ alignSelf: "center" }}
-          >
-            Sign up
+          Already have an account?{" "}
+          <Link href="/auth/login" variant="body2" sx={{ alignSelf: "center" }}>
+            Sign in
           </Link>
         </Typography>
       </Box>
