@@ -15,11 +15,11 @@ export const axiosInstance = axios.create({
 });
 
 // === Хранилище токенов ===
-const ACCESS_TOKEN_KEY = "iot_access_token";
-const REFRESH_TOKEN_KEY = "iot_refresh_token";
+export const ACCESS_TOKEN_KEY = "iot_access_token";
+export const REFRESH_TOKEN_KEY = "iot_refresh_token";
 
 // Безопасный доступ к localStorage (чтобы не падало в Node.js)
-const storage = {
+export const storage = {
   get: (key: string) =>
     typeof window !== "undefined" ? localStorage.getItem(key) : null,
   set: (key: string, value: string) => {
@@ -69,7 +69,7 @@ axiosInstance.interceptors.response.use(
         });
 
         storage.set(ACCESS_TOKEN_KEY, data.accessToken);
-        storage.set(REFRESH_TOKEN_KEY, data.refreshToken);
+        storage.set(REFRESH_TOKEN_KEY, data.refreshToken.token);
 
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return axiosInstance(originalRequest);
