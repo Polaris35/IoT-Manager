@@ -1,7 +1,7 @@
 // app/modules/auth/components/LoginForm.tsx
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { Link as RouterLink } from "react-router";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 // MUI Components
 import Button from "@mui/material/Button";
@@ -25,6 +25,11 @@ export default function LoginForm() {
   const { login } = useAuth();
   const [serverError, setServerError] = React.useState<string | null>(null);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
+
   const {
     register,
     handleSubmit,
@@ -43,6 +48,7 @@ export default function LoginForm() {
       // Здесь можно добавить логику: если !data.remember, то не сохранять в localStorage
       // Но пока просто передаем данные на сервер
       await login({ email: data.email, password: data.password });
+      navigate(from, { replace: true });
     } catch (error: any) {
       const message =
         error.response?.data?.message || "Login failed. Please try again.";

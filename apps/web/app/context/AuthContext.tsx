@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTokens(response.accessToken, response.refreshToken.token);
         // Устанавливаем юзера (если он приходит в ответе)
         setUser(response.account || { email: dto.email });
-        navigate("/dashboard");
+        // navigate("/dashboard");
       }
     } catch (error) {
       console.error("Login failed", error);
@@ -104,7 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       clearTokens();
       setUser(null);
-      navigate("/auth/login");
     }
   };
 
