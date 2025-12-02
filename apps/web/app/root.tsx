@@ -11,6 +11,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import AppTheme from "./theme/AppTheme";
 import { AuthProvider } from "./context/AuthContext";
+import { CssBaseline } from "@mui/material";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -31,6 +32,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        />
         <Meta />
         <Links />
       </head>
@@ -46,9 +51,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
+    <AppTheme disableCustomTheme={false}>
+      <CssBaseline enableColorScheme />
+      <AuthProvider>
+        <Outlet />
+      </AuthProvider>
+    </AppTheme>
   );
 }
 

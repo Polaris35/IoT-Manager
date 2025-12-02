@@ -1,35 +1,59 @@
+import * as React from "react";
 import { Outlet } from "react-router";
 import Box from "@mui/material/Box";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import { useAuth } from "~/context/AuthContext";
+import AppNavbar from "./AppNavbar";
+import SideMenu from "./SideMenu";
 
 export default function DashboardLayout() {
-  const { logout, user } = useAuth();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* Header / App Bar */}
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            IoT Manager
-          </Typography>
-          <Typography variant="body2" sx={{ mr: 2 }}>
-            {user?.email}
-          </Typography>
-          <Button color="inherit" onClick={() => logout()}>
-            Logout
-          </Button>
-        </Toolbar>
-      </AppBar>
+    // Box вместо div. Это позволяет использовать sx и доступ к theme.palette
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        overflow: "hidden",
+        // ВАЖНО: Это делает фон темным в dark mode и серым в light mode автоматически
+        bgcolor: "background.default",
+      }}
+    >
+      {/* Сайдбар */}
+      <SideMenu
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        variant="permanent"
+      />
 
-      {/* Main Content Area */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: "#f5f5f5" }}>
-        {/* Сюда будут подставляться страницы (DashboardPage, DevicesPage...) */}
-        <Outlet />
+      {/* Основная колонка */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+        }}
+      >
+        {/* Хедер */}
+        <AppNavbar onMenuClick={handleDrawerToggle} />
+
+        {/* Область контента */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            overflow: "auto",
+            p: { xs: 2, md: 3 }, // Адаптивные отступы
+          }}
+        >
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
+        </Box>
       </Box>
     </Box>
   );

@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Здесь в идеале нужен запрос /auth/me или декодирование JWT токена
         // Пока просто считаем, что если есть токен - юзер залогинен
         // TODO: Добавить запрос профиля пользователя
-        setUser({ id: "temp", email: "user@example.com" });
+        setUser(null);
       }
       setIsLoading(false);
     };
