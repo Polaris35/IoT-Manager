@@ -12,7 +12,7 @@ export default [
     route("auth/login", "modules/auth/pages/LoginPage.tsx"),
   ]),
 
-  layout("components/ProtectedRoute.tsx", [
+  layout("modules/auth/components/ProtectedRoute.tsx", [
     // Protected routes
     layout("components/layouts/DashboardLayout.tsx", [
       index("modules/dashboard/pages/DashboardPage.tsx"),
