@@ -10,19 +10,19 @@ import type {
   RegisterAccountDto,
   // AuthResponse, // Убедись, что этот тип есть в схемах, или используй any временно
 } from "../types/schemas";
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "~/api/client";
+import { STORAGE_KEYS } from "~/constants";
 
 // Нам нужно импортировать утилиты для работы с токенами из client.ts
 // Но так как они не экспортированы, давай добавим их экспорт в client.ts или продублируем логику (лучше экспорт)
 // ПРЕДПОЛАГАЕМ, что в app/api/client.ts ты добавил export для setTokens/clearTokens
 // Если нет - давай просто работать с localStorage здесь, это слой бизнес-логики.
 const setTokens = (access: string, refresh: string) => {
-  localStorage.setItem(ACCESS_TOKEN_KEY, access);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access);
+  localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh);
 };
 const clearTokens = () => {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
 };
 
 interface User {
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Проверка авторизации при загрузке страницы
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (token) {
         // Здесь в идеале нужен запрос /auth/me или декодирование JWT токена
         // Пока просто считаем, что если есть токен - юзер залогинен
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       // Отправляем запрос на бек, чтобы убить рефреш токен
-      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       if (refreshToken) {
         await getAuth().authControllerLogout({ refreshToken });
       }
