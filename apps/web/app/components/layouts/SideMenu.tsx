@@ -6,43 +6,81 @@ import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import IconButton from "@mui/material/IconButton";
 
-// Иконки
+// Icons
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
-import DevicesIcon from "@mui/icons-material/DevicesOtherRounded"; // Или Sensors
-import GroupIcon from "@mui/icons-material/MeetingRoomRounded"; // Для комнат/групп
+import DevicesIcon from "@mui/icons-material/DevicesOtherRounded";
+import GroupIcon from "@mui/icons-material/MeetingRoomRounded";
 import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import LogoutIcon from "@mui/icons-material/LogoutRounded";
 
 import { useAuth } from "~/context/AuthContext";
-import {
-  IconButton,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
 
-const drawerWidth = 240;
+const DRAWER_WIDTH = 240;
 
-const mainListItems = [
+// === Types & Config ===
+interface NavItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+}
+
+const MAIN_NAV_ITEMS: NavItem[] = [
   { text: "Overview", icon: <DashboardIcon />, path: "/" },
   { text: "Devices", icon: <DevicesIcon />, path: "/devices" },
   { text: "Groups", icon: <GroupIcon />, path: "/groups" },
 ];
 
-const secondaryListItems = [
+const SECONDARY_NAV_ITEMS: NavItem[] = [
   { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
 ];
 
 interface SideMenuProps {
   open: boolean;
   onClose: () => void;
-  variant: "permanent" | "temporary"; // permanent для десктопа, temporary для мобилок
+  variant: "permanent" | "temporary";
 }
 
-// ... импорты те же ...
+// === Helper Component to avoid code duplication ===
+function MenuLinkItem({
+  item,
+  onClick,
+}: {
+  item: NavItem;
+  onClick?: () => void;
+}) {
+  return (
+    <ListItem disablePadding sx={{ display: "block", mb: 1 }}>
+      <ListItemButton
+        component={NavLink}
+        to={item.path}
+        onClick={onClick}
+        sx={{
+          borderRadius: 2,
+          // React Router automatically adds 'active' class to NavLink
+          "&.active": {
+            bgcolor: "primary.50",
+            color: "primary.main",
+            "& .MuiListItemIcon-root": { color: "primary.main" },
+          },
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+        <ListItemText
+          primary={item.text}
+          primaryTypographyProps={{ fontWeight: 500 }}
+        />
+      </ListItemButton>
+    </ListItem>
+  );
+}
 
+// === Main Component ===
 export default function SideMenu({ open, onClose, variant }: SideMenuProps) {
   const { user, logout } = useAuth();
 
@@ -50,25 +88,25 @@ export default function SideMenu({ open, onClose, variant }: SideMenuProps) {
     <Stack
       sx={{
         height: "100%",
-        // paper дает белый в светлой и темно-серый в темной теме
         bgcolor: "background.paper",
         borderRight: "1px solid",
         borderColor: "divider",
       }}
     >
-      {/* Логотип */}
+      {/* 1. Logo Section */}
       <Box
         sx={{
           height: 64,
           display: "flex",
           alignItems: "center",
           gap: 2,
-          px: 3, // Горизонтальный отступ
-          borderBottom: "1px solid", // Линия, которая сойдется с навбаром
-          borderColor: "divider", // Тот же цвет, что у навбара
+          px: 3,
+          borderBottom: "1px solid",
+          borderColor: "divider",
         }}
       >
-        <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold">
+        {/* Brand Icon (using Tailwind for simple shape) */}
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 font-bold text-white">
           IoT
         </div>
         <Typography
@@ -79,69 +117,32 @@ export default function SideMenu({ open, onClose, variant }: SideMenuProps) {
         </Typography>
       </Box>
 
-      {/* <Divider /> */}
-
-      {/* Меню */}
+      {/* 2. Navigation Lists */}
       <Box sx={{ flex: 1, overflowY: "auto", px: 1, py: 2 }}>
         <List dense>
-          {mainListItems.map((item) => (
-            <ListItem key={item.text} disablePadding className="block mb-1">
-              <ListItemButton
-                component={NavLink}
-                to={item.path}
-                // Tailwind логика для NavLink active state не работает напрямую внутри MUI компонента так просто,
-                // поэтому используем sx для selected state, но классы для остального.
-                sx={{
-                  borderRadius: 2,
-                  "&.active": {
-                    bgcolor: "primary.50",
-                    color: "primary.main",
-                    "& .MuiListItemIcon-root": { color: "primary.main" },
-                  },
-                }}
-                onClick={variant === "temporary" ? onClose : undefined}
-              >
-                <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{ fontWeight: 500 }}
-                />
-              </ListItemButton>
-            </ListItem>
+          {MAIN_NAV_ITEMS.map((item) => (
+            <MenuLinkItem
+              key={item.path}
+              item={item}
+              onClick={variant === "temporary" ? onClose : undefined}
+            />
           ))}
         </List>
 
         <Divider sx={{ my: 1 }} />
 
         <List dense>
-          {" "}
-          {secondaryListItems.map((item) => (
-            <ListItem key={item.text} disablePadding className="block mb-1">
-              <ListItemButton
-                component={NavLink}
-                to={item.path}
-                sx={{
-                  borderRadius: 2,
-                  "&.active": {
-                    bgcolor: "primary.50",
-                    color: "primary.main",
-                    "& .MuiListItemIcon-root": { color: "primary.main" },
-                  },
-                }}
-                onClick={variant === "temporary" ? onClose : undefined}
-              >
-                <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{ fontWeight: 500 }}
-                />
-              </ListItemButton>
-            </ListItem>
+          {SECONDARY_NAV_ITEMS.map((item) => (
+            <MenuLinkItem
+              key={item.path}
+              item={item}
+              onClick={variant === "temporary" ? onClose : undefined}
+            />
           ))}
         </List>
       </Box>
 
-      {/* Профиль */}
+      {/* 3. User Profile Footer */}
       <Stack
         direction="row"
         alignItems="center"
@@ -175,34 +176,37 @@ export default function SideMenu({ open, onClose, variant }: SideMenuProps) {
   return (
     <Box
       component="nav"
-      sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+      sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
     >
-      {/* Мобильный Drawer */}
+      {/* Mobile Drawer */}
       <Drawer
         variant="temporary"
         open={open}
         onClose={onClose}
-        ModalProps={{ keepMounted: true }}
+        ModalProps={{ keepMounted: true }} // Better open performance on mobile
         sx={{
           display: { xs: "block", md: "none" },
-          "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
+            width: DRAWER_WIDTH,
+          },
         }}
       >
         {drawerContent}
       </Drawer>
 
-      {/* Десктопный Drawer */}
+      {/* Desktop Drawer */}
       <Drawer
         variant="permanent"
+        open
         sx={{
           display: { xs: "none", md: "block" },
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
-            width: drawerWidth,
-            border: 0,
+            width: DRAWER_WIDTH,
+            border: 0, // Border is handled by the stack content
           },
         }}
-        open
       >
         {drawerContent}
       </Drawer>

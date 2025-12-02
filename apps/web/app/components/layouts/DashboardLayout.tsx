@@ -1,35 +1,35 @@
-import * as React from "react";
+import { useState } from "react";
 import { Outlet } from "react-router";
 import Box from "@mui/material/Box";
 import AppNavbar from "./AppNavbar";
 import SideMenu from "./SideMenu";
 
 export default function DashboardLayout() {
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+    setMobileOpen((prev) => !prev);
   };
 
   return (
-    // Box вместо div. Это позволяет использовать sx и доступ к theme.palette
+    // Using Box allows easy access to theme.palette and sx prop
     <Box
       sx={{
         display: "flex",
         height: "100vh",
         overflow: "hidden",
-        // ВАЖНО: Это делает фон темным в dark mode и серым в light mode автоматически
+        // Automatically sets background color based on the active theme (light/dark)
         bgcolor: "background.default",
       }}
     >
-      {/* Сайдбар */}
+      {/* Sidebar Navigation */}
       <SideMenu
         open={mobileOpen}
         onClose={handleDrawerToggle}
         variant="permanent"
       />
 
-      {/* Основная колонка */}
+      {/* Main Content Column */}
       <Box
         sx={{
           flexGrow: 1,
@@ -38,19 +38,20 @@ export default function DashboardLayout() {
           minWidth: 0,
         }}
       >
-        {/* Хедер */}
+        {/* Header */}
         <AppNavbar onMenuClick={handleDrawerToggle} />
 
-        {/* Область контента */}
+        {/* Scrollable Content Area */}
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             overflow: "auto",
-            p: { xs: 2, md: 3 }, // Адаптивные отступы
+            p: { xs: 2, md: 3 }, // Responsive padding
           }}
         >
-          <div className="max-w-7xl mx-auto w-full">
+          {/* Centered container for content */}
+          <div className="mx-auto w-full max-w-7xl">
             <Outlet />
           </div>
         </Box>
