@@ -1,3 +1,4 @@
+// app/modules/auth/components/ProtectedRoute.tsx
 import { Navigate, Outlet, useLocation } from "react-router";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAuth } from "~/context/AuthContext";
@@ -6,7 +7,7 @@ export default function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  // 1. Состояние загрузки (проверка токена)
+  // Loading state (checking token)
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50">
@@ -15,13 +16,13 @@ export default function ProtectedRoute() {
     );
   }
 
-  // 2. Если не авторизован — редирект на логин
+  // Not authenticated -> Redirect to login
   if (!isAuthenticated) {
-    // replace: true — чтобы кнопка "Назад" в браузере не возвращала на защищенную страницу
-    // state: { from: location } — передаем текущий URL, чтобы вернуться после логина
+    // replace: true - prevents going back to the protected route via browser "Back" button
+    // state: { from: location } - saves current URL to redirect back after successful login
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // 3. Если авторизован — рендерим дочерние роуты
+  // Authenticated -> Render child routes
   return <Outlet />;
 }
