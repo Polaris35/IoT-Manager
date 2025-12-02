@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useLocation } from "react-router";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -6,7 +5,7 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Badge from "@mui/material/Badge";
-import { alpha } from "@mui/material/styles"; // Для прозрачности
+import { alpha } from "@mui/material/styles";
 
 import MenuIcon from "@mui/icons-material/MenuRounded";
 import NotificationsIcon from "@mui/icons-material/NotificationsRounded";
@@ -32,29 +31,29 @@ export default function AppNavbar({ onMenuClick }: AppNavbarProps) {
       position="sticky"
       enableColorOnDark
       sx={{
-        // 1. Убираем дефолты
+        // Reset default styles
         backgroundImage: "none",
 
-        // 2. ФОН: Твоя настройка 0.3 + легкий градиент для "блика"
+        // Background: Custom opacity (0.3) for glass effect
         backgroundColor: (theme) =>
           alpha(theme.palette.background.default, 0.3),
 
-        // 3. РАЗМЫТИЕ: Увеличиваем, чтобы при 0.3 контент снизу не мешал
+        // Blur: Increased to 24px so content below is readable
         backdropFilter: "blur(24px)",
 
-        // 4. ГРАНИЦА: Очень тонкая, едва заметная
+        // Border: Subtle bottom separator
         borderBottom: "1px solid",
         borderColor: (theme) => alpha(theme.palette.divider, 0.1),
 
-        // 5. СВЕЧЕНИЕ (ГЛАВНАЯ ФИШКА)
+        //   Glow/Shadow:
+        // - Dark mode: Soft primary color glow
+        // - Light mode: Gentle grey shadow for depth
         boxShadow: (theme) =>
           theme.palette.mode === "dark"
-            ? // Темная тема: Широкое, слабое свечение основным цветом (синим)
-              `0 8px 32px -4px ${alpha(theme.palette.primary.main, 0.15)}`
-            : // Светлая тема: Мягкая серая тень для объема
-              `0 8px 32px -4px ${alpha(theme.palette.grey[400], 0.2)}`,
+            ? `0 8px 32px -4px ${alpha(theme.palette.primary.main, 0.15)}`
+            : `0 8px 32px -4px ${alpha(theme.palette.grey[400], 0.2)}`,
 
-        // 6. Слои и анимация
+        // Layering and transitions
         zIndex: (theme) => theme.zIndex.drawer + 1,
         transition: "all 0.3s ease-in-out",
       }}
@@ -75,7 +74,7 @@ export default function AppNavbar({ onMenuClick }: AppNavbarProps) {
           sx={{
             flexGrow: 1,
             fontWeight: 600,
-            color: "text.primary", // Текст всегда контрастный (черный/белый)
+            color: "text.primary",
           }}
         >
           {title}
