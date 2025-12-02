@@ -1,7 +1,4 @@
-// app/modules/auth/components/LoginForm.tsx
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router";
+import { Link as RouterLink } from "react-router";
 
 // MUI Components
 import Button from "@mui/material/Button";
@@ -12,64 +9,27 @@ import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 
-// Logic
-import { useAuth } from "~/context/AuthContext";
-import type { CredentialsLoginDto } from "~/types/schemas";
-
-// Расширяем DTO, так как в форме есть поле "remember", которого нет на бекенде
-type LoginFormInputs = CredentialsLoginDto & {
-  remember: boolean;
-};
+// Hook
+import { useLoginForm } from "../hooks/useLoginForm";
 
 export default function LoginForm() {
-  const { login } = useAuth();
-  const [serverError, setServerError] = React.useState<string | null>(null);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const from = location.state?.from?.pathname || "/";
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormInputs>({
-    defaultValues: {
-      email: "",
-      password: "",
-      remember: true, // По умолчанию "запомнить меня" включено
-    },
-  });
-
-  const onSubmit = async (data: LoginFormInputs) => {
-    setServerError(null);
-    try {
-      // Здесь можно добавить логику: если !data.remember, то не сохранять в localStorage
-      // Но пока просто передаем данные на сервер
-      await login({ email: data.email, password: data.password });
-      navigate(from, { replace: true });
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || "Login failed. Please try again.";
-      setServerError(Array.isArray(message) ? message.join(", ") : message);
-    }
-  };
+  const { register, handleSubmit, errors, isSubmitting, serverError } =
+    useLoginForm();
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit}
       noValidate
-      className="flex flex-col w-full gap-4"
+      className="flex w-full flex-col gap-4"
     >
-      {/* Блок ошибки сервера */}
+      {/* Server Error Alert */}
       {serverError && (
         <Alert severity="error" className="mb-2">
           {serverError}
         </Alert>
       )}
 
-      {/* Поле Email */}
+      {/* Email Field */}
       <FormControl error={!!errors.email}>
         <FormLabel htmlFor="email" className="mb-1 text-sm font-medium">
           Email
@@ -83,7 +43,7 @@ export default function LoginForm() {
           required
           fullWidth
           variant="outlined"
-          // Подключаем react-hook-form
+          size="small"
           {...register("email", {
             required: "Email is required",
             pattern: {
@@ -93,12 +53,10 @@ export default function LoginForm() {
           })}
           error={!!errors.email}
           helperText={errors.email?.message}
-          // Tailwind классы можно добавлять прямо в InputProps, если нужно стилизовать инпут
-          size="small" // Делаем поле чуть компактнее, как в современных UI
         />
       </FormControl>
 
-      {/* Поле Password */}
+      {/* Password Field */}
       <FormControl error={!!errors.password}>
         <FormLabel htmlFor="password" className="mb-1 text-sm font-medium">
           Password
@@ -124,14 +82,13 @@ export default function LoginForm() {
         />
       </FormControl>
 
-      {/* Чекбокс и ссылка "Забыли пароль" в одной строке */}
-      <div className="flex justify-between items-center">
+      {/* Remember Me & Forgot Password */}
+      <div className="flex items-center justify-between">
         <FormControlLabel
           control={<Checkbox {...register("remember")} color="primary" />}
           label="Remember me"
         />
 
-        {/* Ссылка на восстановление (опционально) */}
         <RouterLink
           to="/auth/forgot-password"
           className="text-sm text-blue-600 hover:underline"
@@ -140,20 +97,19 @@ export default function LoginForm() {
         </RouterLink>
       </div>
 
-      {/* Кнопка отправки */}
+      {/* Submit Button */}
       <Button
         type="submit"
         fullWidth
         variant="contained"
         disabled={isSubmitting}
-        // Tailwind margin top если нужно отодвинуть кнопку
         className="mt-2"
       >
         {isSubmitting ? "Signing in..." : "Sign in"}
       </Button>
 
-      {/* Ссылка на регистрацию */}
-      <div className="text-center text-sm mt-2">
+      {/* Sign Up Link */}
+      <div className="mt-2 text-center text-sm">
         Don&apos;t have an account?{" "}
         <RouterLink
           to="/auth/register"

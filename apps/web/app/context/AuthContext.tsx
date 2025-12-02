@@ -1,34 +1,32 @@
-// app/context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
 
-// Импортируем сгенерированный API и Типы!
-import { getAuth } from "~/modules/auth/auth"; // Путь к сгенерированному файлу Orval
-import type {
-  CredentialsLoginDto,
-  RegisterAccountDto,
-  // AuthResponse, // Убедись, что этот тип есть в схемах, или используй any временно
-} from "../types/schemas";
+// API & Types
+import { getAuth } from "~/modules/auth/auth";
+import type { CredentialsLoginDto, RegisterAccountDto } from "~/types/schemas";
+
+// Utils
 import { STORAGE_KEYS } from "~/constants";
+import { storage } from "~/utils/storage";
 
-// Нам нужно импортировать утилиты для работы с токенами из client.ts
-// Но так как они не экспортированы, давай добавим их экспорт в client.ts или продублируем логику (лучше экспорт)
-// ПРЕДПОЛАГАЕМ, что в app/api/client.ts ты добавил export для setTokens/clearTokens
-// Если нет - давай просто работать с localStorage здесь, это слой бизнес-логики.
-const setTokens = (access: string, refresh: string) => {
-  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access);
-  localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh);
-};
-const clearTokens = () => {
-  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-};
+// === Types ===
 
-interface User {
+// Определяем интерфейс User, который мы ожидаем использовать в приложении
+export interface User {
   id: string;
   email: string;
   fullName?: string;
+}
+
+// Временный интерфейс ответа логина, так как он может отличаться в сгенерированных типах.
+// TODO: Заменить на реальный тип из swagger schemas, когда он будет стабилен.
+interface LoginResponse {
+  accessToken: string;
+  refreshToken: {
+    token: string;
+  };
+  account: User;
 }
 
 interface AuthContextType {
@@ -40,70 +38,94 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
+// === Context ===
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Для проверки токена при загрузке
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Проверка авторизации при загрузке страницы
+  // Init Auth (Check token on load)
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const token = storage.get(STORAGE_KEYS.ACCESS_TOKEN);
+
       if (token) {
-        // Здесь в идеале нужен запрос /auth/me или декодирование JWT токена
-        // Пока просто считаем, что если есть токен - юзер залогинен
-        // TODO: Добавить запрос профиля пользователя
+        // TODO: [Backend Integration] Implement /auth/me endpoint.
+        // Currently, we trust the token existence.
+        // ideally: const user = await apiClient.get('/auth/me'); setUser(user);
+
+        // ВРЕМЕННО: Создаем "фейкового" юзера, чтобы сессия не падала
+        // Это нужно убрать, когда будет готов эндпоинт /me
+        setUser({
+          id: "temp-id",
+          email: "user@example.com",
+          fullName: "Loading...",
+        });
+      } else {
         setUser(null);
       }
+
       setIsLoading(false);
     };
+
     initAuth();
   }, []);
 
+  // Login Action
   const login = async (dto: CredentialsLoginDto) => {
     try {
-      // Вызываем сгенерированную функцию
-      // Orval по умолчанию возвращает data (так как мы настроили apiClient)
-      // Если AuthResponse не типизирован в swagger, используй any
+      // Приводим ответ к ожидаемому интерфейсу
       const response = (await getAuth().authControllerCredentialsLogin(
         dto,
-      )) as unknown as any;
+      )) as unknown as LoginResponse;
 
-      // Сохраняем токены (структура зависит от твоего бекенда)
-      // Судя по сваггеру, там может быть просто 201 Created.
-      // Но обычно бекенд возвращает JSON. Допустим response содержит accessToken.
       if (response?.accessToken) {
-        setTokens(response.accessToken, response.refreshToken.token);
-        // Устанавливаем юзера (если он приходит в ответе)
-        setUser(response.account || { email: dto.email });
-        // navigate("/dashboard");
+        // Save tokens
+        storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken.token);
+
+        // Update State
+        setUser(response.account);
+
+        // Redirect is handled by the calling component or here if preferred
+        // navigate("/");
       }
     } catch (error) {
-      console.error("Login failed", error);
-      throw error; // Пробрасываем ошибку, чтобы форма могла её показать
+      console.error("Login failed:", error);
+      throw error; // Re-throw so the UI can show an error message
     }
   };
 
+  // Register Action
   const register = async (dto: RegisterAccountDto) => {
-    await getAuth().authControllerCredentialsRegister(dto);
-    // После регистрации можно сразу логинить или редиректить на логин
-    navigate("/auth/login");
+    try {
+      await getAuth().authControllerCredentialsRegister(dto);
+      navigate("/auth/login");
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error;
+    }
   };
 
+  // Logout Action
   const logout = async () => {
     try {
-      // Отправляем запрос на бек, чтобы убить рефреш токен
-      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
       if (refreshToken) {
+        // Fire and forget logout request
         await getAuth().authControllerLogout({ refreshToken });
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.warn("Logout API call failed", error);
     } finally {
-      clearTokens();
+      // Always clean up local state
+      storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
+      storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
       setUser(null);
+      navigate("/auth/login");
     }
   };
 
@@ -123,8 +145,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// === Hook ===
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
   return context;
 };
