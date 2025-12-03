@@ -6,14 +6,13 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 import {
   CredentialsLoginDto,
   LogoutDto,
   RefreshTokensDto,
   RegisterAccountDto,
-} from '@iot-manager/nest-libs/dto';
-import { lastValueFrom } from 'rxjs';
-import { AccountWithTokens } from './types/account-with-tokens';
+} from './dto';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -33,7 +32,7 @@ export class AuthService implements OnModuleInit {
   async credentialsLogin(
     dto: CredentialsLoginDto,
     agent: string,
-  ): Promise<AccountWithTokens> {
+  ): Promise<auth.LoginResponse> {
     const loginData = await lastValueFrom(
       this.authServiceClient.credentialsLogin({
         ...dto,
@@ -45,7 +44,7 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException("can't login user");
     }
 
-    return this.constructLoginRespose(loginData);
+    return loginData;
   }
 
   logout(logoutDto: LogoutDto) {
@@ -56,18 +55,7 @@ export class AuthService implements OnModuleInit {
     return await lastValueFrom(this.authServiceClient.refreshTokens(dto));
   }
 
-  private constructLoginRespose(
-    loginData: auth.LoginResponse,
-  ): AccountWithTokens {
-    return {
-      account: loginData.account!,
-      accessToken: loginData.tokens?.accessToken!,
-      refreshToken: {
-        token: loginData.tokens?.refreshToken?.token!,
-
-        exp: new Date(loginData.tokens?.refreshToken?.expInISOString as string),
-        userAgent: loginData.tokens?.refreshToken?.userAgent!,
-      },
-    };
+  getAccountInfo(userId: string): Promise<auth.Account> {
+    return lastValueFrom(this.authServiceClient.getAccountInfo({ userId }));
   }
 }
