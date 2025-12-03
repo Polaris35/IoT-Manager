@@ -12,21 +12,10 @@ import { storage } from "~/utils/storage";
 
 // === Types ===
 
-// Определяем интерфейс User, который мы ожидаем использовать в приложении
 export interface User {
   id: string;
   email: string;
   fullName?: string;
-}
-
-// Временный интерфейс ответа логина, так как он может отличаться в сгенерированных типах.
-// TODO: Заменить на реальный тип из swagger schemas, когда он будет стабилен.
-interface LoginResponse {
-  accessToken: string;
-  refreshToken: {
-    token: string;
-  };
-  account: User;
 }
 
 interface AuthContextType {
@@ -53,17 +42,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = storage.get(STORAGE_KEYS.ACCESS_TOKEN);
 
       if (token) {
-        // TODO: [Backend Integration] Implement /auth/me endpoint.
-        // Currently, we trust the token existence.
-        // ideally: const user = await apiClient.get('/auth/me'); setUser(user);
-
-        // ВРЕМЕННО: Создаем "фейкового" юзера, чтобы сессия не падала
-        // Это нужно убрать, когда будет готов эндпоинт /me
-        setUser({
-          id: "temp-id",
-          email: "user@example.com",
-          fullName: "Loading...",
-        });
+        const user = await getAuth().authControllerAccountInfo();
+        setUser(user);
       } else {
         setUser(null);
       }
@@ -77,21 +57,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Login Action
   const login = async (dto: CredentialsLoginDto) => {
     try {
-      // Приводим ответ к ожидаемому интерфейсу
-      const response = (await getAuth().authControllerCredentialsLogin(
-        dto,
-      )) as unknown as LoginResponse;
+      const response = await getAuth().authControllerCredentialsLogin(dto);
 
       if (response?.accessToken) {
         // Save tokens
         storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
-        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken.token);
+        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
 
         // Update State
         setUser(response.account);
-
-        // Redirect is handled by the calling component or here if preferred
-        // navigate("/");
       }
     } catch (error) {
       console.error("Login failed:", error);

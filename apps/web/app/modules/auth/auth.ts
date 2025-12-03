@@ -6,9 +6,12 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
+  AccountResponseDto,
   CredentialsLoginDto,
+  LoginResponseDto,
   LogoutDto,
   RefreshTokensDto,
+  RefreshTokensResponseDto,
   RegisterAccountDto,
 } from "../../types/schemas";
 
@@ -17,6 +20,9 @@ import { apiClient } from "../../api/client";
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getAuth = () => {
+  /**
+   * @summary Register a new account with email and password
+   */
   const authControllerCredentialsRegister = (
     registerAccountDto: RegisterAccountDto,
     options?: SecondParameter<typeof apiClient<void>>,
@@ -31,11 +37,14 @@ export const getAuth = () => {
       options,
     );
   };
+  /**
+   * @summary Login with email and password
+   */
   const authControllerCredentialsLogin = (
     credentialsLoginDto: CredentialsLoginDto,
-    options?: SecondParameter<typeof apiClient<void>>,
+    options?: SecondParameter<typeof apiClient<LoginResponseDto>>,
   ) => {
-    return apiClient<void>(
+    return apiClient<LoginResponseDto>(
       {
         url: `/auth/credentials/login`,
         method: "POST",
@@ -45,6 +54,9 @@ export const getAuth = () => {
       options,
     );
   };
+  /**
+   * @summary Logout from the system
+   */
   const authControllerLogout = (
     logoutDto: LogoutDto,
     options?: SecondParameter<typeof apiClient<void>>,
@@ -59,11 +71,14 @@ export const getAuth = () => {
       options,
     );
   };
+  /**
+   * @summary Refresh access and refresh tokens
+   */
   const authControllerRefreshTokens = (
     refreshTokensDto: RefreshTokensDto,
-    options?: SecondParameter<typeof apiClient<void>>,
+    options?: SecondParameter<typeof apiClient<RefreshTokensResponseDto>>,
   ) => {
-    return apiClient<void>(
+    return apiClient<RefreshTokensResponseDto>(
       {
         url: `/auth/refresh-tokens`,
         method: "POST",
@@ -73,11 +88,14 @@ export const getAuth = () => {
       options,
     );
   };
-  const authControllerTestProtectedRoute = (
-    options?: SecondParameter<typeof apiClient<void>>,
+  /**
+   * @summary Get current user account info
+   */
+  const authControllerAccountInfo = (
+    options?: SecondParameter<typeof apiClient<AccountResponseDto>>,
   ) => {
-    return apiClient<void>(
-      { url: `/auth/test-protected-router`, method: "POST" },
+    return apiClient<AccountResponseDto>(
+      { url: `/auth/account-info`, method: "GET" },
       options,
     );
   };
@@ -86,7 +104,7 @@ export const getAuth = () => {
     authControllerCredentialsLogin,
     authControllerLogout,
     authControllerRefreshTokens,
-    authControllerTestProtectedRoute,
+    authControllerAccountInfo,
   };
 };
 export type AuthControllerCredentialsRegisterResult = NonNullable<
@@ -105,8 +123,6 @@ export type AuthControllerLogoutResult = NonNullable<
 export type AuthControllerRefreshTokensResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getAuth>["authControllerRefreshTokens"]>>
 >;
-export type AuthControllerTestProtectedRouteResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getAuth>["authControllerTestProtectedRoute"]>
-  >
+export type AuthControllerAccountInfoResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getAuth>["authControllerAccountInfo"]>>
 >;
