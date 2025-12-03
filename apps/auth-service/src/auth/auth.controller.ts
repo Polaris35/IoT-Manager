@@ -76,6 +76,7 @@ export class AuthController implements auth.AuthServiceController {
     return this.tokenService.validateAccessToken(request.accessToken);
   }
 
+  @GrpcMethod(auth.AUTH_SERVICE_NAME)
   async getAccountInfo(
     request: auth.GetAccountInfoRequest,
   ): Promise<auth.Account> {

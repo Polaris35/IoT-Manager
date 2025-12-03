@@ -18,7 +18,6 @@ import { plainToInstance } from 'class-transformer';
 import { RefreshTokensResponseDto } from './dto/refresh-tokens.response.dto';
 import { AccountResponseDto } from './dto/account.response.dto';
 
-@Public()
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(new GrpcToHttpInterceptor())
@@ -30,6 +29,7 @@ export class AuthController {
     status: 201,
     description: 'The account has been successfully registered.',
   })
+  @Public()
   @Post('credentials/register')
   credentialsRegister(@Body() dto: RegisterAccountDto) {
     return this.authService.credentialsRegister(dto);
@@ -41,6 +41,7 @@ export class AuthController {
     description: 'Returns tokens and user info',
     type: LoginResponseDto,
   })
+  @Public()
   @Post('credentials/login')
   async credentialsLogin(
     @Body() dto: CredentialsLoginDto,
@@ -53,6 +54,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Logout from the system' })
+  @Public()
   @Post('logout')
   logout(@Body() logoutDto: LogoutDto) {
     this.authService.logout(logoutDto);
@@ -61,9 +63,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access and refresh tokens' })
   @ApiResponse({
     status: 200,
-    description: 'Returns access and refresh tokens',
+    description: 'Returns access  and refresh tokens',
     type: RefreshTokensResponseDto,
   })
+  @Public()
   @Post('refresh-tokens')
   async refreshTokens(@Body() refreshTokensDto: RefreshTokensDto) {
     const tokens = await this.authService.refreshTokens(refreshTokensDto);
