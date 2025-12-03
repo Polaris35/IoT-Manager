@@ -114,7 +114,7 @@ message ValidateAccessTokenRequest {
 // Contains the essential payload decoded from a valid access token.
 message ValidateAccessTokenResponse {
     // The unique identifier of the user (subject of the token).
-    string userId = 1;
+    string id = 1;
     // The email associated with the user account.
     string email = 2;
 }
@@ -122,9 +122,8 @@ message ValidateAccessTokenResponse {
 
 // --- Account Info ---
 message GetAccountInfoRequest {
-    // The access token proving the user's identity.
-    // In advanced setups, this could be omitted and passed via gRPC metadata for cleaner RPC calls.
-    string accessToken = 1;
+    // The unique identifier for the user account (e.g., a UUID).
+    string userId = 1;
 }
 
 // Represents the core user account entity.

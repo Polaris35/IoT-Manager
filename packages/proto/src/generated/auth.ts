@@ -75,18 +75,15 @@ export interface ValidateAccessTokenRequest {
 /** Contains the essential payload decoded from a valid access token. */
 export interface ValidateAccessTokenResponse {
   /** The unique identifier of the user (subject of the token). */
-  userId: string;
+  id: string;
   /** The email associated with the user account. */
   email: string;
 }
 
 /** --- Account Info --- */
 export interface GetAccountInfoRequest {
-  /**
-   * The access token proving the user's identity.
-   * In advanced setups, this could be omitted and passed via gRPC metadata for cleaner RPC calls.
-   */
-  accessToken: string;
+  /** The unique identifier for the user account (e.g., a UUID). */
+  userId: string;
 }
 
 /** Represents the core user account entity. */

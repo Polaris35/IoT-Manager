@@ -1,8 +1,6 @@
-import { Token } from '@entities';
-
 export interface Tokens {
   accessToken: string;
-  refreshToken: Token;
+  refreshToken: string;
 }
 
 export interface JwtPayload {

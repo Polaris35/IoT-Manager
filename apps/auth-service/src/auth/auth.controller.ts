@@ -16,8 +16,9 @@ export class AuthController implements auth.AuthServiceController {
     private readonly tokenService: TokenService,
   ) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   @GrpcMethod(auth.AUTH_SERVICE_NAME)
-  async credentialsRegister(dto: auth.RegisterRequest) {
+  async credentialsRegister(dto: auth.RegisterRequest): Promise<void> {
     const account = await this.authService.register(dto);
 
     if (!account) {
@@ -25,9 +26,6 @@ export class AuthController implements auth.AuthServiceController {
         `Can't registrate account ${JSON.stringify(dto)}`,
       );
     }
-    return {
-      status: auth.ResponseStatus.OK,
-    };
   }
 
   @GrpcMethod(auth.AUTH_SERVICE_NAME)
@@ -48,6 +46,7 @@ export class AuthController implements auth.AuthServiceController {
     return userWithTokens;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   @GrpcMethod(auth.AUTH_SERVICE_NAME)
   async logout(dto: auth.LogoutRequest) {
     if (!dto) {
@@ -55,10 +54,6 @@ export class AuthController implements auth.AuthServiceController {
     }
     const rezult = await this.tokenService.deleteRefreshToken(dto.refreshToken);
     console.log(rezult);
-
-    return {
-      status: auth.ResponseStatus.OK,
-    };
   }
 
   @GrpcMethod(auth.AUTH_SERVICE_NAME)
@@ -73,17 +68,22 @@ export class AuthController implements auth.AuthServiceController {
     if (!tokens) {
       throw new GrpcUnknownException("Can't update refresh token");
     }
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: {
-        ...tokens.refreshToken,
-        expInISOString: tokens.refreshToken.exp.toISOString(),
-      },
-    };
+    return tokens;
   }
 
   @GrpcMethod(auth.AUTH_SERVICE_NAME)
-  async validateAccessToken(request: auth.ValidateTokenRequest) {
+  async validateAccessToken(request: auth.ValidateAccessTokenRequest) {
     return this.tokenService.validateAccessToken(request.accessToken);
+  }
+
+  async getAccountInfo(
+    request: auth.GetAccountInfoRequest,
+  ): Promise<auth.Account> {
+    const account = await this.authService.getAccountById(request.userId);
+    return {
+      id: account.id,
+      fullName: account.fullName,
+      email: account.email,
+    };
   }
 }
