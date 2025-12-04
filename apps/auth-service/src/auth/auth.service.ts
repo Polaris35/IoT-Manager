@@ -52,24 +52,26 @@ export class AuthService {
       );
     }
 
-    const user = await provider.authorize(dto);
-    const tokens = await this.tokensServise.generateTokens(user, agent);
+    const account = await provider.authorize(dto);
+    const tokens = await this.tokensServise.generateTokens(account, agent);
 
     return {
-      account: { ...user },
-      tokens: {
-        accessToken: tokens.accessToken,
-        refreshToken: {
-          id: tokens.refreshToken.id,
-          expInISOString: tokens.refreshToken.exp.toISOString(),
-          token: tokens.refreshToken.token,
-          userAgent: tokens.refreshToken.userAgent,
-        },
-      },
+      account,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
   private hashPassword(password: string) {
     return hashSync(password, genSaltSync(10));
+  }
+
+  async getAccountById(id: string): Promise<Account> {
+    const account = await this.accountsRepository.findOneBy({ id });
+    if (!account) {
+      throw new GrpcInvalidArgumentException(`Account with id ${id} not found`);
+    }
+
+    return account;
   }
 }

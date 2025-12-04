@@ -2,111 +2,145 @@ syntax = "proto3";
 
 package auth;
 
-// Service responsible for user authentication, registration,
-// session management, and JWT token validation.
-service AuthService {
-    // Registers a new user account using email and password credentials.
-    rpc CredentialsRegister(RegisterRequest) returns (EmptyResponseWithStatus);
+import "google/protobuf/empty.proto";
 
-    // Authenticates a user via email/password and returns a session (tokens + account info).
+//=============================================================================
+//  Auth Service Definition
+//=============================================================================
+//
+// Manages user lifecycle, including registration, authentication, and session management.
+// It is the single source of truth for user identity and access control tokens.
+service AuthService {
+
+    // Registers a new user with email and password.
+    // Throws `ALREADY_EXISTS` if an account with the specified email is already registered.
+    // Throws `INVALID_ARGUMENT` if input data (e.g., email format) is invalid.
+    rpc CredentialsRegister(RegisterRequest) returns (google.protobuf.Empty);
+
+    // Authenticates a user using their credentials.
+    // On success, returns a comprehensive response with user account details and a new token pair.
+    // Throws `UNAUTHENTICATED` for invalid credentials (wrong email or password).
     rpc CredentialsLogin(CredentialsLoginRequest) returns (LoginResponse);
 
-    // Invalidates a user session by revoking the specific refresh token.
-    rpc Logout(LogoutRequest) returns (EmptyResponseWithStatus);
+    rpc GoogleLogin(GoogleLoginRequest) returns (LoginResponse);
 
-    // Generates a new pair of tokens (Access + Refresh) using a valid existing refresh token.
-    // Used to maintain the session without re-entering credentials.
+    // Invalidates a user's session by deleting the provided refresh token.
+    // This effectively logs the user out from the specific device/client.
+    // Throws `NOT_FOUND` if the refresh token is not found or already invalidated.
+    rpc Logout(LogoutRequest) returns (google.protobuf.Empty);
+
+    // Issues a new pair of access and refresh tokens in exchange for a valid, non-expired refresh token.
+    // This allows clients to maintain a session without requiring the user to log in again.
+    // Implements token rotation for enhanced security.
+    // Throws `UNAUTHENTICATED` if the refresh token is invalid, expired, or has been revoked.
     rpc RefreshTokens(RefreshTokensRequest) returns (RefreshTokensResponse);
 
-    // Verifies the validity of an Access Token.
-    // Typically used by the API Gateway or Guards to authorize incoming requests.
-    rpc ValidateAccessToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+    // Validates an access token's signature and expiration.
+    // This is a high-performance, stateless check intended for use by API gateways and service middleware for request authorization.
+    // It only decodes the token payload and does NOT query the database.
+    // Throws `UNAUTHENTICATED` if the token is invalid or expired.
+    rpc ValidateAccessToken(ValidateAccessTokenRequest) returns (ValidateAccessTokenResponse);
+
+    // Retrieves the full, up-to-date account information for the user associated with a valid access token.
+    // This method performs a token validation and then fetches data from the primary user database.
+    // Throws `UNAUTHENTICATED` if the token is invalid.
+    rpc GetAccountInfo(GetAccountInfoRequest) returns (Account);
 }
 
-// --- Token Validation ---
 
-message ValidateTokenRequest {
-    string accessToken = 1; // The JWT access token to verify
+//=============================================================================
+//  Message Definitions
+//=============================================================================
+
+// --- Registration ---
+message RegisterRequest {
+    // The user's full name.
+    string fullName = 1;
+    // The user's email address. Must be unique across the system.
+    string email = 2;
+    // The user's raw password. The service is responsible for hashing it securely.
+    string password = 3;
 }
 
-// Represents the decoded payload of a valid token
-message ValidateTokenResponse {
-    string id = 1;      // User ID extracted from the token
-    string email = 2;   // User email extracted from the token
-    string iat = 3;     // Issued At timestamp
-    string exp = 4;     // Expiration timestamp
+
+// --- Login ---
+message CredentialsLoginRequest {
+    // The email of the user trying to log in.
+    string email = 1;
+    // The raw password of the user.
+    string password = 2;
+    // The User-Agent string from the client's request headers.
+    // Used to identify the session's device/browser for security purposes.
+    string agent = 3;
 }
 
-// --- Token Refresh Flow ---
+message GoogleLoginRequest {
+    string code = 1;
+    // The User-Agent string from the client's request headers.
+    // Used to identify the session's device/browser for security purposes.
+    string agent = 2;
+}
 
+message LoginResponse {
+    // Core details of the authenticated user's account.
+    Account account = 1;
+    // A short-lived JSON Web Token (JWT) used to authenticate subsequent API requests.
+    string accessToken = 2;
+    // A long-lived, opaque token used to obtain a new access token without re-authentication.
+    string refreshToken = 3;
+}
+
+
+// --- Logout ---
+message LogoutRequest {
+    // The refresh token to be invalidated.
+    string refreshToken = 1;
+}
+
+
+// --- Token Refresh ---
 message RefreshTokensRequest {
-    string agent = 1;        // User Agent string (browser/device info) for security tracking
-    string refreshToken = 2; // The current valid refresh token
+    // The User-Agent of the client requesting the refresh. Should match the original login agent.
+    string agent = 1;
+    // The current, valid refresh token.
+    string refreshToken = 2;
 }
 
 message RefreshTokensResponse {
-    string accessToken = 1;          // Newly generated short-lived access token
-    RefreshToken refreshToken = 2;   // Newly generated long-lived refresh token (token rotation)
+    // A newly issued, short-lived access token.
+    string accessToken = 1;
+    // A newly issued, long-lived refresh token (rotated token).
+    string refreshToken = 2;
 }
 
-// --- Logout Flow ---
 
-message LogoutRequest {
-    string refreshToken = 1; // The token to be removed from the database/whitelist
+// --- Token Validation ---
+message ValidateAccessTokenRequest {
+    // The access token to be validated.
+    string accessToken = 1;
 }
 
-// --- Registration Flow ---
-
-message RegisterRequest {
-    string fullName = 1;
-    string email = 2;
-    string password = 3; // Raw password (should be hashed by the service before storage)
-}
-
-// --- Common Responses ---
-
-enum ResponseStatus {
-    OK = 0;
-    ERROR = 1;
-}
-
-// Generic response wrapper for operations that don't return specific data.
-// Note: gRPC native status codes can also be used, but this allows explicit status handling.
-message EmptyResponseWithStatus {
-    ResponseStatus status = 1;
-    optional string error_message = 2; // Present only if status is ERROR
-}
-
-// --- Login Flow ---
-
-message CredentialsLoginRequest {
-    string email = 1;
-    string password = 2;
-    string agent = 3; // User Agent for session identification
-}
-
-// Minimal user information returned upon successful login
-message Account {
+// Contains the essential payload decoded from a valid access token.
+message ValidateAccessTokenResponse {
+    // The unique identifier of the user (subject of the token).
     string id = 1;
+    // The email associated with the user account.
+    string email = 2;
+}
+
+
+// --- Account Info ---
+message GetAccountInfoRequest {
+    // The unique identifier for the user account (e.g., a UUID).
+    string userId = 1;
+}
+
+// Represents the core user account entity.
+message Account {
+    // The unique identifier for the user account (e.g., a UUID).
+    string id = 1;
+    // The user's full name.
     string fullName = 2;
-    string email = 4; // Note: field index 3 is skipped (or reserved)
-}
-
-// Represents the persistent refresh token entity
-message RefreshToken {
-    string id = 1;              // Unique identifier of the token record in DB
-    string token = 2;           // The actual token string (UUID or JWT)
-    string expInISOString = 3;  // Expiration date in ISO 8601 format
-    string userAgent = 4;       // Device/Browser information associated with this token
-}
-
-message RefreshAndAccessTokens {
-    RefreshToken refreshToken = 1;
-    string accessToken = 2;
-}
-
-// Composite response for login: contains user profile and security tokens
-message LoginResponse {
-    Account account = 1;
-    RefreshAndAccessTokens tokens = 2;
+    // The user's primary email address.
+    string email = 3;
 }

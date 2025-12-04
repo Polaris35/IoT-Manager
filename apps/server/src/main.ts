@@ -1,14 +1,13 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    // TODO: Read this from .env
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
   });
 
@@ -26,6 +25,12 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
+  // app.useGlobalInterceptors(
+  //   new ClassSerializerInterceptor(app.get(Reflector), {
+  //     excludeExtraneousValues: true,
+  //   }),
+  // );
 
   await app.listen(process.env.PORT ?? 3000);
 }

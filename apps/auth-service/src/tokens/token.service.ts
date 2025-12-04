@@ -35,7 +35,7 @@ export class TokenService {
   async refreshToken(
     refreshTokenValue: string,
     agent: string,
-  ): Promise<Tokens> {
+  ): Promise<auth.RefreshTokensResponse> {
     const tokenEntity = await this.findTokenByValue(refreshTokenValue);
 
     if (!tokenEntity || new Date(tokenEntity.exp) < new Date()) {
@@ -60,17 +60,16 @@ export class TokenService {
       email: account.email,
     });
 
-    const refreshToken = await this.createAndCacheRefreshToken(
-      account.id,
-      agent,
-    );
+    const refreshToken = (
+      await this.createAndCacheRefreshToken(account.id, agent)
+    ).token;
 
     return { accessToken, refreshToken };
   }
 
   async validateAccessToken(
     accessToken: string,
-  ): Promise<auth.ValidateTokenResponse> {
+  ): Promise<auth.ValidateAccessTokenResponse> {
     try {
       const data = await this.jwtService.verifyAsync<AccessTokenPayload>(
         accessToken,
@@ -79,15 +78,10 @@ export class TokenService {
         },
       );
 
-      const response: auth.ValidateTokenResponse = {
+      return {
         id: data.id,
         email: data.email,
-        // * 1000 for converting seconds to milliseconds
-        iat: new Date(data.iat * 1000).toISOString(),
-        exp: new Date(data.exp * 1000).toISOString(),
       };
-
-      return response;
     } catch (error) {
       throw new GrpcUnauthenticatedException(
         error.message || 'Invalid or expired  token',

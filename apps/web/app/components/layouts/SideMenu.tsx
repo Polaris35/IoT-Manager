@@ -149,11 +149,6 @@ export default function SideMenu({ open, onClose, variant }: SideMenuProps) {
         spacing={1}
         sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}
       >
-        <Avatar
-          alt={user?.email || "User"}
-          src="/static/images/avatar/1.jpg"
-          sx={{ width: 36, height: 36 }}
-        />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography
             variant="body2"

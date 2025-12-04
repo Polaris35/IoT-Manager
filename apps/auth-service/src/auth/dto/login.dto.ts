@@ -4,7 +4,7 @@ export class CredentialsLoginDto {
 }
 
 export class ProvidersLoginDto {
-  accessGrantToken: string;
+  code: string;
 }
 
 export type LoginDto = CredentialsLoginDto | ProvidersLoginDto;

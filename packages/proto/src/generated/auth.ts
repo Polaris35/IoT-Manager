@@ -7,168 +7,212 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
+import { Empty } from "./google/protobuf/empty";
 
 export const protobufPackage = "auth";
 
-export enum ResponseStatus {
-  OK = 0,
-  ERROR = 1,
-  UNRECOGNIZED = -1,
-}
-
-export interface ValidateTokenRequest {
-  /** The JWT access token to verify */
-  accessToken: string;
-}
-
-/** Represents the decoded payload of a valid token */
-export interface ValidateTokenResponse {
-  /** User ID extracted from the token */
-  id: string;
-  /** User email extracted from the token */
+/** --- Registration --- */
+export interface RegisterRequest {
+  /** The user's full name. */
+  fullName: string;
+  /** The user's email address. Must be unique across the system. */
   email: string;
-  /** Issued At timestamp */
-  iat: string;
-  /** Expiration timestamp */
-  exp: string;
+  /** The user's raw password. The service is responsible for hashing it securely. */
+  password: string;
 }
 
-export interface RefreshTokensRequest {
-  /** User Agent string (browser/device info) for security tracking */
+/** --- Login --- */
+export interface CredentialsLoginRequest {
+  /** The email of the user trying to log in. */
+  email: string;
+  /** The raw password of the user. */
+  password: string;
+  /**
+   * The User-Agent string from the client's request headers.
+   * Used to identify the session's device/browser for security purposes.
+   */
   agent: string;
-  /** The current valid refresh token */
+}
+
+export interface GoogleLoginRequest {
+  code: string;
+  /**
+   * The User-Agent string from the client's request headers.
+   * Used to identify the session's device/browser for security purposes.
+   */
+  agent: string;
+}
+
+export interface LoginResponse {
+  /** Core details of the authenticated user's account. */
+  account:
+    | Account
+    | undefined;
+  /** A short-lived JSON Web Token (JWT) used to authenticate subsequent API requests. */
+  accessToken: string;
+  /** A long-lived, opaque token used to obtain a new access token without re-authentication. */
+  refreshToken: string;
+}
+
+/** --- Logout --- */
+export interface LogoutRequest {
+  /** The refresh token to be invalidated. */
+  refreshToken: string;
+}
+
+/** --- Token Refresh --- */
+export interface RefreshTokensRequest {
+  /** The User-Agent of the client requesting the refresh. Should match the original login agent. */
+  agent: string;
+  /** The current, valid refresh token. */
   refreshToken: string;
 }
 
 export interface RefreshTokensResponse {
-  /** Newly generated short-lived access token */
+  /** A newly issued, short-lived access token. */
   accessToken: string;
-  /** Newly generated long-lived refresh token (token rotation) */
-  refreshToken: RefreshToken | undefined;
-}
-
-export interface LogoutRequest {
-  /** The token to be removed from the database/whitelist */
+  /** A newly issued, long-lived refresh token (rotated token). */
   refreshToken: string;
 }
 
-export interface RegisterRequest {
-  fullName: string;
-  email: string;
-  /** Raw password (should be hashed by the service before storage) */
-  password: string;
-}
-
-/**
- * Generic response wrapper for operations that don't return specific data.
- * Note: gRPC native status codes can also be used, but this allows explicit status handling.
- */
-export interface EmptyResponseWithStatus {
-  status: ResponseStatus;
-  /** Present only if status is ERROR */
-  errorMessage?: string | undefined;
-}
-
-export interface CredentialsLoginRequest {
-  email: string;
-  password: string;
-  /** User Agent for session identification */
-  agent: string;
-}
-
-/** Minimal user information returned upon successful login */
-export interface Account {
-  id: string;
-  fullName: string;
-  /** Note: field index 3 is skipped (or reserved) */
-  email: string;
-}
-
-/** Represents the persistent refresh token entity */
-export interface RefreshToken {
-  /** Unique identifier of the token record in DB */
-  id: string;
-  /** The actual token string (UUID or JWT) */
-  token: string;
-  /** Expiration date in ISO 8601 format */
-  expInISOString: string;
-  /** Device/Browser information associated with this token */
-  userAgent: string;
-}
-
-export interface RefreshAndAccessTokens {
-  refreshToken: RefreshToken | undefined;
+/** --- Token Validation --- */
+export interface ValidateAccessTokenRequest {
+  /** The access token to be validated. */
   accessToken: string;
 }
 
-/** Composite response for login: contains user profile and security tokens */
-export interface LoginResponse {
-  account: Account | undefined;
-  tokens: RefreshAndAccessTokens | undefined;
+/** Contains the essential payload decoded from a valid access token. */
+export interface ValidateAccessTokenResponse {
+  /** The unique identifier of the user (subject of the token). */
+  id: string;
+  /** The email associated with the user account. */
+  email: string;
+}
+
+/** --- Account Info --- */
+export interface GetAccountInfoRequest {
+  /** The unique identifier for the user account (e.g., a UUID). */
+  userId: string;
+}
+
+/** Represents the core user account entity. */
+export interface Account {
+  /** The unique identifier for the user account (e.g., a UUID). */
+  id: string;
+  /** The user's full name. */
+  fullName: string;
+  /** The user's primary email address. */
+  email: string;
 }
 
 export const AUTH_PACKAGE_NAME = "auth";
 
 /**
- * Service responsible for user authentication, registration,
- * session management, and JWT token validation.
+ * =============================================================================
+ *  Auth Service Definition
+ * =============================================================================
+ *
+ * Manages user lifecycle, including registration, authentication, and session management.
+ * It is the single source of truth for user identity and access control tokens.
  */
 
 export interface AuthServiceClient {
-  /** Registers a new user account using email and password credentials. */
+  /**
+   * Registers a new user with email and password.
+   * Throws `ALREADY_EXISTS` if an account with the specified email is already registered.
+   * Throws `INVALID_ARGUMENT` if input data (e.g., email format) is invalid.
+   */
 
-  credentialsRegister(request: RegisterRequest): Observable<EmptyResponseWithStatus>;
+  credentialsRegister(request: RegisterRequest): Observable<Empty>;
 
-  /** Authenticates a user via email/password and returns a session (tokens + account info). */
+  /**
+   * Authenticates a user using their credentials.
+   * On success, returns a comprehensive response with user account details and a new token pair.
+   * Throws `UNAUTHENTICATED` for invalid credentials (wrong email or password).
+   */
 
   credentialsLogin(request: CredentialsLoginRequest): Observable<LoginResponse>;
 
-  /** Invalidates a user session by revoking the specific refresh token. */
-
-  logout(request: LogoutRequest): Observable<EmptyResponseWithStatus>;
+  googleLogin(request: GoogleLoginRequest): Observable<LoginResponse>;
 
   /**
-   * Generates a new pair of tokens (Access + Refresh) using a valid existing refresh token.
-   * Used to maintain the session without re-entering credentials.
+   * Invalidates a user's session by deleting the provided refresh token.
+   * This effectively logs the user out from the specific device/client.
+   * Throws `NOT_FOUND` if the refresh token is not found or already invalidated.
+   */
+
+  logout(request: LogoutRequest): Observable<Empty>;
+
+  /**
+   * Issues a new pair of access and refresh tokens in exchange for a valid, non-expired refresh token.
+   * This allows clients to maintain a session without requiring the user to log in again.
+   * Implements token rotation for enhanced security.
+   * Throws `UNAUTHENTICATED` if the refresh token is invalid, expired, or has been revoked.
    */
 
   refreshTokens(request: RefreshTokensRequest): Observable<RefreshTokensResponse>;
 
   /**
-   * Verifies the validity of an Access Token.
-   * Typically used by the API Gateway or Guards to authorize incoming requests.
+   * Validates an access token's signature and expiration.
+   * This is a high-performance, stateless check intended for use by API gateways and service middleware for request authorization.
+   * It only decodes the token payload and does NOT query the database.
+   * Throws `UNAUTHENTICATED` if the token is invalid or expired.
    */
 
-  validateAccessToken(request: ValidateTokenRequest): Observable<ValidateTokenResponse>;
+  validateAccessToken(request: ValidateAccessTokenRequest): Observable<ValidateAccessTokenResponse>;
+
+  /**
+   * Retrieves the full, up-to-date account information for the user associated with a valid access token.
+   * This method performs a token validation and then fetches data from the primary user database.
+   * Throws `UNAUTHENTICATED` if the token is invalid.
+   */
+
+  getAccountInfo(request: GetAccountInfoRequest): Observable<Account>;
 }
 
 /**
- * Service responsible for user authentication, registration,
- * session management, and JWT token validation.
+ * =============================================================================
+ *  Auth Service Definition
+ * =============================================================================
+ *
+ * Manages user lifecycle, including registration, authentication, and session management.
+ * It is the single source of truth for user identity and access control tokens.
  */
 
 export interface AuthServiceController {
-  /** Registers a new user account using email and password credentials. */
+  /**
+   * Registers a new user with email and password.
+   * Throws `ALREADY_EXISTS` if an account with the specified email is already registered.
+   * Throws `INVALID_ARGUMENT` if input data (e.g., email format) is invalid.
+   */
 
-  credentialsRegister(
-    request: RegisterRequest,
-  ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
+  credentialsRegister(request: RegisterRequest): void;
 
-  /** Authenticates a user via email/password and returns a session (tokens + account info). */
+  /**
+   * Authenticates a user using their credentials.
+   * On success, returns a comprehensive response with user account details and a new token pair.
+   * Throws `UNAUTHENTICATED` for invalid credentials (wrong email or password).
+   */
 
   credentialsLogin(
     request: CredentialsLoginRequest,
   ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
-  /** Invalidates a user session by revoking the specific refresh token. */
-
-  logout(
-    request: LogoutRequest,
-  ): Promise<EmptyResponseWithStatus> | Observable<EmptyResponseWithStatus> | EmptyResponseWithStatus;
+  googleLogin(request: GoogleLoginRequest): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
   /**
-   * Generates a new pair of tokens (Access + Refresh) using a valid existing refresh token.
-   * Used to maintain the session without re-entering credentials.
+   * Invalidates a user's session by deleting the provided refresh token.
+   * This effectively logs the user out from the specific device/client.
+   * Throws `NOT_FOUND` if the refresh token is not found or already invalidated.
+   */
+
+  logout(request: LogoutRequest): void;
+
+  /**
+   * Issues a new pair of access and refresh tokens in exchange for a valid, non-expired refresh token.
+   * This allows clients to maintain a session without requiring the user to log in again.
+   * Implements token rotation for enhanced security.
+   * Throws `UNAUTHENTICATED` if the refresh token is invalid, expired, or has been revoked.
    */
 
   refreshTokens(
@@ -176,13 +220,23 @@ export interface AuthServiceController {
   ): Promise<RefreshTokensResponse> | Observable<RefreshTokensResponse> | RefreshTokensResponse;
 
   /**
-   * Verifies the validity of an Access Token.
-   * Typically used by the API Gateway or Guards to authorize incoming requests.
+   * Validates an access token's signature and expiration.
+   * This is a high-performance, stateless check intended for use by API gateways and service middleware for request authorization.
+   * It only decodes the token payload and does NOT query the database.
+   * Throws `UNAUTHENTICATED` if the token is invalid or expired.
    */
 
   validateAccessToken(
-    request: ValidateTokenRequest,
-  ): Promise<ValidateTokenResponse> | Observable<ValidateTokenResponse> | ValidateTokenResponse;
+    request: ValidateAccessTokenRequest,
+  ): Promise<ValidateAccessTokenResponse> | Observable<ValidateAccessTokenResponse> | ValidateAccessTokenResponse;
+
+  /**
+   * Retrieves the full, up-to-date account information for the user associated with a valid access token.
+   * This method performs a token validation and then fetches data from the primary user database.
+   * Throws `UNAUTHENTICATED` if the token is invalid.
+   */
+
+  getAccountInfo(request: GetAccountInfoRequest): Promise<Account> | Observable<Account> | Account;
 }
 
 export function AuthServiceControllerMethods() {
@@ -190,9 +244,11 @@ export function AuthServiceControllerMethods() {
     const grpcMethods: string[] = [
       "credentialsRegister",
       "credentialsLogin",
+      "googleLogin",
       "logout",
       "refreshTokens",
       "validateAccessToken",
+      "getAccountInfo",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

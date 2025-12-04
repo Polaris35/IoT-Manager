@@ -4,7 +4,11 @@ import { useNavigate } from "react-router";
 
 // API & Types
 import { getAuth } from "~/modules/auth/auth";
-import type { CredentialsLoginDto, RegisterAccountDto } from "~/types/schemas";
+import type {
+  CredentialsLoginDto,
+  GoogleLoginDto,
+  RegisterAccountDto,
+} from "~/types/schemas";
 
 // Utils
 import { STORAGE_KEYS } from "~/constants";
@@ -12,28 +16,18 @@ import { storage } from "~/utils/storage";
 
 // === Types ===
 
-// Определяем интерфейс User, который мы ожидаем использовать в приложении
 export interface User {
   id: string;
   email: string;
   fullName?: string;
 }
 
-// Временный интерфейс ответа логина, так как он может отличаться в сгенерированных типах.
-// TODO: Заменить на реальный тип из swagger schemas, когда он будет стабилен.
-interface LoginResponse {
-  accessToken: string;
-  refreshToken: {
-    token: string;
-  };
-  account: User;
-}
-
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: CredentialsLoginDto) => Promise<void>;
+  loginCredentials: (data: CredentialsLoginDto) => Promise<void>;
+  loginGoogle(data: GoogleLoginDto): Promise<void>;
   register: (data: RegisterAccountDto) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -53,17 +47,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = storage.get(STORAGE_KEYS.ACCESS_TOKEN);
 
       if (token) {
-        // TODO: [Backend Integration] Implement /auth/me endpoint.
-        // Currently, we trust the token existence.
-        // ideally: const user = await apiClient.get('/auth/me'); setUser(user);
-
-        // ВРЕМЕННО: Создаем "фейкового" юзера, чтобы сессия не падала
-        // Это нужно убрать, когда будет готов эндпоинт /me
-        setUser({
-          id: "temp-id",
-          email: "user@example.com",
-          fullName: "Loading...",
-        });
+        const user = await getAuth().authControllerAccountInfo();
+        setUser(user);
       } else {
         setUser(null);
       }
@@ -75,26 +60,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Login Action
-  const login = async (dto: CredentialsLoginDto) => {
+  const loginCredentials = async (dto: CredentialsLoginDto) => {
     try {
-      // Приводим ответ к ожидаемому интерфейсу
-      const response = (await getAuth().authControllerCredentialsLogin(
-        dto,
-      )) as unknown as LoginResponse;
+      const response = await getAuth().authControllerCredentialsLogin(dto);
 
       if (response?.accessToken) {
         // Save tokens
         storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
-        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken.token);
+        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
 
         // Update State
         setUser(response.account);
-
-        // Redirect is handled by the calling component or here if preferred
-        // navigate("/");
       }
     } catch (error) {
       console.error("Login failed:", error);
+      throw error; // Re-throw so the UI can show an error message
+    }
+  };
+
+  const loginGoogle = async (dto: GoogleLoginDto) => {
+    try {
+      const response = await getAuth().authControllerGoogleLogin(dto);
+
+      if (response?.accessToken) {
+        // Save tokens
+        storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+
+        // Update State
+        setUser(response.account);
+      }
+    } catch (error) {
+      console.error("Google Login failed:", error);
       throw error; // Re-throw so the UI can show an error message
     }
   };
@@ -135,7 +132,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isAuthenticated: !!user,
         isLoading,
-        login,
+        loginCredentials,
+        loginGoogle,
         register,
         logout,
       }}
