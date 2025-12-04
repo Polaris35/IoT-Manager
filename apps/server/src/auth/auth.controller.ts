@@ -17,6 +17,7 @@ import { LoginResponseDto } from './dto/login.response.dto';
 import { plainToInstance } from 'class-transformer';
 import { RefreshTokensResponseDto } from './dto/refresh-tokens.response.dto';
 import { AccountResponseDto } from './dto/account.response.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -48,6 +49,21 @@ export class AuthController {
     @UserAgent() agent: string,
   ) {
     const loginData = await this.authService.credentialsLogin(dto, agent);
+    return plainToInstance(LoginResponseDto, loginData, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Public()
+  @Post('google/login')
+  @ApiOperation({ summary: 'Login via Google OAuth2' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns access and refresh tokens',
+    type: LoginResponseDto,
+  })
+  async googleLogin(@Body() dto: GoogleLoginDto, @UserAgent() agent: string) {
+    const loginData = await this.authService.googleLogin(dto, agent);
     return plainToInstance(LoginResponseDto, loginData, {
       excludeExtraneousValues: true,
     });

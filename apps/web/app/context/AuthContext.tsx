@@ -4,7 +4,11 @@ import { useNavigate } from "react-router";
 
 // API & Types
 import { getAuth } from "~/modules/auth/auth";
-import type { CredentialsLoginDto, RegisterAccountDto } from "~/types/schemas";
+import type {
+  CredentialsLoginDto,
+  GoogleLoginDto,
+  RegisterAccountDto,
+} from "~/types/schemas";
 
 // Utils
 import { STORAGE_KEYS } from "~/constants";
@@ -22,7 +26,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: CredentialsLoginDto) => Promise<void>;
+  loginCredentials: (data: CredentialsLoginDto) => Promise<void>;
+  loginGoogle(data: GoogleLoginDto): Promise<void>;
   register: (data: RegisterAccountDto) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -55,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Login Action
-  const login = async (dto: CredentialsLoginDto) => {
+  const loginCredentials = async (dto: CredentialsLoginDto) => {
     try {
       const response = await getAuth().authControllerCredentialsLogin(dto);
 
@@ -69,6 +74,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error("Login failed:", error);
+      throw error; // Re-throw so the UI can show an error message
+    }
+  };
+
+  const loginGoogle = async (dto: GoogleLoginDto) => {
+    try {
+      const response = await getAuth().authControllerGoogleLogin(dto);
+
+      if (response?.accessToken) {
+        // Save tokens
+        storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+
+        // Update State
+        setUser(response.account);
+      }
+    } catch (error) {
+      console.error("Google Login failed:", error);
       throw error; // Re-throw so the UI can show an error message
     }
   };
@@ -109,7 +132,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isAuthenticated: !!user,
         isLoading,
-        login,
+        loginCredentials,
+        loginGoogle,
         register,
         logout,
       }}

@@ -34,6 +34,15 @@ export interface CredentialsLoginRequest {
   agent: string;
 }
 
+export interface GoogleLoginRequest {
+  code: string;
+  /**
+   * The User-Agent string from the client's request headers.
+   * Used to identify the session's device/browser for security purposes.
+   */
+  agent: string;
+}
+
 export interface LoginResponse {
   /** Core details of the authenticated user's account. */
   account:
@@ -124,6 +133,8 @@ export interface AuthServiceClient {
 
   credentialsLogin(request: CredentialsLoginRequest): Observable<LoginResponse>;
 
+  googleLogin(request: GoogleLoginRequest): Observable<LoginResponse>;
+
   /**
    * Invalidates a user's session by deleting the provided refresh token.
    * This effectively logs the user out from the specific device/client.
@@ -187,6 +198,8 @@ export interface AuthServiceController {
     request: CredentialsLoginRequest,
   ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
+  googleLogin(request: GoogleLoginRequest): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
+
   /**
    * Invalidates a user's session by deleting the provided refresh token.
    * This effectively logs the user out from the specific device/client.
@@ -231,6 +244,7 @@ export function AuthServiceControllerMethods() {
     const grpcMethods: string[] = [
       "credentialsRegister",
       "credentialsLogin",
+      "googleLogin",
       "logout",
       "refreshTokens",
       "validateAccessToken",

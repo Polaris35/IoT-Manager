@@ -13,6 +13,7 @@ import {
   RefreshTokensDto,
   RegisterAccountDto,
 } from './dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -44,6 +45,22 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException("can't login user");
     }
 
+    return loginData;
+  }
+
+  async googleLogin(
+    dto: GoogleLoginDto,
+    agent: string,
+  ): Promise<auth.LoginResponse> {
+    const loginData = await lastValueFrom(
+      this.authServiceClient.googleLogin({
+        code: dto.code,
+        agent,
+      }),
+    );
+    if (!loginData) {
+      throw new BadRequestException("can't login user");
+    }
     return loginData;
   }
 

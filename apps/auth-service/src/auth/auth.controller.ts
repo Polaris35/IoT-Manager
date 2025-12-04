@@ -27,6 +27,21 @@ export class AuthController implements auth.AuthServiceController {
       );
     }
   }
+  @GrpcMethod(auth.AUTH_SERVICE_NAME)
+  async googleLogin(dto: auth.GoogleLoginRequest): Promise<auth.LoginResponse> {
+    const { agent, code } = dto;
+    const userWithTokens = await this.authService.authorize(
+      { code },
+      agent,
+      AccountProvider.GOOGLE,
+    );
+
+    if (!userWithTokens) {
+      throw new GrpcUnknownException(`Can't login user`);
+    }
+
+    return userWithTokens;
+  }
 
   @GrpcMethod(auth.AUTH_SERVICE_NAME)
   async credentialsLogin(

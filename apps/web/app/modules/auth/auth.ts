@@ -8,6 +8,7 @@
 import type {
   AccountResponseDto,
   CredentialsLoginDto,
+  GoogleLoginDto,
   LoginResponseDto,
   LogoutDto,
   RefreshTokensDto,
@@ -50,6 +51,23 @@ export const getAuth = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         data: credentialsLoginDto,
+      },
+      options,
+    );
+  };
+  /**
+   * @summary Login via Google OAuth2
+   */
+  const authControllerGoogleLogin = (
+    googleLoginDto: GoogleLoginDto,
+    options?: SecondParameter<typeof apiClient<LoginResponseDto>>,
+  ) => {
+    return apiClient<LoginResponseDto>(
+      {
+        url: `/auth/google/login`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        data: googleLoginDto,
       },
       options,
     );
@@ -102,6 +120,7 @@ export const getAuth = () => {
   return {
     authControllerCredentialsRegister,
     authControllerCredentialsLogin,
+    authControllerGoogleLogin,
     authControllerLogout,
     authControllerRefreshTokens,
     authControllerAccountInfo,
@@ -116,6 +135,9 @@ export type AuthControllerCredentialsLoginResult = NonNullable<
   Awaited<
     ReturnType<ReturnType<typeof getAuth>["authControllerCredentialsLogin"]>
   >
+>;
+export type AuthControllerGoogleLoginResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getAuth>["authControllerGoogleLogin"]>>
 >;
 export type AuthControllerLogoutResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getAuth>["authControllerLogout"]>>

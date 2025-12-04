@@ -10,7 +10,7 @@ export type LoginFormInputs = CredentialsLoginDto & {
 };
 
 export const useLoginForm = () => {
-  const { login } = useAuth();
+  const { loginCredentials } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export const useLoginForm = () => {
     setServerError(null);
     try {
       // Logic for "Remember Me" can be handled here or in AuthContext
-      await login({ email: data.email, password: data.password });
+      await loginCredentials({ email: data.email, password: data.password });
 
       navigate(from, { replace: true });
     } catch (error: any) {

@@ -22,6 +22,8 @@ service AuthService {
     // Throws `UNAUTHENTICATED` for invalid credentials (wrong email or password).
     rpc CredentialsLogin(CredentialsLoginRequest) returns (LoginResponse);
 
+    rpc GoogleLogin(GoogleLoginRequest) returns (LoginResponse);
+
     // Invalidates a user's session by deleting the provided refresh token.
     // This effectively logs the user out from the specific device/client.
     // Throws `NOT_FOUND` if the refresh token is not found or already invalidated.
@@ -70,6 +72,13 @@ message CredentialsLoginRequest {
     // The User-Agent string from the client's request headers.
     // Used to identify the session's device/browser for security purposes.
     string agent = 3;
+}
+
+message GoogleLoginRequest {
+    string code = 1;
+    // The User-Agent string from the client's request headers.
+    // Used to identify the session's device/browser for security purposes.
+    string agent = 2;
 }
 
 message LoginResponse {
