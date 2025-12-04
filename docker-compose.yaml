@@ -54,15 +54,30 @@ services:
       - iot_network
     restart: unless-stopped
 
-  # rabbitmq-broker:
-  #   image: rabbitmq:3.11-management-alpine
-  #   container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq-broker
-  #   ports:
-  #     - "${RABBITMQ_HOST_PORT}:5672"
-  #     - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
-  #   networks:
-  #     - iot_network
-  #   restart: unless-stopped
+  rabbitmq-broker:
+    image: rabbitmq:3.11-management-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq-broker
+    # Явно задаем учетные данные. 
+    # Это позволяет подключаться к брокеру из других контейнеров без проблем.
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_HOST_PORT}:5672"        # Порт для AMQP (протокол общения сервисов)
+      - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672" # Порт для веб-интерфейса
+    volumes:
+      # Важно: сохраняем данные брокера, чтобы не терять очереди при рестарте
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - iot_network
+    restart: unless-stopped
+    # Проверка здоровья: пингует RabbitMQ. 
+    # Это позволит твоим сервисам использовать condition: service_healthy
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
   # influxdb:
   #   image: influxdb:2.7
@@ -132,8 +147,10 @@ networks:
 volumes:
   postgres-auth-data:
     driver: local
-  postgres-device-data:
+  rabbitmq_data:
     driver: local
+  # postgres-device-data:
+  #   driver: local
   redis-data:
     driver: local
   influxdb-data:
