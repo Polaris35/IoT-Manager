@@ -2,11 +2,7 @@ import { Body, Controller, Get, Post, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GrpcToHttpInterceptor } from 'nestjs-grpc-exceptions';
-import {
-  CurrentUser,
-  Public,
-  UserAgent,
-} from '@iot-manager/nest-libs/decorators';
+import { CurrentUser, Public, UserAgent } from '@iot-manager/nest-libs';
 import {
   CredentialsLoginDto,
   LogoutDto,

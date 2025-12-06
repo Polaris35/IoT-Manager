@@ -1,4 +1,4 @@
-import { DeviceProtocol } from '@iot-manager/nest-libs/enums';
+import { DeviceProtocol } from '@iot-manager/nest-libs';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsUUID, Min } from 'class-validator';

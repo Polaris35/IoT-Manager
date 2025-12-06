@@ -14,7 +14,7 @@ import {
   ZigbeeConnectionConfigDto,
   TuyaConnectionConfigDto,
 } from './connection-configs.dto';
-import { DeviceProtocol } from '@iot-manager/nest-libs/enums';
+import { DeviceProtocol } from '@iot-manager/nest-libs';
 
 class EmptyConfig {}
 @ApiExtraModels(

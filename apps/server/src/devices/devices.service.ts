@@ -7,7 +7,7 @@ import { struct } from 'pb-util';
 import {
   mapEntityProtocolToProto,
   mapProtoProtocolToEntity,
-} from '@iot-manager/nest-libs/mappers';
+} from '@iot-manager/nest-libs';
 import { FindDevicesDto } from './dto/devices/find-device.dto';
 
 @Injectable()

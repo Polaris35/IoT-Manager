@@ -6,8 +6,8 @@ import { DeviceEntity } from '@entities';
 import {
   mapEntityProtocolToProto,
   mapProtoProtocolToEntity,
-} from '@iot-manager/nest-libs/mappers';
-import { DeviceProtocol } from '@iot-manager/nest-libs/enums';
+  DeviceProtocol,
+} from '@iot-manager/nest-libs';
 
 @Controller('devices')
 export class DevicesController {

@@ -19,7 +19,7 @@ import {
   DeviceGroupResponseDto,
   UpdateGroupDto,
 } from './dto/group.dto';
-import { CurrentUser } from '@iot-manager/nest-libs/decorators';
+import { CurrentUser } from '@iot-manager/nest-libs';
 
 @ApiTags('Groups (Rooms)')
 @ApiBearerAuth()
