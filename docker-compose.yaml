@@ -61,8 +61,10 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     ports:
-      - "${RABBITMQ_HOST_PORT}:5672"        # Port for AMQP (протокол общения сервисов)
-      - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672" # Port for web UI
+      - "${RABBITMQ_HOST_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
+    # Переносим сюда
+    volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - iot_network
@@ -72,6 +74,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mosquitto-broker:
+    image: eclipse-mosquitto:2
+    container_name: ${COMPOSE_PROJECT_NAME}-mosquitto
+    ports:
+      - "${MQTT_HOST_PORT}:1883"  # Основной порт MQTT
+      - "9001:9001"               # WebSocket порт (полезно для отладки из браузера)
+    volumes:
+      # Пробрасываем конфиг. ВАЖНО: Ты должен создать этот файл (см. шаг 3)
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - iot_network
+    restart: unless-stopped
   
   # influxdb:
   #   image: influxdb:2.7
