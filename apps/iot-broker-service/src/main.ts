@@ -31,7 +31,7 @@ async function bootstrap() {
       whitelist: true,
       exceptionFactory: (errors: ValidationError[]) => {
         console.error('❌ VALIDATION FAILED:', JSON.stringify(errors, null, 2));
-        // Возвращаем ошибку, чтобы Nest продолжил стандартную обработку
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return new RpcException(errors);
       },
