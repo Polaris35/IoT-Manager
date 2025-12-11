@@ -18,6 +18,6 @@ export class DeviceCreatedEventDto {
   profileId: string; // Ты сказал, что мы его передаем
 
   @IsObject()
-  connectionConfig: Record<string, any>;
+  connectionConfig: unknown;
   // Тут можно типизировать строже через вложенные DTO, если нужно
 }

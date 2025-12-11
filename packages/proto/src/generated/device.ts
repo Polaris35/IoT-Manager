@@ -14,28 +14,16 @@ import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "device";
 
-export enum DeviceProtocol {
-  PROTOCOL_UNSPECIFIED = 0,
-  MQTT = 1,
-  ZIGBEE = 2,
-  TUYA = 3,
-  UNRECOGNIZED = -1,
-}
-
 /** Core device entity used in responses. */
 export interface Device {
   id: string;
   userId: string;
   name: string;
-  protocol: DeviceProtocol;
-  groupId?:
-    | string
-    | undefined;
-  /**
-   * google.protobuf.Timestamp created_at = 7;
-   * google.protobuf.Timestamp updated_at = 8;
-   */
-  connectionConfig: { [key: string]: any } | undefined;
+  externalId: string;
+  profileId: string;
+  protocol: string;
+  groupId?: string | undefined;
+  connectionConfig: string;
 }
 
 /** Request to create a device */
@@ -44,11 +32,11 @@ export interface CreateDeviceRequest {
   userId: string;
   name: string;
   externalId: string;
-  protocol: DeviceProtocol;
+  protocol: string;
   groupId?: string | undefined;
   profileId: string;
   /** Flexible structure for arbitrary JSON data */
-  connectionConfig: { [key: string]: any } | undefined;
+  connectionConfig: string;
 }
 
 /** Request to get a single device */
@@ -68,7 +56,7 @@ export interface FindDevicesRequest {
     | undefined;
   /** Filter by protocol */
   protocol?:
-    | DeviceProtocol
+    | string
     | undefined;
   /** Filter by group */
   groupId?: string | undefined;
