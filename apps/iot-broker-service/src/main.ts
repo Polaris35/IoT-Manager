@@ -1,6 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import {
+  MicroserviceOptions,
+  RpcException,
+  Transport,
+} from '@nestjs/microservices';
+import { ValidationError, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -9,15 +14,28 @@ async function bootstrap() {
       transport: Transport.RMQ,
       options: {
         urls: [
-          process.env.RABBITMQ_URL ||
-            'amqp://admin:secret_password@localhost:5672',
+          `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}`,
         ],
-        queue: 'iot_broker_lifecycle',
+        queue: process.env.RABBITMQ_EVENTS_QUEUE,
         queueOptions: {
           durable: true,
         },
+        noAck: false,
       },
     },
+  );
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      exceptionFactory: (errors: ValidationError[]) => {
+        console.error('❌ VALIDATION FAILED:', JSON.stringify(errors, null, 2));
+        // Возвращаем ошибку, чтобы Nest продолжил стандартную обработку
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return new RpcException(errors);
+      },
+    }),
   );
   await app.listen();
 }
