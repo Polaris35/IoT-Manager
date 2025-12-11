@@ -3,11 +3,7 @@ import { device } from '@iot-manager/proto';
 import { DevicesService } from './devices.service';
 import { GrpcMethod } from '@nestjs/microservices';
 import { DeviceEntity } from '@entities';
-import {
-  mapEntityProtocolToProto,
-  mapProtoProtocolToEntity,
-} from '@iot-manager/nest-libs/mappers';
-import { DeviceProtocol } from '@iot-manager/nest-libs/enums';
+import { DeviceProtocol } from '@iot-manager/nest-libs';
 
 @Controller('devices')
 export class DevicesController {
@@ -20,12 +16,14 @@ export class DevicesController {
       userId: request.userId,
       name: request.name,
       externalId: request.externalId,
-      protocol: mapProtoProtocolToEntity(request.protocol),
+      protocol: request.protocol,
       profileId: request.profileId,
       groupId: request.groupId,
       credentials: request.connectionConfig,
     });
-    return this.mapEntityToProto(deviceEntity);
+    const rezult = this.mapEntityToProto(deviceEntity);
+    console.log('Created device rezult:', rezult);
+    return rezult;
   }
   @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async getDevice(request: device.GetDeviceRequest): Promise<device.Device> {
@@ -80,9 +78,15 @@ export class DevicesController {
       id: entity.id,
       userId: entity.userId,
       name: entity.name,
-      groupId: entity.groupId || undefined,
-      protocol: mapEntityProtocolToProto(DeviceProtocol[entity.protocol]),
-      connectionConfig: entity.credentials || undefined,
+      groupId: entity.groupId ?? undefined,
+      externalId: entity.externalId,
+      profileId: entity.profileId,
+
+      protocol: DeviceProtocol[entity.protocol],
+
+      connectionConfig: entity.credentials
+        ? JSON.stringify(entity.credentials)
+        : '',
     };
   }
 }

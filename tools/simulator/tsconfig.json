@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    /* Базовые настройки */
+    "target": "ES2019" /* В какую версию JS компилировать */,
+    "module": "CommonJS" /* Важно: ts-node лучше всего работает с CommonJS */,
+    "moduleResolution": "node",
+
+    /* Совместимость */
+    "esModuleInterop": true /* Позволяет использовать 'import' даже если библиотека написана на 'require' */,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true /* Включает строгую проверку типов */,
+    "skipLibCheck": true /* Ускоряет запуск, пропуская проверку типов в node_modules */
+  },
+  "include": ["simulator.ts"]
+}

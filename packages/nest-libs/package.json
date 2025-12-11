@@ -3,30 +3,10 @@
   "version": "1.0.0",
   "description": "package for store nestjs decorators, utils and types",
   "private": true,
-  "exports": {
-    "./interfaces": {
-      "types": "./dist/types/interfaces/index.d.ts",
-      "default": "./dist/types/interfaces/index.js"
-    },
-    "./dto": {
-      "types": "./dist/types/dto/index.d.ts",
-      "default": "./dist/types/dto/index.js"
-    },
-    "./decorators": {
-      "types": "./dist/decorators/index.d.ts",
-      "default": "./dist/decorators/index.js"
-    },
-    "./mappers": {
-      "types": "./dist/mappers/index.d.ts",
-      "default": "./dist/mappers/index.js"
-    },
-    "./enums": {
-      "types": "./dist/types/enums/index.d.ts",
-      "default": "./dist/types/enums/index.js"
-    }
-  },
+  "main": "./dist/index.js", 
+  "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist", "src"
   ],
   "scripts": {
     "build-libs": "tsc"

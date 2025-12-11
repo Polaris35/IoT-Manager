@@ -41,15 +41,6 @@ service DeviceManagementService {
   rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupResponse);
 }
 
-// --- Enums ---
-
-enum DeviceProtocol {
-  PROTOCOL_UNSPECIFIED = 0;
-  MQTT = 1;
-  ZIGBEE = 2;
-  TUYA = 3;
-}
-
 // --- Core Messages ---
 
 // Core device entity used in responses.
@@ -57,11 +48,11 @@ message Device {
   string id = 1;
   string userId = 2;
   string name = 3;
-  DeviceProtocol protocol = 4;
-  optional string group_id = 5;
-  google.protobuf.Struct connection_config = 6;
-  // google.protobuf.Timestamp created_at = 7;
-  // google.protobuf.Timestamp updated_at = 8;
+  string externalId = 4;
+  string profileId = 5;
+  string protocol = 6;
+  optional string groupId = 7;
+  string connectionConfig = 8;
 }
 
 
@@ -71,11 +62,11 @@ message Device {
 message CreateDeviceRequest {
   string userId = 1; // API Gateway will inject this field from the JWT token
   string name = 2;
-  string external_id = 3;
-  DeviceProtocol protocol = 4;
-  optional string group_id = 5;
-  string profile_id = 6;
-  google.protobuf.Struct connection_config = 7; // Flexible structure for arbitrary JSON data
+  string externalId = 3;
+  string protocol = 4;
+  optional string groupId = 5;
+  string profileId = 6;
+  string connectionConfig = 7; // Flexible structure for arbitrary JSON data
 }
 
 // Request to get a single device
@@ -89,8 +80,8 @@ message FindDevicesRequest {
   string userId = 1; // Mandatory: restricts search to this user's devices
   optional int32 page = 2;
   optional int32 limit = 3;
-  optional DeviceProtocol protocol = 4; // Filter by protocol
-  optional string group_id = 5; // Filter by group
+  optional string protocol = 4; // Filter by protocol
+  optional string groupId = 5; // Filter by group
 }
 
 // Response containing a list of devices
@@ -112,7 +103,7 @@ message UpdateDeviceRequest {
   // For group_id, we need the ability to set it to null.
   // StringValue wrapper is perfect here. If an empty string (or specific value)
   // is passed within the wrapper, we can interpret it as "remove from group".
-  optional google.protobuf.StringValue group_id = 4;
+  optional google.protobuf.StringValue groupId = 4;
 }
  
 // Request to delete a device
@@ -131,7 +122,7 @@ message Group {
   string name = 3;
   optional string description = 4;
   // Creation timestamp
-  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp createdAt = 5;
   int32 devices_count = 6;
 }
 

@@ -1,4 +1,4 @@
-import { isPublic } from '@iot-manager/nest-libs/decorators';
+import { isPublic } from '@iot-manager/nest-libs';
 import {
   CanActivate,
   ExecutionContext,

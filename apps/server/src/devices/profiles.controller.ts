@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponseProperty, ApiTags } from '@nestjs/swagger';
 import { ProfilesService } from './profiles.service';
 import { ProfileResponseDto, SearchProfileDto } from './dto';
-import { Public } from '@iot-manager/nest-libs/decorators';
+import { Public } from '@iot-manager/nest-libs';
 
 @Controller('profiles')
 @ApiTags('Profiles')

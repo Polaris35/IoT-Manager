@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { DeviceEntity, DeviceProfileEntity } from '@entities';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,8 @@ import {
   GrpcAlreadyExistsException,
   GrpcNotFoundException,
 } from 'nestjs-grpc-exceptions';
+import { DeviceCreatedEventDto, DeviceProtocol } from '@iot-manager/nest-libs';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class DevicesService {
@@ -14,6 +16,8 @@ export class DevicesService {
     private deviceRepository: Repository<DeviceEntity>,
     @InjectRepository(DeviceProfileEntity)
     private profileRepository: Repository<DeviceProfileEntity>,
+    @Inject('IOT_BROKER_CLIENT')
+    private readonly brokerClient: ClientProxy,
   ) {}
 
   // --- CREATE ---
@@ -33,7 +37,7 @@ export class DevicesService {
     protocol: string;
     profileId: string;
     groupId?: string;
-    credentials?: Record<string, any>;
+    credentials?: string;
   }) {
     const profile = await this.profileRepository.findOne({
       where: { id: data.profileId },
@@ -55,13 +59,25 @@ export class DevicesService {
       userId: data.userId,
       name: data.name,
       externalId: data.externalId,
-      protocol: data.protocol,
+      protocol: DeviceProtocol[data.protocol],
       profile: profile,
       groupId: data.groupId || undefined,
-      credentials: data.credentials || {},
+      credentials: data.credentials ? JSON.parse(data.credentials) : {},
     });
 
-    return this.deviceRepository.save(device);
+    const savedDevice = await this.deviceRepository.save(device);
+
+    const eventPayload: DeviceCreatedEventDto = {
+      id: savedDevice.id,
+      userId: savedDevice.userId,
+      protocol: DeviceProtocol[savedDevice.protocol],
+      externalId: savedDevice.externalId,
+      profileId: savedDevice.profileId || '',
+      connectionConfig: savedDevice.credentials,
+    };
+
+    this.brokerClient.emit('device.created', eventPayload);
+    return savedDevice;
   }
 
   // --- GET ONE ---

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { GrpcToHttpInterceptor } from 'nestjs-grpc-exceptions';
 import { CreateDeviceDto, UpdateDeviceDto } from './dto';
-import { CurrentUser } from '@iot-manager/nest-libs/decorators';
+import { CurrentUser } from '@iot-manager/nest-libs';
 import { DevicesService } from './devices.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FindDevicesDto } from './dto/devices/find-device.dto';
