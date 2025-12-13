@@ -5,6 +5,7 @@ import { DevicesModule } from './devices/devices.module';
 import { AuthClientModule } from '@auth/auth-client.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from '@auth/guards';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthGuard } from '@auth/guards';
     AuthClientModule,
     AuthModule,
     DevicesModule,
+    StatsModule,
   ],
   providers: [
     {
