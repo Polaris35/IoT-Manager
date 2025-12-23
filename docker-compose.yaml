@@ -90,22 +90,23 @@ services:
       - iot_network
     restart: unless-stopped
   
-  # influxdb:
-  #   image: influxdb:2.7
-  #   container_name: ${COMPOSE_PROJECT_NAME}-influxdb
-  #   environment:
-  #     DOCKER_INFLUXDB_INIT_MODE: ${DOCKER_INFLUXDB_INIT_MODE}
-  #     DOCKER_INFLUXDB_INIT_USERNAME: ${DOCKER_INFLUXDB_INIT_USERNAME}
-  #     DOCKER_INFLUXDB_INIT_PASSWORD: ${DOCKER_INFLUXDB_INIT_PASSWORD}
-  #     DOCKER_INFLUXDB_INIT_ORG: ${DOCKER_INFLUXDB_INIT_ORG}
-  #     DOCKER_INFLUXDB_INIT_BUCKET: ${DOCKER_INFLUXDB_INIT_BUCKET}
-  #   ports:
-  #     - "${INFLUXDB_HOST_PORT}:8086"
-  #   volumes:
-  #     - influxdb-data:/var/lib/influxdb2
-  #   networks:
-  #     - iot_network
-  #   restart: unless-stopped
+  influxdb:
+    image: influxdb:2.7
+    container_name: ${COMPOSE_PROJECT_NAME}-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+    ports:
+      - "${INFLUXDB_HOST_PORT}:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    networks:
+      - iot_network
+    restart: unless-stopped
 
   # ===============================================
   #  APPLICATION SERVICES
@@ -144,8 +145,86 @@ services:
     ports:
       - "${API_GATEWAY_HOST_PORT}:${API_GATEWAY_CONTAINER_PORT}"
     environment:
+      DEVICE_SERVICE_GRPC_URL: ${DEVICE_SERVICE_GRPC_URL}
       AUTH_SERVICE_GRPC_URL: ${AUTH_SERVICE_GRPC_URL}
       PORT: ${API_GATEWAY_CONTAINER_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
+      RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+    networks:
+      - iot_network
+    restart: unless-stopped
+
+  iot-broker-service:
+    container_name: ${COMPOSE_PROJECT_NAME}-iot-broker-service
+    build:
+      context: .
+      dockerfile: apps/iot-broker-service/Dockerfile
+    ports:
+      - "${BROKER_SERVICE_HOST_PORT}:${BROKER_SERVICE_CONTAINER_PORT}"
+    environment:
+      PORT: ${BROKER_SERVICE_HOST_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
+      RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+      MQTT_BROKER_URL: ${MQTT_BROKER_URL}
+      DEVICE_SERVICE_GRPC_URL: ${DEVICE_SERVICE_GRPC_URL}
+    networks:
+      - iot_network
+    restart: unless-stopped
+
+  device-service:
+    container_name: ${COMPOSE_PROJECT_NAME}-device-service
+    build:
+      context: .
+      dockerfile: apps/device-service/Dockerfile
+    ports:
+      - "${DEVICE_SERVICE_HOST_PORT}:${DEVICE_SERVICE_CONTAINER_PORT}"
+    environment:
+      PORT: ${DEVICE_SERVICE_CONTAINER_PORT}
+      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}     
+      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}     
+      DB_USER: ${POSTGRES_AUTH_USER}          
+      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}    
+      DB_NAME: ${POSTGRES_AUTH_DB}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
+      RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+    networks:
+      - iot_network
+    restart: unless-stopped
+  
+  statistics-service:
+    container_name: ${COMPOSE_PROJECT_NAME}-statistics-service
+    build:
+      context: .
+      dockerfile: apps/statistics-service/Dockerfile
+    # ports:
+    #   - "${STATISTICS_SERVICE_HOST_PORT}:${STATISTICS_SERVICE_CONTAINER_PORT}"
+    environment:
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
+      RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+
+      INFLUXDB_HOST_PORT: ${INFLUXDB_HOST_PORT}
+      INFLUXDB_ADMIN_USER: ${INFLUXDB_ADMIN_USER}
+      INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      INFLUXDB_URL: ${INFLUXDB_URL}
     networks:
       - iot_network
     restart: unless-stopped
