@@ -14,7 +14,7 @@ async function bootstrap() {
       transport: Transport.RMQ,
       options: {
         urls: [
-          `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}`,
+          `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}/${process.env.RABBITMQ_VHOST || ''}`,
         ],
         queue: process.env.RABBITMQ_TELEMETRY_QUEUE,
         queueOptions: {

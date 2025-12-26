@@ -3,25 +3,25 @@ services:
   #  INFRASTRUCTURE SERVICES
   # ===============================================
 
-  postgres-auth:
-    image: postgres:15-alpine
-    container_name: ${COMPOSE_PROJECT_NAME}-postgres-auth
-    environment:
-      POSTGRES_USER: ${POSTGRES_AUTH_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_AUTH_DB}
-    ports:
-      - "${POSTGRES_AUTH_HOST_PORT}:5432"
-    volumes:
-      - postgres-auth-data:/var/lib/postgresql/data
-    networks:
-      - iot_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AUTH_USER} -d ${POSTGRES_AUTH_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+  # postgres-auth:
+  #   image: postgres:15-alpine
+  #   container_name: ${COMPOSE_PROJECT_NAME}-postgres-auth
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_AUTH_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_AUTH_DB}
+  #   ports:
+  #     - "${POSTGRES_AUTH_HOST_PORT}:5432"
+  #   volumes:
+  #     - postgres-auth-data:/var/lib/postgresql/data
+  #   networks:
+  #     - iot_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AUTH_USER} -d ${POSTGRES_AUTH_DB}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
 
   # postgres-device:
   #   image: postgres:15-alpine
@@ -79,17 +79,16 @@ services:
     image: eclipse-mosquitto:2
     container_name: ${COMPOSE_PROJECT_NAME}-mosquitto
     ports:
-      - "${MQTT_HOST_PORT}:1883"  # Основной порт MQTT
-      - "9001:9001"               # WebSocket порт (полезно для отладки из браузера)
+      - "${MQTT_HOST_PORT}:1883"
+      - "9001:9001"
     volumes:
-      # Пробрасываем конфиг. ВАЖНО: Ты должен создать этот файл (см. шаг 3)
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
     networks:
       - iot_network
     restart: unless-stopped
-  
+
   influxdb:
     image: influxdb:2.7
     container_name: ${COMPOSE_PROJECT_NAME}-influxdb
@@ -120,19 +119,19 @@ services:
     ports:
       - "${AUTH_SERVICE_HOST_PORT}:${AUTH_SERVICE_CONTAINER_PORT}"
     environment:
-      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}     
-      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}     
-      DB_USER: ${POSTGRES_AUTH_USER}          
-      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}    
-      DB_NAME: ${POSTGRES_AUTH_DB}           
+      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}
+      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}
+      DB_USER: ${POSTGRES_AUTH_USER}
+      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
+      DB_NAME: ${POSTGRES_AUTH_DB}
       PORT: ${AUTH_SERVICE_CONTAINER_PORT}
       JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
       REDIS_URL: ${REDIS_URL}
     networks:
       - iot_network
     depends_on:
-      postgres-auth:
-        condition: service_healthy
+      # postgres-auth:
+      #   condition: service_healthy
       redis-cache:
         condition: service_started
     restart: unless-stopped
@@ -188,10 +187,10 @@ services:
       - "${DEVICE_SERVICE_HOST_PORT}:${DEVICE_SERVICE_CONTAINER_PORT}"
     environment:
       PORT: ${DEVICE_SERVICE_CONTAINER_PORT}
-      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}     
-      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}     
-      DB_USER: ${POSTGRES_AUTH_USER}          
-      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}    
+      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}
+      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}
+      DB_USER: ${POSTGRES_AUTH_USER}
+      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
       DB_NAME: ${POSTGRES_AUTH_DB}
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
@@ -202,7 +201,7 @@ services:
     networks:
       - iot_network
     restart: unless-stopped
-  
+
   statistics-service:
     container_name: ${COMPOSE_PROJECT_NAME}-statistics-service
     build:
@@ -229,7 +228,6 @@ services:
       - iot_network
     restart: unless-stopped
 
-  
 networks:
   iot_network:
     driver: bridge
