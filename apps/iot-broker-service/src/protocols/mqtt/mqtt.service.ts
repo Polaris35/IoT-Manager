@@ -11,6 +11,9 @@ import * as mqtt from 'mqtt';
 import { firstValueFrom } from 'rxjs';
 import { TelemetryService } from '../../telemetry/telemetry.service';
 import { device } from '@iot-manager/proto';
+import Redis from 'ioredis';
+import { REDIS_CLIENT } from '@redis-client/redis-client.module';
+import { isRecord } from 'src/utils';
 
 // Interface for subscription context (links topic to specific device and profile)
 interface SubscriptionContext {
@@ -20,9 +23,13 @@ interface SubscriptionContext {
 
 @Injectable()
 export class MqttService implements OnModuleInit, OnModuleDestroy {
-  private profileServiceClient: device.ProfilesServiceClient;
-  private client: mqtt.MqttClient;
   private readonly logger = new Logger(MqttService.name);
+  /**
+   * Profiles service gRPC cient
+   * used to obtain devices profile
+   */
+  private profileServiceClient: device.ProfilesServiceClient;
+  private mqttBrokerClient: mqtt.MqttClient;
 
   // Maps "MQTT Topic" -> "Context (DeviceID, ProfileID)"
   // Used to identify the owner of the incoming message.
@@ -35,35 +42,40 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     private config: ConfigService,
     private telemetryService: TelemetryService,
     @Inject('DEVICE_PACKAGE') private clientGrpc: ClientGrpc,
-  ) {}
-  onModuleInit() {
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
+  ) {
     this.profileServiceClient =
       this.clientGrpc.getService<device.ProfilesServiceClient>(
         device.PROFILES_SERVICE_NAME,
       );
+  }
 
+  // --- Configuration of connection to MQTT broker ---
+  onModuleInit() {
     const url =
       this.config.get<string>('MQTT_BROKER_URL') || 'mqtt://localhost:1883';
-    this.client = mqtt.connect(url);
+    this.mqttBrokerClient = mqtt.connect(url);
 
-    this.client.on('connect', () => {
+    this.mqttBrokerClient.on('connect', () => {
       console.log('✅ [MqttService] Connected to Mosquitto');
       setTimeout(
         () => this.initializeDemoData(), // <-- Initialize hardcoded data for Demo
         10000,
       );
     });
-    this.client.on('error', (err) =>
+    this.mqttBrokerClient.on('error', (err) =>
       console.error('❌ [MqttService] Error:', err),
     );
-    this.client.on('message', (topic, payload) => {
+    this.mqttBrokerClient.on('message', (topic, payload) => {
       void this.handleMessage(topic, payload);
     });
   }
 
   onModuleDestroy() {
-    this.client?.end();
+    this.mqttBrokerClient?.end();
   }
+
+  // -----------------------------------------
 
   /**
    * Subscribes to a device topic and saves the context for parsing.
@@ -77,7 +89,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       console.log(
         `[MQTT] Subscribing to ${topic} (Device: ${deviceId}, Profile: ${profileId})`,
       );
-      this.client.subscribe(topic);
+      this.mqttBrokerClient.subscribe(topic);
     }
     // Update context (in case the profile changed)
     this.topicMap.set(topic, { deviceId, profileId });
@@ -86,59 +98,86 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   /**
    * Main message handler.
    * 1. Identifies the device by topic.
-   * 2. Retrieves the profile (mapping rules).
-   * 3. Extracts metrics and publishes them to TelemetryService.
+   * 2. Parses the payload safely.
+   * 3. Maps raw data to metrics using the Device Profile.
+   * 4. Sends numeric data to TelemetryService (InfluxDB).
+   * 5. Updates the Device Shadow (Redis) with the current state.
    */
   private async handleMessage(topic: string, buffer: Buffer) {
     const context = this.topicMap.get(topic);
     if (!context) return; // Ignore topics we are not subscribed to
 
-    const messageStr = buffer.toString();
-
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const payload = JSON.parse(messageStr);
+      // 1. Safe JSON Parsing
+      // We cast to 'unknown' to force type checks later.
+      const messageStr = buffer.toString();
+      const payload = JSON.parse(messageStr) as unknown;
 
-      // TODO: In production, fetch profile via gRPC if not in cache: this.getProfileFromGrpc(context.profileId)
-      const profile = await this.getProfile(context.profileId);
+      // 2. Get Profile
+      // TODO: Use gRPC with caching in production
+      const profile = this.profileCache.get(context.profileId); // || await this.getProfile(context.profileId);
 
       if (!profile || !profile.mappings) {
-        console.warn(
-          `[MQTT] No mappings found for profile ${context.profileId}`,
-        );
+        this.logger.warn(`No mappings found for profile ${context.profileId}`);
         return;
       }
 
-      // Iterate through profile mappings and extract metrics
+      // Prepare an object to collect the current state (for Redis)
+      const currentState: Record<string, string | number | boolean> = {};
+      const timestamp = new Date();
+
+      // 3. Iterate mappings
       for (const [metricKey, jsonPath] of Object.entries(profile.mappings)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const rawValue = this.extractValueByPath(payload, jsonPath);
+        // Extract raw value safely using our Generic Helper
+        // We expect primitive types: string, number, or boolean
 
-        if (rawValue !== undefined && rawValue !== null) {
-          const numericValue = Number(rawValue);
+        const rawValue = this.extractValueByPath<string | number | boolean>(
+          payload,
+          jsonPath,
+        );
+        console.log(
+          'revice metrics payload: ',
+          payload,
+          'jsonPath: ',
+          jsonPath,
+          'rawValue: ',
+          rawValue,
+        );
 
-          if (!isNaN(numericValue)) {
-            console.log('New parsed metrics has arrived!: ', {
-              deviceId: context.deviceId,
-              timestamp: new Date(),
-              metricType: metricKey,
-              value: numericValue,
-            });
-            this.telemetryService.publish({
-              deviceId: context.deviceId,
-              timestamp: new Date(),
-              metricType: metricKey,
-              value: numericValue,
-            });
-            //  console.log(`   -> Extracted ${metricKey}: ${numericValue}`);
-          }
+        // If value is missing, skip
+        if (rawValue === undefined || rawValue === null) continue;
+
+        // --- A. Telemetry Logic (History) ---
+        // InfluxDB mainly stores numbers. We try to convert.
+        const numericValue = Number(rawValue);
+        if (!isNaN(numericValue)) {
+          this.telemetryService.publish({
+            deviceId: context.deviceId,
+            timestamp: timestamp,
+            metricType: metricKey,
+            value: numericValue,
+          });
         }
+
+        // --- B. Device Shadow Logic (Real-time State) ---
+        // For Redis, we keep the actual value (even if it's a string like "ON")
+        currentState[metricKey] = rawValue;
       }
-    } catch (e: any) {
-      console.error(
-        `[MQTT] Error processing message from ${topic}:`,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        e.message,
+
+      // 4. Update Redis Shadow
+      // If we extracted at least one valid metric, update the state
+      if (Object.keys(currentState).length > 0) {
+        // Add metadata
+        currentState['lastSeen'] = timestamp.toISOString();
+
+        await this.updateDeviceShadow(context.deviceId, currentState);
+      }
+    } catch (error) {
+      // Safe error logging
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Failed to process message from ${topic}: ${errorMessage}`,
       );
     }
   }
@@ -162,9 +201,51 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         return profile;
       }
     } catch (e) {
-      console.error(`[MQTT] Failed to fetch profile ${profileId}`, e);
+      this.logger.error(`[MQTT] Failed to fetch profile ${profileId}`, e);
     }
     return null;
+  }
+
+  /**
+   * Safely extracts a value from a nested object using a dot-notation path.
+   * Uses Generics <T> to allow the caller to specify expected return type.
+   *
+   * @example extractValueByPath<number>(payload, "ENERGY.Voltage")
+   */
+  private extractValueByPath<T = unknown>(
+    obj: unknown,
+    path: string,
+  ): T | undefined {
+    const keys = path.split('.');
+
+    const result: unknown = keys.reduce((acc: unknown, key: string) => {
+      if (isRecord(acc) && key in acc) {
+        return acc[key];
+      }
+
+      return undefined;
+    }, obj);
+
+    return result as T | undefined;
+  }
+
+  /**
+   * Update device state in Redis.
+   * Used HSET (Hash Set) to save device fields.
+   * Key: device:{id}:state
+   */
+  private async updateDeviceShadow(
+    deviceId: string,
+    state: Record<string, any>,
+  ) {
+    const key = `device:${deviceId}:state`;
+
+    try {
+      await this.redis.hset(key, state);
+      console.log(`💾 Shadow updated for ${deviceId}`);
+    } catch (e) {
+      this.logger.error(`Failed to update Redis shadow for ${deviceId}`, e);
+    }
   }
 
   /**
@@ -229,20 +310,5 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       'profile_diy_weather',
       'devices/esp32_garage/state',
     );
-  }
-
-  /**
-   * Safely extracts a value from a nested object using a dot-notation path.
-   * Example: "ENERGY.Voltage" -> obj['ENERGY']['Voltage']
-   */
-  private extractValueByPath(obj: Record<string, any>, path: string): any {
-    return path.split('.').reduce((acc: any, part: string) => {
-      // Type Guard: check if acc is an object and has the key
-      if (acc && typeof acc === 'object' && part in acc) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-        return acc[part];
-      }
-      return undefined;
-    }, obj);
   }
 }
