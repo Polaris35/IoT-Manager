@@ -25,14 +25,15 @@ interface SubscriptionContext {
 export class MqttService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MqttService.name);
   /**
-   * Profiles service gRPC cient
+   * Profiles service gRPC client
    * used to obtain devices profile
    */
   private profileServiceClient: device.ProfilesServiceClient;
   private mqttBrokerClient: mqtt.MqttClient;
 
-  // Maps "MQTT Topic" -> "Context (DeviceID, ProfileID)"
-  // Used to identify the owner of the incoming message.
+  /**  Maps "MQTT Topic" -> "Context (DeviceID, ProfileID)"
+   * Used to identify the owner of the incoming message.
+   */
   private topicMap = new Map<string, SubscriptionContext>();
 
   // Local profile cache for fast data mapping (avoids frequent gRPC calls)
@@ -58,10 +59,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     this.mqttBrokerClient.on('connect', () => {
       console.log('✅ [MqttService] Connected to Mosquitto');
-      setTimeout(
-        () => this.initializeDemoData(), // <-- Initialize hardcoded data for Demo
-        10000,
-      );
+      // setTimeout(
+      //   () => this.initializeDemoData(), // <-- Initialize hardcoded data for Demo
+      //   10000,
+      // );
     });
     this.mqttBrokerClient.on('error', (err) =>
       console.error('❌ [MqttService] Error:', err),
@@ -252,63 +253,63 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
    * Initializes hardcoded data for the diploma demo.
    * TODO: Replace with Cold Start synchronization via gRPC (DeviceService.ListDevices).
    */
-  private initializeDemoData() {
-    this.logger.warn(
-      '🧪 [DEMO MODE] Initializing hardcoded profiles and subscriptions...',
-    );
+  // private initializeDemoData() {
+  //   this.logger.warn(
+  //     '🧪 [DEMO MODE] Initializing hardcoded profiles and subscriptions...',
+  //   );
 
-    // 1. Profiles
-    this.profileCache.set('prof_zigbee_xiaomi_gzcgq01lm', {
-      id: 'prof_zigbee_xiaomi_gzcgq01lm',
-      mappings: {
-        temperature: 'temperature',
-        humidity: 'humidity',
-        battery: 'battery',
-      },
-      name: '',
-      vendor: '',
-      protocol: '',
-      description: '',
-    });
+  //   // 1. Profiles
+  //   this.profileCache.set('prof_zigbee_xiaomi_gzcgq01lm', {
+  //     id: 'prof_zigbee_xiaomi_gzcgq01lm',
+  //     mappings: {
+  //       temperature: 'temperature',
+  //       humidity: 'humidity',
+  //       battery: 'battery',
+  //     },
+  //     name: '',
+  //     vendor: '',
+  //     protocol: '',
+  //     description: '',
+  //   });
 
-    this.profileCache.set('prof_wifi_sonoff_pow_r2', {
-      id: 'prof_wifi_sonoff_pow_r2',
-      mappings: {
-        status: 'POWER',
-        voltage: 'ENERGY.Voltage',
-        power: 'ENERGY.Power',
-        current: 'ENERGY.Current',
-      },
-      name: '',
-      vendor: '',
-      protocol: '',
-      description: '',
-    });
+  //   this.profileCache.set('prof_wifi_sonoff_pow_r2', {
+  //     id: 'prof_wifi_sonoff_pow_r2',
+  //     mappings: {
+  //       status: 'POWER',
+  //       voltage: 'ENERGY.Voltage',
+  //       power: 'ENERGY.Power',
+  //       current: 'ENERGY.Current',
+  //     },
+  //     name: '',
+  //     vendor: '',
+  //     protocol: '',
+  //     description: '',
+  //   });
 
-    this.profileCache.set('profile_diy_weather', {
-      id: 'profile_diy_weather',
-      mappings: { temperature: 'temp', status: 'status' },
-      name: '',
-      vendor: '',
-      protocol: '',
-      description: '',
-    });
+  //   this.profileCache.set('profile_diy_weather', {
+  //     id: 'profile_diy_weather',
+  //     mappings: { temperature: 'temp', status: 'status' },
+  //     name: '',
+  //     vendor: '',
+  //     protocol: '',
+  //     description: '',
+  //   });
 
-    // 2. Subscriptions
-    this.subscribeToDevice(
-      'device-id-xiaomi-001',
-      'prof_zigbee_xiaomi_gzcgq01lm',
-      'zigbee2mqtt/sensor_kitchen',
-    );
-    this.subscribeToDevice(
-      'device-id-sonoff-002',
-      'prof_wifi_sonoff_pow_r2',
-      'tele/sonoff_living_room/SENSOR',
-    );
-    this.subscribeToDevice(
-      'device-id-esp32-003',
-      'profile_diy_weather',
-      'devices/esp32_garage/state',
-    );
-  }
+  //   // 2. Subscriptions
+  //   this.subscribeToDevice(
+  //     'device-id-xiaomi-001',
+  //     'prof_zigbee_xiaomi_gzcgq01lm',
+  //     'zigbee2mqtt/sensor_kitchen',
+  //   );
+  //   this.subscribeToDevice(
+  //     'device-id-sonoff-002',
+  //     'prof_wifi_sonoff_pow_r2',
+  //     'tele/sonoff_living_room/SENSOR',
+  //   );
+  //   this.subscribeToDevice(
+  //     'device-id-esp32-003',
+  //     'profile_diy_weather',
+  //     'devices/esp32_garage/state',
+  //   );
+  // }
 }

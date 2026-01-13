@@ -32,10 +32,17 @@ export class ProfilesService {
     }
 
     return this.profileRepository.find({
+      // exclude mappings and command due to the lack of need
+      select: {
+        id: true,
+        name: true,
+        vendor: true,
+        protocol: true,
+        description: true,
+      },
       where: whereCondition,
       take: limit, // Limit the result set to prevent network overload
       order: { name: 'ASC' }, // Sort alphabetically (A-Z)
-      // select: ['id', 'name', 'vendor'] // Optimization: Select only the fields needed for the UI
     });
   }
 

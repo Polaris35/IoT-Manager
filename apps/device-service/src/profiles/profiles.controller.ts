@@ -1,6 +1,5 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { struct } from 'pb-util';
 import { ProfilesService } from './profiles.service';
 import { GrpcNotFoundException } from 'nestjs-grpc-exceptions';
 import { device } from '@iot-manager/proto';
@@ -24,8 +23,8 @@ export class ProfilesController implements device.ProfilesServiceController {
       vendor: p.vendor,
       protocol: p.protocol,
       description: p.description || '',
-      // Convert JSONB mappings to a gRPC Struct, if present
-      mappings: p.mappings ? struct.encode(p.mappings) : undefined,
+      mappings: '',
+      commands: '',
     }));
 
     return { profiles: mappedProfiles };
@@ -44,7 +43,8 @@ export class ProfilesController implements device.ProfilesServiceController {
       vendor: p.vendor,
       protocol: p.protocol,
       description: p.description || '',
-      mappings: p.mappings ? struct.encode(p.mappings) : undefined,
+      mappings: JSON.stringify(p.mappings || {}),
+      commands: JSON.stringify(p.commands || {}),
     };
   }
 }

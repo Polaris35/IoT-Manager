@@ -45,6 +45,9 @@ export class DeviceProfileEntity {
   @Column({ type: 'jsonb', default: {} })
   mappings: Record<string, any>;
 
+  @Column({ type: 'jsonb', default: {} })
+  commands: Record<string, any>;
+
   @OneToMany(() => DeviceEntity, (device) => device.profile)
   devices: DeviceEntity[];
 
