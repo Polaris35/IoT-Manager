@@ -1,6 +1,5 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { struct } from 'pb-util';
 import { ProfilesService } from './profiles.service';
 import { GrpcNotFoundException } from 'nestjs-grpc-exceptions';
 import { device } from '@iot-manager/proto';
@@ -24,15 +23,16 @@ export class ProfilesController implements device.ProfilesServiceController {
       vendor: p.vendor,
       protocol: p.protocol,
       description: p.description || '',
-      // Convert JSONB mappings to a gRPC Struct, if present
-      mappings: p.mappings ? struct.encode(p.mappings) : undefined,
+      commandMode: '',
+      mappings: '',
+      commands: '',
     }));
 
     return { profiles: mappedProfiles };
   }
 
   @GrpcMethod(device.PROFILES_SERVICE_NAME)
-  async findOne(data: { id: string }) {
+  async findOne(data: { id: string }): Promise<device.ProfileResponse> {
     const p = await this.profilesService.findOne(data.id);
     if (!p) {
       throw new GrpcNotFoundException(`can't find profile with id: ${data.id}`);
@@ -44,7 +44,9 @@ export class ProfilesController implements device.ProfilesServiceController {
       vendor: p.vendor,
       protocol: p.protocol,
       description: p.description || '',
-      mappings: p.mappings ? struct.encode(p.mappings) : undefined,
+      commandMode: p.commandMode,
+      mappings: JSON.stringify(p.mappings || {}),
+      commands: JSON.stringify(p.commands || {}),
     };
   }
 }

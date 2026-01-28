@@ -5,16 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "pnpm exec ts-node simulator.ts"
+    "start": "node simulator.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
-    "@types/node": "^24.10.2",
     "mqtt": "^5.14.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }

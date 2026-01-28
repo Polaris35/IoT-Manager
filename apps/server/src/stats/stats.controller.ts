@@ -7,7 +7,6 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 @Controller('stats')
 export class StatsController {
   constructor(
-    // Убедись, что 'STATISTICS_SERVICE' зарегистрирован в Module с Transport.RMQ
     @Inject('STATISTICS_SERVICE') private readonly statsClient: ClientProxy,
   ) {}
 
@@ -18,7 +17,6 @@ export class StatsController {
     @Param('id') id: string,
     @Query('range') range: string = '-1h', // -1h, -24h, -7d
   ) {
-    // Используем .send(), так как ждем ответ
     return this.statsClient.send('get_device_stats', { deviceId: id, range });
   }
 }

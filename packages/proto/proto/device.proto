@@ -4,7 +4,6 @@ package device;
 
 // Import standard protobuf types for JSON handling, empty responses,
 // wrappers for optional fields, and timestamps.
-import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
@@ -200,5 +199,8 @@ message ProfileResponse {
   
   // Mappings are transferred as a Structure (JSON).
   // For Search operations, this field can be left empty to save bandwidth.
-  google.protobuf.Struct mappings = 6; 
+  string mappings = 6;
+  // Same for commands
+  string commands = 7;
+  string commandMode = 8;
 }

@@ -6,10 +6,8 @@
 
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
-import { wrappers } from "protobufjs";
 import { Observable } from "rxjs";
 import { Empty } from "./google/protobuf/empty";
-import { Struct } from "./google/protobuf/struct";
 import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "device";
@@ -177,12 +175,12 @@ export interface ProfileResponse {
    * Mappings are transferred as a Structure (JSON).
    * For Search operations, this field can be left empty to save bandwidth.
    */
-  mappings: { [key: string]: any } | undefined;
+  mappings: string;
+  commands: string;
+  commandMode: string;
 }
 
 export const DEVICE_PACKAGE_NAME = "device";
-
-wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struct.unwrap } as any;
 
 /**
  * Service implemented in DeviceManagementService
