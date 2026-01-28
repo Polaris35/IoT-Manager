@@ -84,10 +84,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     this.mqttBrokerClient.on('connect', () => {
       console.log('✅ [MqttService] Connected to Mosquitto');
-      // setTimeout(
-      //   () => this.initializeDemoData(), // <-- Initialize hardcoded data for Demo
-      //   10000,
-      // );
+      setTimeout(
+        () => this.initializeDemoData(), // <-- Initialize hardcoded data for Demo
+        10000,
+      );
     });
     this.mqttBrokerClient.on('error', (err) =>
       console.error('❌ [MqttService] Error:', err),
@@ -430,63 +430,125 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
    * Initializes hardcoded data for the diploma demo.
    * TODO: Replace with Cold Start synchronization via gRPC (DeviceService.ListDevices).
    */
-  // private initializeDemoData() {
-  //   this.logger.warn(
-  //     '🧪 [DEMO MODE] Initializing hardcoded profiles and subscriptions...',
-  //   );
+  private initializeDemoData() {
+    this.logger.warn(
+      '🧪 [DEMO MODE] Initializing hardcoded profiles and subscriptions...',
+    );
 
-  //   // 1. Profiles
-  //   this.profileCache.set('prof_zigbee_xiaomi_gzcgq01lm', {
-  //     id: 'prof_zigbee_xiaomi_gzcgq01lm',
-  //     mappings: {
-  //       temperature: 'temperature',
-  //       humidity: 'humidity',
-  //       battery: 'battery',
-  //     },
-  //     name: '',
-  //     vendor: '',
-  //     protocol: '',
-  //     description: '',
-  //   });
+    // =================================================================
+    // 1. ZIGBEE PROFILE (Xiaomi)
+    // Тестируем:
+    // - commandMode: 'json' (команды шлются JSON-ом в один топик)
+    // - factor: 0.001 (конвертация 3000mV -> 3.0V)
+    // - типы данных (boolean, float)
+    // =================================================================
+    this.profileCache.set('prof_zigbee_xiaomi_gzcgq01lm', {
+      id: 'prof_zigbee_xiaomi_gzcgq01lm',
+      name: 'Xiaomi Sensor (Demo)',
+      vendor: 'Xiaomi',
+      protocol: 'ZIGBEE',
+      description: 'Demo Profile',
+      commandMode: 'json',
 
-  //   this.profileCache.set('prof_wifi_sonoff_pow_r2', {
-  //     id: 'prof_wifi_sonoff_pow_r2',
-  //     mappings: {
-  //       status: 'POWER',
-  //       voltage: 'ENERGY.Voltage',
-  //       power: 'ENERGY.Power',
-  //       current: 'ENERGY.Current',
-  //     },
-  //     name: '',
-  //     vendor: '',
-  //     protocol: '',
-  //     description: '',
-  //   });
+      mappings: {
+        // Чтение данных
+        temperature: { targetMetric: 'temperature', type: 'float' },
+        humidity: { targetMetric: 'humidity', type: 'float' },
+        battery: { targetMetric: 'battery', type: 'float' },
+        // Важно: Тестируем фактор
+        voltage: { targetMetric: 'voltage', type: 'float', factor: 0.001 },
+        // Обратная связь по состоянию
+        state: { targetMetric: 'status', type: 'boolean' },
+        brightness_percent: { targetMetric: 'brightness', type: 'float' },
+      },
 
-  //   this.profileCache.set('profile_diy_weather', {
-  //     id: 'profile_diy_weather',
-  //     mappings: { temperature: 'temp', status: 'status' },
-  //     name: '',
-  //     vendor: '',
-  //     protocol: '',
-  //     description: '',
-  //   });
+      commands: {
+        // Управление
+        // Фронт шлет 'state' -> в JSON пишем поле 'state'
+        state: { param: 'state', type: 'boolean' },
+        // Фронт шлет 'brightness' -> в JSON пишем 'brightness_percent'
+        brightness: {
+          param: 'brightness_percent',
+          type: 'float',
+          min: 0,
+          max: 100,
+        },
+      },
+    });
 
-  //   // 2. Subscriptions
-  //   this.subscribeToDevice(
-  //     'device-id-xiaomi-001',
-  //     'prof_zigbee_xiaomi_gzcgq01lm',
-  //     'zigbee2mqtt/sensor_kitchen',
-  //   );
-  //   this.subscribeToDevice(
-  //     'device-id-sonoff-002',
-  //     'prof_wifi_sonoff_pow_r2',
-  //     'tele/sonoff_living_room/SENSOR',
-  //   );
-  //   this.subscribeToDevice(
-  //     'device-id-esp32-003',
-  //     'profile_diy_weather',
-  //     'devices/esp32_garage/state',
-  //   );
-  // }
+    // =================================================================
+    // 2. MQTT PROFILE (Sonoff Tasmota)
+    // Тестируем:
+    // - commandMode: 'topic' (команды меняют хвост топика)
+    // - Вложенный JSON (ENERGY.Voltage)
+    // =================================================================
+    this.profileCache.set('prof_wifi_sonoff_pow_r2', {
+      id: 'prof_wifi_sonoff_pow_r2',
+      name: 'Sonoff POW (Demo)',
+      vendor: 'Sonoff',
+      protocol: 'MQTT',
+      description: 'Demo Profile',
+      commandMode: 'topic',
+
+      mappings: {
+        POWER: { targetMetric: 'status', type: 'boolean' },
+        'ENERGY.Voltage': { targetMetric: 'voltage', type: 'float' },
+        'ENERGY.Power': { targetMetric: 'power', type: 'float' },
+        'ENERGY.Current': { targetMetric: 'current', type: 'float' },
+      },
+
+      commands: {
+        // Фронт шлет 'switch' -> Бэкенд заменяет хвост топика на 'POWER'
+        switch: { param: 'POWER', type: 'boolean' },
+      },
+    });
+
+    // =================================================================
+    // 3. DIY PROFILE (Simple)
+    // =================================================================
+    this.profileCache.set('profile_diy_weather', {
+      id: 'profile_diy_weather',
+      name: 'DIY ESP32',
+      vendor: 'DIY',
+      protocol: 'MQTT',
+      description: 'Demo Profile',
+      commandMode: 'json',
+
+      mappings: {
+        temp: { targetMetric: 'temperature', type: 'float' },
+        status: { targetMetric: 'status', type: 'string' },
+      },
+
+      commands: {}, // Без команд
+    });
+
+    // =================================================================
+    // 4. REGISTRATION (Subscriptions)
+    // Используем новый метод registerDevice с 4 аргументами
+    // =================================================================
+
+    // Xiaomi
+    this.registerDevice(
+      'device-id-xiaomi-001',
+      'prof_zigbee_xiaomi_gzcgq01lm',
+      'zigbee2mqtt/sensor_kitchen', // State Topic
+      'zigbee2mqtt/sensor_kitchen/set', // Command Topic
+    );
+
+    // Sonoff
+    this.registerDevice(
+      'device-id-sonoff-002',
+      'prof_wifi_sonoff_pow_r2',
+      'tele/sonoff_living_room/SENSOR', // State Topic
+      'cmnd/sonoff_living_room/POWER', // Command Topic (Base)
+    );
+
+    // DIY
+    this.registerDevice(
+      'device-id-esp32-003',
+      'profile_diy_weather',
+      'devices/esp32_garage/state',
+      // No commands
+    );
+  }
 }
