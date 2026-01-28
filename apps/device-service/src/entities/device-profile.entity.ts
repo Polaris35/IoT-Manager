@@ -45,6 +45,9 @@ export class DeviceProfileEntity {
   @Column({ type: 'jsonb', default: {} })
   mappings: Record<string, any>;
 
+  @Column({ default: 'json' }) // 'json' | 'topic'
+  commandMode: string;
+
   @Column({ type: 'jsonb', default: {} })
   commands: Record<string, any>;
 

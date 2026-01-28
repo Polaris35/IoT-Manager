@@ -23,6 +23,7 @@ export class ProfilesController implements device.ProfilesServiceController {
       vendor: p.vendor,
       protocol: p.protocol,
       description: p.description || '',
+      commandMode: '',
       mappings: '',
       commands: '',
     }));
@@ -31,7 +32,7 @@ export class ProfilesController implements device.ProfilesServiceController {
   }
 
   @GrpcMethod(device.PROFILES_SERVICE_NAME)
-  async findOne(data: { id: string }) {
+  async findOne(data: { id: string }): Promise<device.ProfileResponse> {
     const p = await this.profilesService.findOne(data.id);
     if (!p) {
       throw new GrpcNotFoundException(`can't find profile with id: ${data.id}`);
@@ -43,6 +44,7 @@ export class ProfilesController implements device.ProfilesServiceController {
       vendor: p.vendor,
       protocol: p.protocol,
       description: p.description || '',
+      commandMode: p.commandMode,
       mappings: JSON.stringify(p.mappings || {}),
       commands: JSON.stringify(p.commands || {}),
     };

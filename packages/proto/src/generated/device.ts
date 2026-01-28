@@ -177,6 +177,7 @@ export interface ProfileResponse {
    */
   mappings: string;
   commands: string;
+  commandMode: string;
 }
 
 export const DEVICE_PACKAGE_NAME = "device";

@@ -21,6 +21,29 @@ interface SubscriptionContext {
   profileId: string;
 }
 
+export interface MetricDefinition {
+  targetMetric: string;
+  type: 'float' | 'boolean' | 'string';
+  unit?: string;
+  factor?: number;
+}
+
+export interface CommandDefinition {
+  param: string;
+  type: 'float' | 'boolean' | 'string' | 'integer';
+  min?: number;
+  max?: number;
+}
+
+export type CachedDeviceProfile = Omit<
+  device.ProfileResponse,
+  'mappings' | 'commands'
+> & {
+  mappings: Record<string, MetricDefinition>;
+  commands: Record<string, CommandDefinition>;
+  commandMode: 'json' | 'topic';
+};
+
 @Injectable()
 export class MqttService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MqttService.name);
@@ -35,9 +58,11 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
    * Used to identify the owner of the incoming message.
    */
   private topicMap = new Map<string, SubscriptionContext>();
+  private commandTopics = new Map<string, string>();
+  private deviceProfileMap = new Map<string, string>();
 
   // Local profile cache for fast data mapping (avoids frequent gRPC calls)
-  private profileCache = new Map<string, device.ProfileResponse>();
+  private profileCache = new Map<string, CachedDeviceProfile>();
 
   constructor(
     private config: ConfigService,
@@ -82,18 +107,155 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
    * Subscribes to a device topic and saves the context for parsing.
    * Idempotent: safe to call multiple times for the same topic.
    */
-  subscribeToDevice(deviceId: string, profileId: string, topic: string) {
-    if (!topic) return;
+  registerDevice(
+    deviceId: string,
+    profileId: string,
+    stateTopic: string,
+    commandTopic?: string,
+  ) {
+    this.deviceProfileMap.set(deviceId, profileId);
 
-    // Avoid duplicate subscriptions
-    if (!this.topicMap.has(topic)) {
-      console.log(
-        `[MQTT] Subscribing to ${topic} (Device: ${deviceId}, Profile: ${profileId})`,
-      );
-      this.mqttBrokerClient.subscribe(topic);
+    if (stateTopic) {
+      // Avoid duplicate subscriptions
+      if (!this.topicMap.has(stateTopic)) {
+        console.log(
+          `[MQTT] Subscribing to ${stateTopic} (Device: ${deviceId}, Profile: ${profileId})`,
+        );
+        this.mqttBrokerClient.subscribe(stateTopic);
+      }
+      // Update context (in case the profile changed)
+      this.topicMap.set(stateTopic, { deviceId, profileId });
     }
-    // Update context (in case the profile changed)
-    this.topicMap.set(topic, { deviceId, profileId });
+    if (commandTopic) {
+      this.commandTopics.set(deviceId, commandTopic);
+      this.logger.log(`Registered CMD topic for ${deviceId}: ${commandTopic}`);
+    }
+  }
+
+  /**
+   * Sends a command to the device using its profile definition.
+   * Handles protocol specifics (JSON vs Topic suffixes).
+   *
+   * @param deviceId Target Device ID
+   * @param capability Command capability name (e.g., 'state', 'brightness', 'color')
+   * @param value Command value (true/false, number, string)
+   */
+  async publishCommand(
+    deviceId: string,
+    capability: string,
+    value: any,
+  ): Promise<boolean> {
+    // 1. Find base command topic for this device
+    const mainTopic = this.commandTopics.get(deviceId);
+    if (!mainTopic) {
+      this.logger.warn(`No command topic registered for device ${deviceId}`);
+      return false;
+    }
+
+    // 2. Retrieve device profile
+    const profileId = this.deviceProfileMap.get(deviceId);
+    if (!profileId) {
+      this.logger.warn(`No profileId found for device ${deviceId}`);
+      return false;
+    }
+
+    const profile = await this.getProfile(profileId);
+
+    if (!profile || !profile.commands) {
+      this.logger.warn(`No profile or commands found for device ${deviceId}`);
+      return false;
+    }
+
+    // 3. Find command definition in the profile
+    // 'commands' is a map: { "state": { "param": "state", "type": "boolean" } }
+    const commandDef = profile.commands[capability];
+
+    if (!commandDef) {
+      this.logger.warn(
+        `Capability '${capability}' not found in profile ${profileId}`,
+      );
+      return false;
+    }
+
+    // 4. Format/Cast value based on type definition
+    const formattedValue = this.formatValue(value, commandDef);
+
+    let finalTopic = mainTopic;
+    let finalPayload = '';
+
+    // --- SENDING STRATEGY SELECTION ---
+
+    // Mode A: JSON (Zigbee2MQTT style)
+    // Sends a JSON object to a single topic. Example: { "state": "ON" }
+    if (profile.commandMode === 'json') {
+      const jsonPayload = { [commandDef.param]: formattedValue };
+      finalPayload = JSON.stringify(jsonPayload);
+    }
+
+    // Mode B: TOPIC (Tasmota / Legacy style)
+    // Modifies the topic suffix. Example: cmnd/dev/POWER -> cmnd/dev/Dimmer
+    else {
+      finalTopic = this.replaceTopicSuffix(mainTopic, commandDef.param);
+      finalPayload = String(formattedValue);
+    }
+
+    this.logger.log(`📢 Sending CMD to ${finalTopic}: ${finalPayload}`);
+
+    // 5. Publish to MQTT Broker
+    return new Promise((resolve) => {
+      this.mqttBrokerClient.publish(finalTopic, finalPayload, (err: Error) => {
+        if (err) {
+          this.logger.error(`Failed to publish command: ${err.message}`);
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  /**
+   * Helper: Formats value according to profile type definition.
+   * e.g., converts boolean to "ON"/"OFF", clamps numbers.
+   */
+  private formatValue(
+    value: any,
+    def: CommandDefinition,
+  ): string | number | boolean {
+    // Boolean logic
+    if (def.type === 'boolean') {
+      // Zigbee and Tasmota often prefer "ON"/"OFF" over true/false.
+      // Ideally, this could be configurable in the profile, but ON/OFF is a safe default.
+      const boolVal = Boolean(value);
+      return boolVal ? 'ON' : 'OFF';
+    }
+
+    // Numeric logic
+    if (def.type === 'float' || def.type === 'integer') {
+      let num = Number(value);
+      if (isNaN(num)) return 0;
+
+      // Apply min/max constraints if defined
+      if (def.min !== undefined) num = Math.max(def.min, num);
+      if (def.max !== undefined) num = Math.min(def.max, num);
+
+      return num;
+    }
+
+    return String(value);
+  }
+
+  /**
+   * Helper: Replaces the last part of the topic path.
+   * Example: cmnd/dev/POWER + Dimmer -> cmnd/dev/Dimmer
+   */
+  private replaceTopicSuffix(topic: string, newSuffix: string): string {
+    const parts = topic.split('/');
+    if (parts.length > 1) {
+      parts.pop(); // Remove old suffix
+    }
+    parts.push(newSuffix); // Add new suffix
+    return parts.join('/');
   }
 
   /**
@@ -106,75 +268,78 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
    */
   private async handleMessage(topic: string, buffer: Buffer) {
     const context = this.topicMap.get(topic);
-    if (!context) return; // Ignore topics we are not subscribed to
+    if (!context) return;
 
     try {
       // 1. Safe JSON Parsing
-      // We cast to 'unknown' to force type checks later.
       const messageStr = buffer.toString();
       const payload = JSON.parse(messageStr) as unknown;
 
       // 2. Get Profile
-      // TODO: Use gRPC with caching in production
-      const profile = this.profileCache.get(context.profileId); // || await this.getProfile(context.profileId);
+      const profile = await this.getProfile(context.profileId);
 
       if (!profile || !profile.mappings) {
         this.logger.warn(`No mappings found for profile ${context.profileId}`);
         return;
       }
 
-      // Prepare an object to collect the current state (for Redis)
       const currentState: Record<string, string | number | boolean> = {};
       const timestamp = new Date();
 
-      // 3. Iterate mappings
-      for (const [metricKey, jsonPath] of Object.entries(profile.mappings)) {
-        // Extract raw value safely using our Generic Helper
-        // We expect primitive types: string, number, or boolean
-
-        const rawValue = this.extractValueByPath<string | number | boolean>(
+      // 3. Iterate mappings (Rich Profile Structure)
+      // jsonPath - f.e. "energy.voltage"
+      // metricDef - f.e. { targetMetric: "voltage", type: "float", factor: 0.001 })
+      for (const [jsonPath, metricDef] of Object.entries(profile.mappings)) {
+        let rawValue = this.extractValueByPath<string | number | boolean>(
           payload,
           jsonPath,
         );
-        console.log(
-          'revice metrics payload: ',
-          payload,
-          'jsonPath: ',
-          jsonPath,
-          'rawValue: ',
-          rawValue,
-        );
 
-        // If value is missing, skip
         if (rawValue === undefined || rawValue === null) continue;
 
-        // --- A. Telemetry Logic (History) ---
-        // InfluxDB mainly stores numbers. We try to convert.
-        const numericValue = Number(rawValue);
+        if (
+          metricDef.type === 'float' &&
+          typeof rawValue === 'number' &&
+          metricDef.factor
+        ) {
+          rawValue = rawValue * metricDef.factor;
+        }
+
+        // --- A. Telemetry Logic (InfluxDB) ---
+        // InfluxDB принимает только числа.
+        let numericValue = Number(rawValue);
+
+        // Special handling Boolean for diagrams (true=1, false=0)
+        if (metricDef.type === 'boolean') {
+          // if "ON"/"OFF" or true/false
+          if (String(rawValue).toUpperCase() === 'ON' || rawValue === true)
+            numericValue = 1;
+          else if (
+            String(rawValue).toUpperCase() === 'OFF' ||
+            rawValue === false
+          )
+            numericValue = 0;
+        }
+
         if (!isNaN(numericValue)) {
           this.telemetryService.publish({
             deviceId: context.deviceId,
             timestamp: timestamp,
-            metricType: metricKey,
+            metricType: metricDef.targetMetric,
             value: numericValue,
           });
         }
 
-        // --- B. Device Shadow Logic (Real-time State) ---
-        // For Redis, we keep the actual value (even if it's a string like "ON")
-        currentState[metricKey] = rawValue;
+        // --- Device Shadow Logic (Redis) ---
+        currentState[metricDef.targetMetric] = rawValue;
       }
 
       // 4. Update Redis Shadow
-      // If we extracted at least one valid metric, update the state
       if (Object.keys(currentState).length > 0) {
-        // Add metadata
         currentState['lastSeen'] = timestamp.toISOString();
-
         await this.updateDeviceShadow(context.deviceId, currentState);
       }
     } catch (error) {
-      // Safe error logging
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       this.logger.error(
@@ -185,17 +350,29 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
   private async getProfile(
     profileId: string,
-  ): Promise<device.ProfileResponse | null> {
+  ): Promise<CachedDeviceProfile | null> {
     if (this.profileCache.has(profileId)) {
-      return this.profileCache.get(profileId) as device.ProfileResponse;
+      return this.profileCache.get(profileId) as CachedDeviceProfile;
     }
 
     try {
       const profileObservable = this.profileServiceClient.findOne({
         id: profileId,
       });
-      const profile: device.ProfileResponse =
-        await firstValueFrom(profileObservable);
+      const rawProfile = await firstValueFrom(profileObservable);
+
+      const profile: CachedDeviceProfile = {
+        ...rawProfile,
+        commands: JSON.parse(rawProfile.commands) as Record<
+          string,
+          CommandDefinition
+        >,
+        mappings: JSON.parse(rawProfile.mappings) as Record<
+          string,
+          MetricDefinition
+        >,
+        commandMode: (rawProfile.commandMode as 'json' | 'topic') || 'json',
+      };
 
       if (profile) {
         this.profileCache.set(profileId, profile);

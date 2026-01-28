@@ -25,7 +25,7 @@ export class DeviceLifecycleService {
         // Теперь тут работает автокомплит и проверка!
         // TS знает, что config.stateTopic - это string
         if (config.stateTopic) {
-          this.mqttService.subscribeToDevice(
+          this.mqttService.registerDevice(
             device.id,
             device.profileId,
             config.stateTopic,
@@ -43,7 +43,7 @@ export class DeviceLifecycleService {
         // Используем externalId как friendlyName
         const topic = `${prefix}/${device.externalId}`;
 
-        this.mqttService.subscribeToDevice(device.id, device.profileId, topic);
+        this.mqttService.registerDevice(device.id, device.profileId, topic);
       }
     }
 
