@@ -20,12 +20,9 @@ export class DeviceLifecycleController {
       console.log(`[Event] New Device Created: ${data.id}`);
 
       this.service.registerNewDevice(data);
-
-      // Важно: подтверждаем обработку
       channel.ack(originalMsg);
     } catch (error) {
       console.error('Error processing device event', error);
-      // Если ошибка - возвращаем в очередь или удаляем
       // channel.nack(originalMsg);
     }
   }

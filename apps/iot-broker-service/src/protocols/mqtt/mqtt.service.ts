@@ -54,7 +54,8 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   private profileServiceClient: device.ProfilesServiceClient;
   private mqttBrokerClient: mqtt.MqttClient;
 
-  /**  Maps "MQTT Topic" -> "Context (DeviceID, ProfileID)"
+  /**
+   * Maps "MQTT Topic" -> "Context (DeviceID, ProfileID)"
    * Used to identify the owner of the incoming message.
    */
   private topicMap = new Map<string, SubscriptionContext>();
@@ -145,14 +146,14 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     capability: string,
     value: any,
   ): Promise<boolean> {
-    // 1. Find base command topic for this device
+    // Find base command topic for this device
     const mainTopic = this.commandTopics.get(deviceId);
     if (!mainTopic) {
       this.logger.warn(`No command topic registered for device ${deviceId}`);
       return false;
     }
 
-    // 2. Retrieve device profile
+    // Retrieve device profile
     const profileId = this.deviceProfileMap.get(deviceId);
     if (!profileId) {
       this.logger.warn(`No profileId found for device ${deviceId}`);
@@ -166,7 +167,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
 
-    // 3. Find command definition in the profile
+    // Find command definition in the profile
     // 'commands' is a map: { "state": { "param": "state", "type": "boolean" } }
     const commandDef = profile.commands[capability];
 
@@ -177,7 +178,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
 
-    // 4. Format/Cast value based on type definition
+    // Format/Cast value based on type definition
     const formattedValue = this.formatValue(value, commandDef);
 
     let finalTopic = mainTopic;
@@ -201,7 +202,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     this.logger.log(`📢 Sending CMD to ${finalTopic}: ${finalPayload}`);
 
-    // 5. Publish to MQTT Broker
+    // Publish to MQTT Broker
     return new Promise((resolve) => {
       this.mqttBrokerClient.publish(finalTopic, finalPayload, (err: Error) => {
         if (err) {
@@ -271,11 +272,9 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     if (!context) return;
 
     try {
-      // 1. Safe JSON Parsing
       const messageStr = buffer.toString();
       const payload = JSON.parse(messageStr) as unknown;
 
-      // 2. Get Profile
       const profile = await this.getProfile(context.profileId);
 
       if (!profile || !profile.mappings) {
@@ -286,7 +285,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       const currentState: Record<string, string | number | boolean> = {};
       const timestamp = new Date();
 
-      // 3. Iterate mappings (Rich Profile Structure)
+      // Iterate mappings (Rich Profile Structure)
       // jsonPath - f.e. "energy.voltage"
       // metricDef - f.e. { targetMetric: "voltage", type: "float", factor: 0.001 })
       for (const [jsonPath, metricDef] of Object.entries(profile.mappings)) {
@@ -306,10 +305,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         }
 
         // --- A. Telemetry Logic (InfluxDB) ---
-        // InfluxDB принимает только числа.
+        // InfluxDB accept only numbers.
         let numericValue = Number(rawValue);
 
-        // Special handling Boolean for diagrams (true=1, false=0)
+        // Boolean special handling for diagrams (true=1, false=0)
         if (metricDef.type === 'boolean') {
           // if "ON"/"OFF" or true/false
           if (String(rawValue).toUpperCase() === 'ON' || rawValue === true)
@@ -334,7 +333,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         currentState[metricDef.targetMetric] = rawValue;
       }
 
-      // 4. Update Redis Shadow
+      // Update Redis Shadow
       if (Object.keys(currentState).length > 0) {
         currentState['lastSeen'] = timestamp.toISOString();
         await this.updateDeviceShadow(context.deviceId, currentState);
@@ -437,10 +436,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     // =================================================================
     // 1. ZIGBEE PROFILE (Xiaomi)
-    // Тестируем:
-    // - commandMode: 'json' (команды шлются JSON-ом в один топик)
-    // - factor: 0.001 (конвертация 3000mV -> 3.0V)
-    // - типы данных (boolean, float)
     // =================================================================
     this.profileCache.set('prof_zigbee_xiaomi_gzcgq01lm', {
       id: 'prof_zigbee_xiaomi_gzcgq01lm',
@@ -451,22 +446,16 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       commandMode: 'json',
 
       mappings: {
-        // Чтение данных
         temperature: { targetMetric: 'temperature', type: 'float' },
         humidity: { targetMetric: 'humidity', type: 'float' },
         battery: { targetMetric: 'battery', type: 'float' },
-        // Важно: Тестируем фактор
         voltage: { targetMetric: 'voltage', type: 'float', factor: 0.001 },
-        // Обратная связь по состоянию
         state: { targetMetric: 'status', type: 'boolean' },
         brightness_percent: { targetMetric: 'brightness', type: 'float' },
       },
 
       commands: {
-        // Управление
-        // Фронт шлет 'state' -> в JSON пишем поле 'state'
         state: { param: 'state', type: 'boolean' },
-        // Фронт шлет 'brightness' -> в JSON пишем 'brightness_percent'
         brightness: {
           param: 'brightness_percent',
           type: 'float',
@@ -478,9 +467,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     // =================================================================
     // 2. MQTT PROFILE (Sonoff Tasmota)
-    // Тестируем:
-    // - commandMode: 'topic' (команды меняют хвост топика)
-    // - Вложенный JSON (ENERGY.Voltage)
     // =================================================================
     this.profileCache.set('prof_wifi_sonoff_pow_r2', {
       id: 'prof_wifi_sonoff_pow_r2',
@@ -498,7 +484,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       },
 
       commands: {
-        // Фронт шлет 'switch' -> Бэкенд заменяет хвост топика на 'POWER'
         switch: { param: 'POWER', type: 'boolean' },
       },
     });
@@ -521,11 +506,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
       commands: {}, // Без команд
     });
-
-    // =================================================================
-    // 4. REGISTRATION (Subscriptions)
-    // Используем новый метод registerDevice с 4 аргументами
-    // =================================================================
 
     // Xiaomi
     this.registerDevice(

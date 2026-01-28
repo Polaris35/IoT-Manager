@@ -200,6 +200,7 @@ message ProfileResponse {
   // Mappings are transferred as a Structure (JSON).
   // For Search operations, this field can be left empty to save bandwidth.
   string mappings = 6;
+  // Same for commands
   string commands = 7;
   string commandMode = 8;
 }

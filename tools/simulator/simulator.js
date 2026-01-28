@@ -1,45 +1,36 @@
 const mqtt = require("mqtt");
 
-// Настройки
+// Settings
 const BROKER_URL = "mqtt://localhost:1883";
 const client = mqtt.connect(BROKER_URL);
 
 console.log("🤖 IoT Simulator starting...");
 
-// --- ОПИСАНИЕ УСТРОЙСТВ ---
-
 const DEVICES = [
   // ==========================================================
   // 1. ZIGBEE: Xiaomi Sensor
-  // Профиль: prof_zigbee_xiaomi_gzcgq01lm
-  // Тестируем:
-  // - commandMode: 'json' (команды приходят JSON-ом в .../set)
-  // - factor: voltage (3000 mV -> 3.0 V)
+  // Profile id: prof_zigbee_xiaomi_gzcgq01lm
   // ==========================================================
   {
     id: "xiaomi",
     name: "Xiaomi Sensor (Kitchen)",
     topic: "zigbee2mqtt/sensor_kitchen",
-    commandTopic: "zigbee2mqtt/sensor_kitchen/set", // Zigbee слушает здесь
+    commandTopic: "zigbee2mqtt/sensor_kitchen/set",
     interval: 5000,
 
-    // Внутреннее состояние (изменяется командами)
     state: {
-      is_on: "OFF", // Zigbee часто шлет строки
+      is_on: "OFF",
       brightness: 100,
     },
 
     generate: function () {
       return {
-        // Статичные данные (меняются командой)
         state: this.state.is_on,
         brightness_percent: this.state.brightness,
 
-        // Динамические данные (сенсоры)
         temperature: Number((22 + Math.random()).toFixed(2)),
         humidity: Number((45 + Math.random() * 5).toFixed(2)),
         battery: 90,
-        // Шлем в милливольтах, чтобы проверить factor: 0.001 на бэкенде
         voltage: 3000 + Math.floor(Math.random() * 100),
         linkquality: 100 + Math.floor(Math.random() * 20),
       };
@@ -48,17 +39,12 @@ const DEVICES = [
 
   // ==========================================================
   // 2. TASMOTA: Sonoff POW R2
-  // Профиль: prof_wifi_sonoff_pow_r2
-  // Тестируем:
-  // - commandMode: 'topic' (команды меняют хвост топика)
-  // - Вложенный JSON (ENERGY.Voltage)
+  // Profile id: prof_wifi_sonoff_pow_r2
   // ==========================================================
   {
     id: "sonoff",
     name: "Sonoff POW (Living Room)",
     topic: "tele/sonoff_living_room/SENSOR",
-    // Tasmota слушает семейство топиков cmnd/...
-    // Мы подпишемся на корень, чтобы ловить всё
     commandTopicRoot: "cmnd/sonoff_living_room/",
     interval: 8000,
 
@@ -74,7 +60,6 @@ const DEVICES = [
       return {
         Time: new Date().toISOString(),
 
-        // Статус реле (меняется командой)
         POWER: this.state.power,
 
         ENERGY: {
@@ -93,8 +78,7 @@ const DEVICES = [
 
   // ==========================================================
   // 3. DIY: Custom ESP32
-  // Профиль: profile_diy_weather
-  // Тестируем: Простой маппинг
+  // Profile id: profile_diy_weather
   // ==========================================================
   {
     id: "esp32",
@@ -116,29 +100,23 @@ const DEVICES = [
   },
 ];
 
-// --- ЛОГИКА ---
-
 client.on("connect", () => {
   console.log(`✅ Simulator connected to ${BROKER_URL}`);
 
   DEVICES.forEach((device) => {
     console.log(`🚀 Starting loop: ${device.name}`);
 
-    // 1. Подписываемся на команды
     if (device.commandTopic) {
       client.subscribe(device.commandTopic);
       console.log(`   👂 Listening: ${device.commandTopic}`);
     }
     if (device.commandTopicRoot) {
-      // Подписываемся по вайлдкарду (для Tasmota: cmnd/dev/+)
       client.subscribe(`${device.commandTopicRoot}#`);
       console.log(`   👂 Listening: ${device.commandTopicRoot}#`);
     }
 
-    // 2. Отправляем первое сообщение сразу
     publishTelemetry(device);
 
-    // 3. Запускаем цикл
     setInterval(() => {
       publishTelemetry(device);
     }, device.interval);
@@ -149,25 +127,24 @@ function publishTelemetry(device) {
   const payload = JSON.stringify(device.generate());
   client.publish(device.topic, payload);
 
-  // Красивый лог
   const time = new Date().toLocaleTimeString();
   // console.log(`[${time}] 📤 Out -> ${device.topic}`);
 }
 
-// --- ОБРАБОТКА КОМАНД ОТ БЭКЕНДА ---
+// --- backend command handle logic ---
 
 client.on("message", (topic, message) => {
   const msgStr = message.toString();
   console.log(`\n📨 [INCOMING CMD] Topic: ${topic} | Payload: ${msgStr}`);
 
-  // 1. Логика ZIGBEE (JSON Payload)
+  // 1. ZIGBEE (JSON Payload)
   if (topic.includes("zigbee2mqtt")) {
     const device = DEVICES.find((d) => d.id === "xiaomi");
     if (device) {
       try {
         const cmd = JSON.parse(msgStr);
 
-        // Обновляем состояние симулятора
+        // Update simulator data
         if (cmd.state) {
           device.state.is_on = cmd.state;
           console.log(`   👉 Xiaomi State changed to: ${device.state.is_on}`);
@@ -179,7 +156,7 @@ client.on("message", (topic, message) => {
           );
         }
 
-        // Мгновенно отправляем новое состояние (Feedback loop)
+        // Feedback loop
         publishTelemetry(device);
       } catch (e) {
         console.error("Invalid Zigbee JSON");
@@ -187,12 +164,11 @@ client.on("message", (topic, message) => {
     }
   }
 
-  // 2. Логика TASMOTA (Suffix Topic)
-  // Пример: cmnd/sonoff_living_room/POWER
+  // 2. TASMOTA (Suffix Topic)
+  // Example: cmnd/sonoff_living_room/POWER
   else if (topic.includes("cmnd/sonoff")) {
     const device = DEVICES.find((d) => d.id === "sonoff");
 
-    // Определяем, какая команда пришла, по хвосту топика
     if (topic.endsWith("POWER")) {
       device.state.power = msgStr; // "ON" или "OFF"
       console.log(`   👉 Sonoff Power changed to: ${device.state.power}`);

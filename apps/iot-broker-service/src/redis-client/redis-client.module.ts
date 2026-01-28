@@ -17,13 +17,9 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
           throw new Error('REDIS_URL is not defined');
         }
 
-        // Подключаемся
         const client = new Redis(url, {
-          // ВАЖНО ДЛЯ ОБЛАКА: Настройки SSL
-          // Если Upstash использует публичные сертификаты, это должно работать.
-          // Если будут ошибки "self signed certificate", добавим rejectUnauthorized: false
           tls: {
-            rejectUnauthorized: false, // Для пет-проектов это безопасный фикс проблем с SSL
+            rejectUnauthorized: false,
           },
         });
 
