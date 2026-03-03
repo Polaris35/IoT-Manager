@@ -1,5 +1,5 @@
-import type { AddButtonProps } from "../components/AddButton";
-import { useAddActions } from "../hooks/useAddActions";
+import type { AddButtonProps } from "../AddButton/AddButton";
+import { useAddActions } from "./useAddActions";
 
 export function withAddActions<T extends AddButtonProps>(
   Component: React.ComponentType<T>,

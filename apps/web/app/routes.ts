@@ -4,18 +4,15 @@ import {
   layout,
   route,
 } from "@react-router/dev/routes";
+import { dashboardRoutes } from "./modules/dashboard";
+import { authRoutes } from "./modules/auth";
 
 export default [
   // Public routes
-  layout("components/layouts/AuthLayout.tsx", [
-    route("auth/register", "modules/auth/pages/RegisterPage.tsx"),
-    route("auth/login", "modules/auth/pages/LoginPage.tsx"),
-  ]),
+  ...authRoutes,
 
   layout("modules/auth/components/ProtectedRoute.tsx", [
     // Protected routes
-    layout("components/layouts/DashboardLayout.tsx", [
-      index("modules/dashboard/pages/DashboardPage.tsx"),
-    ]),
+    dashboardRoutes,
   ]),
 ] satisfies RouteConfig;
