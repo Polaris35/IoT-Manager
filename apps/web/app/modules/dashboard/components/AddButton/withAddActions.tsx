@@ -1,4 +1,4 @@
-import type { AddButtonProps } from "../AddButton/AddButton";
+import type { AddButtonProps } from "./AddButton";
 import { useAddActions } from "./useAddActions";
 
 export function withAddActions<T extends AddButtonProps>(

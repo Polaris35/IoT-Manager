@@ -8,7 +8,7 @@ import { alpha } from "@mui/material/styles";
 
 import MenuIcon from "@mui/icons-material/MenuRounded";
 import ColorModeIconDropdown from "~/theme/ColorModeIconDropdown";
-import { SmartAddButton } from "~/modules/dashboard";
+import { SmartAddButton } from "../AddButton";
 
 interface AppNavbarProps {
   onMenuClick: () => void;
