@@ -5,9 +5,9 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
-import type { ProfilesControllerSearchProfilesParams } from "../../types/schemas";
+import type { ProfilesControllerSearchProfilesParams } from "../schemas";
 
-import { apiClient } from "../../api/client";
+import { apiClient } from "../client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 

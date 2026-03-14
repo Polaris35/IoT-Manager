@@ -7,8 +7,8 @@
  */
 
 export interface MqttConnectionConfigDto {
-  /** Topic for sending commands */
-  commandTopic: string;
   /** Topic for receiving state updates */
   stateTopic: string;
+  /** Topic for sending commands (optional) */
+  commandTopic?: string;
 }

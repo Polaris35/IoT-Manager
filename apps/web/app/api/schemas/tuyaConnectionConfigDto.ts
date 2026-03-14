@@ -7,8 +7,8 @@
  */
 
 export interface TuyaConnectionConfigDto {
-  /** Device asset ID from Tuya Cloud */
-  assetId: string;
   /** Product ID from Tuya Cloud */
   productId: string;
+  /** User ID (uid) from Tuya Cloud context */
+  uid?: string;
 }

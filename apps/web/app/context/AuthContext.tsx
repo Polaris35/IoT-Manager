@@ -3,12 +3,12 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
 
 // API & Types
-import { getAuth } from "~/modules/auth/auth";
+import { getAuth } from "~/api/endpoints/auth";
 import type {
   CredentialsLoginDto,
   GoogleLoginDto,
   RegisterAccountDto,
-} from "~/types/schemas";
+} from "~/api/schemas";
 
 // Utils
 import { STORAGE_KEYS } from "~/constants";

@@ -7,9 +7,9 @@ export default defineConfig({
       target: "http://localhost:3000/api/swagger-json",
     },
     output: {
-      mode: "tags-split",
-      target: "app/modules",
-      schemas: "app/types/schemas",
+      mode: "tags",
+      target: "app/api/endpoints",
+      schemas: "app/api/schemas",
       client: "axios",
       mock: false,
       override: {

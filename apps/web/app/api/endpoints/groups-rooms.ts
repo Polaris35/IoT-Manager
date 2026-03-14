@@ -9,9 +9,9 @@ import type {
   CreateGroupDto,
   DeviceGroupResponseDto,
   UpdateGroupDto,
-} from "../../types/schemas";
+} from "../schemas";
 
-import { apiClient } from "../../api/client";
+import { apiClient } from "../client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
