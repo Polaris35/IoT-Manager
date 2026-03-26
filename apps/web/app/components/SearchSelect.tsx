@@ -17,7 +17,7 @@ export default function SearchSelect<T>(props: SearchSelectProps<T>) {
   const { label, inputValue, setInputValue, ...other } = props;
   return (
     <FormControl>
-      <FormLabel className="mb-1 text-sm font-medium">{props.label}</FormLabel>
+      <FormLabel className="mb-1 text-sm font-medium">{label}</FormLabel>
       <Autocomplete
         {...other}
         renderInput={(params) => (
@@ -31,9 +31,9 @@ export default function SearchSelect<T>(props: SearchSelectProps<T>) {
         )}
         fullWidth
         size="small"
-        inputValue={props.inputValue}
+        inputValue={inputValue}
         onInputChange={(event, newInputValue) => {
-          props.setInputValue(newInputValue);
+          setInputValue(newInputValue);
         }}
         slotProps={{
           popupIndicator: {

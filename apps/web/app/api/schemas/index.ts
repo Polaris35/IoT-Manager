@@ -20,6 +20,7 @@ export * from "./googleLoginDto";
 export * from "./loginResponseDto";
 export * from "./logoutDto";
 export * from "./mqttConnectionConfigDto";
+export * from "./profileResponseDto";
 export * from "./profilesControllerSearchProfilesParams";
 export * from "./profilesControllerSearchProfilesProtocol";
 export * from "./refreshTokensDto";

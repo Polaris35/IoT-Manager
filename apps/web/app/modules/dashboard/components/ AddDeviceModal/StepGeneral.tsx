@@ -1,47 +1,94 @@
-import { Button, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Button, FormControl, FormLabel, TextField } from "@mui/material";
+import { useState } from "react";
 import SearchSelect from "~/components/SearchSelect";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getProfiles } from "~/api/endpoints/profiles";
 import { useDebounce } from "use-debounce";
+import type { ProfileResponseDto } from "~/api/schemas";
+import { Controller, useForm } from "react-hook-form";
+import type { FormDataType } from "./AddDeviceModal";
 
-const { profilesControllerSearchProfiles: SearchProfiles } = getProfiles();
+const { profilesControllerSearchProfiles: searchProfiles } = getProfiles();
 
 export type StepGeneralProps = {
-  onNextStep: () => void;
+  defaultValues: FormDataType;
+  onNextStep: (data: FormDataType) => void;
 };
 export default function StepGeneral(props: StepGeneralProps) {
+  const { control, handleSubmit } = useForm({
+    defaultValues: {
+      profile: props.defaultValues.profile || null,
+      deviceName: props.defaultValues.name || "",
+    },
+  });
+
   const [searchInput, setSearchInput] = useState("");
   const [debouncedText] = useDebounce(searchInput, 500);
   const searchQuery = useQuery({
     queryKey: ["searchProfiles", debouncedText],
-    queryFn: () => SearchProfiles({ q: debouncedText }),
+    queryFn: () => searchProfiles({ q: debouncedText }),
     enabled: searchInput.length > 3,
   });
 
+  const getNoOptionsMessage = () => {
+    if (searchInput.length === 0) {
+      return "Start typing device model";
+    }
+    if (searchInput.length < 4) {
+      return "Enter at least 4 symbols";
+    }
+
+    return "Nothing found";
+  };
+
   return (
     <form
-      className="flex w-full flex-col gap-4"
-      onSubmit={props.onNextStep}
+      className="flex flex-col gap-4 w-full"
+      onSubmit={handleSubmit((data) => {
+        props.onNextStep({ name: data.deviceName, profile: data.profile });
+      })}
       noValidate
     >
-      <SearchSelect
-        label={"Select Device profile"}
-        noOptionsText="other"
-        options={[""]}
-        onChange={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-        loading={searchQuery.isLoading}
-        inputValue={searchInput}
-        setInputValue={setSearchInput}
+      <Controller
+        name="profile"
+        control={control}
+        rules={{ required: "Profile is required" }}
+        render={({ field: { onChange, value } }) => (
+          <SearchSelect
+            id="device-profile"
+            value={value}
+            onChange={(_, newValue) => onChange(newValue)}
+            label="Select Device profile"
+            noOptionsText={getNoOptionsMessage()}
+            options={searchQuery?.data || []}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            getOptionLabel={(option: string | ProfileResponseDto) =>
+              typeof option === "string" ? option : option.name
+            }
+            getOptionKey={(option: string | ProfileResponseDto) =>
+              typeof option === "string" ? option : option.id
+            }
+            inputValue={searchInput}
+            setInputValue={setSearchInput}
+            loading={searchQuery.isLoading}
+          />
+        )}
       />
-      <div className="mt-2">
-        <TextField label="Name" placeholder="type device name here" required />
-        <TextField label="group" helperText="optional" />
-      </div>
+
+      <FormControl>
+        <FormLabel htmlFor="device-name">Device name</FormLabel>
+        <TextField
+          {...control.register("deviceName", { required: true })}
+          id="device-name"
+          placeholder="type device name here"
+          required
+          fullWidth
+          size="small"
+        />
+      </FormControl>
+
       <div className="flex justify-end">
-        <Button type="submit" variant="outlined" onClick={props.onNextStep}>
+        <Button type="submit" variant="outlined">
           Next
         </Button>
       </div>

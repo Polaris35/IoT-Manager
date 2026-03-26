@@ -5,7 +5,10 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
-import type { ProfilesControllerSearchProfilesParams } from "../schemas";
+import type {
+  ProfileResponseDto,
+  ProfilesControllerSearchProfilesParams,
+} from "../schemas";
 
 import { apiClient } from "../client";
 
@@ -14,18 +17,21 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 export const getProfiles = () => {
   const profilesControllerSearchProfiles = (
     params?: ProfilesControllerSearchProfilesParams,
-    options?: SecondParameter<typeof apiClient<void>>,
+    options?: SecondParameter<typeof apiClient<ProfileResponseDto[]>>,
   ) => {
-    return apiClient<void>(
+    return apiClient<ProfileResponseDto[]>(
       { url: `/profiles`, method: "GET", params },
       options,
     );
   };
   const profilesControllerGetProfile = (
     id: string,
-    options?: SecondParameter<typeof apiClient<void>>,
+    options?: SecondParameter<typeof apiClient<ProfileResponseDto>>,
   ) => {
-    return apiClient<void>({ url: `/profiles/${id}`, method: "GET" }, options);
+    return apiClient<ProfileResponseDto>(
+      { url: `/profiles/${id}`, method: "GET" },
+      options,
+    );
   };
   return { profilesControllerSearchProfiles, profilesControllerGetProfile };
 };

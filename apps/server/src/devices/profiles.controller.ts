@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponseProperty, ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProfilesService } from './profiles.service';
 import { ProfileResponseDto, SearchProfileDto } from './dto';
 import { Public } from '@iot-manager/nest-libs';
@@ -11,11 +11,14 @@ export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
   @Get()
+  @ApiResponse({
+    type: [ProfileResponseDto],
+  })
   searchProfiles(@Query() query: SearchProfileDto) {
     return this.profilesService.search(query);
   }
 
-  @ApiResponseProperty({
+  @ApiResponse({
     type: ProfileResponseDto,
   })
   @Get('/:id')
