@@ -13,7 +13,7 @@ export type FormDataType = Partial<Omit<CreateDeviceDto, "profileId">> & {
   profile?: ProfileResponseDto | null;
 };
 export default function AddDeviceModal(props: AddDeviceModalProps) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormDataType>({});
 
   const onNextStep = (data: Partial<CreateDeviceDto>) => {
@@ -29,9 +29,9 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
 
   const renderStep = () => {
     switch (step) {
-      case 0:
-        return <StepGeneral defaultValues={formData} onNextStep={onNextStep} />;
       case 1:
+        return <StepGeneral defaultValues={formData} onNextStep={onNextStep} />;
+      case 2:
         return (
           <StepConfig
             defaultValues={formData}
@@ -45,7 +45,7 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
   };
 
   const onClose = () => {
-    setStep(0);
+    setStep(1);
     props.onClose();
   };
   return (
@@ -60,7 +60,6 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
         },
       }}
     >
-      <DialogTitle>Add new device</DialogTitle>
       <DialogContent>{renderStep()}</DialogContent>
     </Dialog>
   );

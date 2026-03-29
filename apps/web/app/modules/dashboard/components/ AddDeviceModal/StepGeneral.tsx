@@ -1,4 +1,10 @@
-import { Button, FormControl, FormLabel, TextField } from "@mui/material";
+import {
+  Button,
+  DialogTitle,
+  FormControl,
+  FormLabel,
+  TextField,
+} from "@mui/material";
 import { useState } from "react";
 import SearchSelect from "~/components/SearchSelect";
 import { useQuery } from "@tanstack/react-query";
@@ -42,56 +48,61 @@ export default function StepGeneral(props: StepGeneralProps) {
   };
 
   return (
-    <form
-      className="flex flex-col gap-4 w-full"
-      onSubmit={handleSubmit((data) => {
-        props.onNextStep({ name: data.deviceName, profile: data.profile });
-      })}
-      noValidate
-    >
-      <Controller
-        name="profile"
-        control={control}
-        rules={{ required: "Profile is required" }}
-        render={({ field: { onChange, value } }) => (
-          <SearchSelect
-            id="device-profile"
-            value={value}
-            onChange={(_, newValue) => onChange(newValue)}
-            label="Select Device profile"
-            noOptionsText={getNoOptionsMessage()}
-            options={searchQuery?.data || []}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            getOptionLabel={(option: string | ProfileResponseDto) =>
-              typeof option === "string" ? option : option.name
-            }
-            getOptionKey={(option: string | ProfileResponseDto) =>
-              typeof option === "string" ? option : option.id
-            }
-            inputValue={searchInput}
-            setInputValue={setSearchInput}
-            loading={searchQuery.isLoading}
-          />
-        )}
-      />
-
-      <FormControl>
-        <FormLabel htmlFor="device-name">Device name</FormLabel>
-        <TextField
-          {...control.register("deviceName", { required: true })}
-          id="device-name"
-          placeholder="type device name here"
-          required
-          fullWidth
-          size="small"
+    <>
+      <DialogTitle sx={{ marginLeft: "-24px", marginTop: "-20px" }}>
+        Step 1: General information
+      </DialogTitle>
+      <form
+        className="flex flex-col gap-4 w-full"
+        onSubmit={handleSubmit((data) => {
+          props.onNextStep({ name: data.deviceName, profile: data.profile });
+        })}
+        noValidate
+      >
+        <Controller
+          name="profile"
+          control={control}
+          rules={{ required: "Profile is required" }}
+          render={({ field: { onChange, value } }) => (
+            <SearchSelect
+              id="device-profile"
+              value={value}
+              onChange={(_, newValue) => onChange(newValue)}
+              label="Select Device profile"
+              noOptionsText={getNoOptionsMessage()}
+              options={searchQuery?.data || []}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              getOptionLabel={(option: string | ProfileResponseDto) =>
+                typeof option === "string" ? option : option.name
+              }
+              getOptionKey={(option: string | ProfileResponseDto) =>
+                typeof option === "string" ? option : option.id
+              }
+              inputValue={searchInput}
+              setInputValue={setSearchInput}
+              loading={searchQuery.isLoading}
+            />
+          )}
         />
-      </FormControl>
 
-      <div className="flex justify-end">
-        <Button type="submit" variant="outlined">
-          Next
-        </Button>
-      </div>
-    </form>
+        <FormControl>
+          <FormLabel htmlFor="device-name">Device name</FormLabel>
+          <TextField
+            {...control.register("deviceName", { required: true })}
+            id="device-name"
+            placeholder="type device name here"
+            required
+            fullWidth
+            size="small"
+          />
+        </FormControl>
+
+        <div className="flex justify-end">
+          <Button type="submit" variant="outlined">
+            Next
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }
