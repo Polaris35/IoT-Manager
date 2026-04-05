@@ -3,6 +3,7 @@ import { useState } from "react";
 import StepGeneral from "./StepGeneral";
 import type { CreateDeviceDto, ProfileResponseDto } from "~/api/schemas";
 import StepConfig from "./StepConfig";
+import StepSummary from "./StepSummary";
 
 export type AddDeviceModalProps = {
   isOpen: boolean;
@@ -39,6 +40,8 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
             onBack={onBack}
           />
         );
+      case 3:
+        return <StepSummary defaultValues={formData} onBack={onBack} />;
       default:
         throw new Error("Unknown step in AddDeviceModal");
     }

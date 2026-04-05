@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import type { FormDataType } from "./AddDeviceModal";
 import { useForm, type Control } from "react-hook-form";
+import { useEffect } from "react";
 
 type StepConfigProps = {
   defaultValues: FormDataType;
@@ -20,10 +21,14 @@ export default function StepConfig(props: StepConfigProps) {
     defaultValues: props.defaultValues,
   });
   const protocol = props.defaultValues.profile?.protocol;
-  const renderConfig = () => {
+
+  useEffect(() => {
     if (!protocol) {
       props.onBack();
     }
+  }, []);
+
+  const renderConfig = () => {
     switch (protocol) {
       case "ZIGBEE":
         return <ZigbeeConfig control={control} />;
@@ -53,7 +58,7 @@ export default function StepConfig(props: StepConfigProps) {
             Back
           </Button>
           <Button type="submit" variant="outlined">
-            Create
+            Next
           </Button>
         </div>
       </form>
