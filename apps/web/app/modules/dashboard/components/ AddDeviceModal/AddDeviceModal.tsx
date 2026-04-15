@@ -1,9 +1,16 @@
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { useState } from "react";
 import StepGeneral from "./StepGeneral";
-import type { CreateDeviceDto, ProfileResponseDto } from "~/api/schemas";
+import type {
+  CreateDeviceDto,
+  CreateDeviceDtoProtocol,
+  ProfileResponseDto,
+} from "~/api/schemas";
 import StepConfig from "./StepConfig";
 import StepSummary from "./StepSummary";
+import { getDevices } from "~/api/endpoints/devices";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 export type AddDeviceModalProps = {
   isOpen: boolean;
@@ -13,15 +20,53 @@ export type AddDeviceModalProps = {
 export type FormDataType = Partial<Omit<CreateDeviceDto, "profileId">> & {
   profile?: ProfileResponseDto | null;
 };
+
+const { devicesControllerCreateDevice } = getDevices();
 export default function AddDeviceModal(props: AddDeviceModalProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormDataType>({});
+
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending, error, isError } = useMutation({
+    mutationFn: (dto: CreateDeviceDto) => {
+      return devicesControllerCreateDevice(dto);
+    },
+
+    onSuccess: () => {
+      // TODO: Add devices list query key
+      queryClient.invalidateQueries({ queryKey: [""] });
+      toast.success("Device was added successfully! :)");
+
+      // 1. Закрываем модалку
+      // 2. Инвалидируем кэш react-query (чтобы список устройств обновился)
+      // 3. Показываем уведомление (Toast/Snackbar)
+    },
+  });
 
   const onNextStep = (data: Partial<CreateDeviceDto>) => {
     setFormData((prev) => {
       return { ...data, ...prev };
     });
     setStep((prev) => prev + 1);
+  };
+
+  const handleFinalSubmit = () => {
+    // Простая валидация перед отправкой
+    if (!formData.name || !formData.externalId || !formData.profile?.id) {
+      return; // Можно добавить локальный стейт ошибки для Summary
+    }
+
+    // Трансформация из UI-типа в DTO для сервера
+    const payload: CreateDeviceDto = {
+      name: formData.name,
+      externalId: formData.externalId,
+      profileId: formData.profile.id,
+      connectionConfig: formData.connectionConfig || {},
+      protocol: formData.profile.protocol as CreateDeviceDtoProtocol,
+    };
+
+    mutate(payload);
   };
 
   const onBack = () => {
@@ -41,7 +86,17 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
           />
         );
       case 3:
-        return <StepSummary defaultValues={formData} onBack={onBack} />;
+        return (
+          <StepSummary
+            defaultValues={formData}
+            onBack={onBack}
+            onConfirm={() => {
+              console.log("result: ", formData);
+            }}
+            isPending={false}
+            error={null}
+          />
+        );
       default:
         throw new Error("Unknown step in AddDeviceModal");
     }

@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { Toaster } from "react-hot-toast";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -58,6 +59,8 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <Outlet />
+
+          <Toaster />
         </AuthProvider>
       </QueryClientProvider>
     </AppTheme>

@@ -1,10 +1,15 @@
 import type { FormDataType } from "./AddDeviceModal";
 import { Box, Button, DialogTitle, Paper, Typography } from "@mui/material";
 import { humanize } from "~/utils/humanize";
+import SaveIcon from "@mui/icons-material/Save";
+import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 
 type StepSummaryProps = {
   defaultValues: FormDataType;
   onBack: () => void;
+  onConfirm: () => void;
+  isPending: boolean;
+  error: Error | null;
 };
 
 const PROTOCOL_LABELS: Record<string, string> = {
@@ -94,11 +99,24 @@ export default function StepSummary(props: StepSummaryProps) {
         )}
       </Paper>
       <div className="flex justify-between mt-4">
-        <Button onClick={props.onBack} variant="outlined">
+        <Button
+          disabled={props.isPending}
+          onClick={props.onBack}
+          variant="outlined"
+          startIcon={<KeyboardArrowLeftIcon />}
+        >
           Back
         </Button>
-        <Button type="submit" variant="outlined">
-          Create
+        <Button
+          loading={props.isPending}
+          type="submit"
+          variant="outlined"
+          // loadingPosition="start"
+          onClick={props.onConfirm}
+          loadingPosition="start" // Спиннер будет вместо иконки, текст останется
+          startIcon={<SaveIcon />}
+        >
+          Confirm
         </Button>
       </div>
     </>
