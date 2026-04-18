@@ -5,6 +5,22 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  MutationFunction,
+  QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+
 import type {
   CreateDeviceDto,
   DevicesControllerGetUserDevicesParams,
@@ -15,71 +31,498 @@ import { apiClient } from "../client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export const getDevices = () => {
-  const devicesControllerCreateDevice = (
-    createDeviceDto: CreateDeviceDto,
-    options?: SecondParameter<typeof apiClient<void>>,
-  ) => {
-    return apiClient<void>(
-      {
-        url: `/devices`,
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        data: createDeviceDto,
-      },
-      options,
-    );
-  };
-  const devicesControllerUpdateDevice = (
-    updateDeviceDto: UpdateDeviceDto,
-    options?: SecondParameter<typeof apiClient<void>>,
-  ) => {
-    return apiClient<void>(
-      {
-        url: `/devices`,
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        data: updateDeviceDto,
-      },
-      options,
-    );
-  };
-  const devicesControllerGetUserDevices = (
-    params?: DevicesControllerGetUserDevicesParams,
-    options?: SecondParameter<typeof apiClient<void>>,
-  ) => {
-    return apiClient<void>({ url: `/devices`, method: "GET", params }, options);
-  };
-  const devicesControllerGetDevice = (
-    id: string,
-    options?: SecondParameter<typeof apiClient<void>>,
-  ) => {
-    return apiClient<void>({ url: `/devices/${id}`, method: "GET" }, options);
-  };
-  return {
-    devicesControllerCreateDevice,
-    devicesControllerUpdateDevice,
-    devicesControllerGetUserDevices,
-    devicesControllerGetDevice,
-  };
+export const devicesControllerCreateDevice = (
+  createDeviceDto: CreateDeviceDto,
+  options?: SecondParameter<typeof apiClient>,
+  signal?: AbortSignal,
+) => {
+  return apiClient<void>(
+    {
+      url: `/devices`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createDeviceDto,
+      signal,
+    },
+    options,
+  );
 };
-export type DevicesControllerCreateDeviceResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getDevices>["devicesControllerCreateDevice"]>
-  >
+
+export const getDevicesControllerCreateDeviceMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof devicesControllerCreateDevice>>,
+    TError,
+    { data: CreateDeviceDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof apiClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof devicesControllerCreateDevice>>,
+  TError,
+  { data: CreateDeviceDto },
+  TContext
+> => {
+  const mutationKey = ["devicesControllerCreateDevice"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof devicesControllerCreateDevice>>,
+    { data: CreateDeviceDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return devicesControllerCreateDevice(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DevicesControllerCreateDeviceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerCreateDevice>>
 >;
-export type DevicesControllerUpdateDeviceResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getDevices>["devicesControllerUpdateDevice"]>
-  >
+export type DevicesControllerCreateDeviceMutationBody = CreateDeviceDto;
+export type DevicesControllerCreateDeviceMutationError = unknown;
+
+export const useDevicesControllerCreateDevice = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof devicesControllerCreateDevice>>,
+      TError,
+      { data: CreateDeviceDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof devicesControllerCreateDevice>>,
+  TError,
+  { data: CreateDeviceDto },
+  TContext
+> => {
+  const mutationOptions =
+    getDevicesControllerCreateDeviceMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+export const devicesControllerUpdateDevice = (
+  updateDeviceDto: UpdateDeviceDto,
+  options?: SecondParameter<typeof apiClient>,
+) => {
+  return apiClient<void>(
+    {
+      url: `/devices`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateDeviceDto,
+    },
+    options,
+  );
+};
+
+export const getDevicesControllerUpdateDeviceMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof devicesControllerUpdateDevice>>,
+    TError,
+    { data: UpdateDeviceDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof apiClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof devicesControllerUpdateDevice>>,
+  TError,
+  { data: UpdateDeviceDto },
+  TContext
+> => {
+  const mutationKey = ["devicesControllerUpdateDevice"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof devicesControllerUpdateDevice>>,
+    { data: UpdateDeviceDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return devicesControllerUpdateDevice(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DevicesControllerUpdateDeviceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerUpdateDevice>>
 >;
-export type DevicesControllerGetUserDevicesResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getDevices>["devicesControllerGetUserDevices"]>
-  >
+export type DevicesControllerUpdateDeviceMutationBody = UpdateDeviceDto;
+export type DevicesControllerUpdateDeviceMutationError = unknown;
+
+export const useDevicesControllerUpdateDevice = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof devicesControllerUpdateDevice>>,
+      TError,
+      { data: UpdateDeviceDto },
+      TContext
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof devicesControllerUpdateDevice>>,
+  TError,
+  { data: UpdateDeviceDto },
+  TContext
+> => {
+  const mutationOptions =
+    getDevicesControllerUpdateDeviceMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+export const devicesControllerGetUserDevices = (
+  params?: DevicesControllerGetUserDevicesParams,
+  options?: SecondParameter<typeof apiClient>,
+  signal?: AbortSignal,
+) => {
+  return apiClient<void>(
+    { url: `/devices`, method: "GET", params, signal },
+    options,
+  );
+};
+
+export const getDevicesControllerGetUserDevicesQueryKey = (
+  params?: DevicesControllerGetUserDevicesParams,
+) => {
+  return [`/devices`, ...(params ? [params] : [])] as const;
+};
+
+export const getDevicesControllerGetUserDevicesQueryOptions = <
+  TData = Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerGetUserDevicesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getDevicesControllerGetUserDevicesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof devicesControllerGetUserDevices>>
+  > = ({ signal }) =>
+    devicesControllerGetUserDevices(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DevicesControllerGetUserDevicesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerGetUserDevices>>
 >;
-export type DevicesControllerGetDeviceResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getDevices>["devicesControllerGetDevice"]>
-  >
+export type DevicesControllerGetUserDevicesQueryError = unknown;
+
+export function useDevicesControllerGetUserDevices<
+  TData = Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+  TError = unknown,
+>(
+  params: undefined | DevicesControllerGetUserDevicesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerGetUserDevices>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerGetUserDevices<
+  TData = Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerGetUserDevicesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerGetUserDevices>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerGetUserDevices<
+  TData = Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerGetUserDevicesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useDevicesControllerGetUserDevices<
+  TData = Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+  TError = unknown,
+>(
+  params?: DevicesControllerGetUserDevicesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetUserDevices>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDevicesControllerGetUserDevicesQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const devicesControllerGetDevice = (
+  id: string,
+  options?: SecondParameter<typeof apiClient>,
+  signal?: AbortSignal,
+) => {
+  return apiClient<void>(
+    { url: `/devices/${id}`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getDevicesControllerGetDeviceQueryKey = (id?: string) => {
+  return [`/devices/${id}`] as const;
+};
+
+export const getDevicesControllerGetDeviceQueryOptions = <
+  TData = Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDevicesControllerGetDeviceQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof devicesControllerGetDevice>>
+  > = ({ signal }) => devicesControllerGetDevice(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type DevicesControllerGetDeviceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof devicesControllerGetDevice>>
 >;
+export type DevicesControllerGetDeviceQueryError = unknown;
+
+export function useDevicesControllerGetDevice<
+  TData = Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerGetDevice>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerGetDevice<
+  TData = Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+          TError,
+          Awaited<ReturnType<typeof devicesControllerGetDevice>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDevicesControllerGetDevice<
+  TData = Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useDevicesControllerGetDevice<
+  TData = Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof devicesControllerGetDevice>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getDevicesControllerGetDeviceQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

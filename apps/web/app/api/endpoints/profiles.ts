@@ -5,6 +5,19 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
+import { useQuery } from "@tanstack/react-query";
+import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
+  UseQueryOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+
 import type {
   ProfileResponseDto,
   ProfilesControllerSearchProfilesParams,
@@ -14,36 +27,328 @@ import { apiClient } from "../client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export const getProfiles = () => {
-  const profilesControllerSearchProfiles = (
-    params?: ProfilesControllerSearchProfilesParams,
-    options?: SecondParameter<typeof apiClient<ProfileResponseDto[]>>,
-  ) => {
-    return apiClient<ProfileResponseDto[]>(
-      { url: `/profiles`, method: "GET", params },
-      options,
-    );
-  };
-  const profilesControllerGetProfile = (
-    id: string,
-    options?: SecondParameter<typeof apiClient<ProfileResponseDto>>,
-  ) => {
-    return apiClient<ProfileResponseDto>(
-      { url: `/profiles/${id}`, method: "GET" },
-      options,
-    );
-  };
-  return { profilesControllerSearchProfiles, profilesControllerGetProfile };
+export const profilesControllerSearchProfiles = (
+  params?: ProfilesControllerSearchProfilesParams,
+  options?: SecondParameter<typeof apiClient>,
+  signal?: AbortSignal,
+) => {
+  return apiClient<ProfileResponseDto[]>(
+    { url: `/profiles`, method: "GET", params, signal },
+    options,
+  );
 };
-export type ProfilesControllerSearchProfilesResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getProfiles>["profilesControllerSearchProfiles"]
-    >
-  >
+
+export const getProfilesControllerSearchProfilesQueryKey = (
+  params?: ProfilesControllerSearchProfilesParams,
+) => {
+  return [`/profiles`, ...(params ? [params] : [])] as const;
+};
+
+export const getProfilesControllerSearchProfilesQueryOptions = <
+  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+  TError = ProfileResponseDto[],
+>(
+  params?: ProfilesControllerSearchProfilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getProfilesControllerSearchProfilesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
+  > = ({ signal }) =>
+    profilesControllerSearchProfiles(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ProfilesControllerSearchProfilesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
 >;
-export type ProfilesControllerGetProfileResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getProfiles>["profilesControllerGetProfile"]>
-  >
+export type ProfilesControllerSearchProfilesQueryError = ProfileResponseDto[];
+
+export function useProfilesControllerSearchProfiles<
+  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+  TError = ProfileResponseDto[],
+>(
+  params: undefined | ProfilesControllerSearchProfilesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+          TError,
+          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useProfilesControllerSearchProfiles<
+  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+  TError = ProfileResponseDto[],
+>(
+  params?: ProfilesControllerSearchProfilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+          TError,
+          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useProfilesControllerSearchProfiles<
+  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+  TError = ProfileResponseDto[],
+>(
+  params?: ProfilesControllerSearchProfilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useProfilesControllerSearchProfiles<
+  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+  TError = ProfileResponseDto[],
+>(
+  params?: ProfilesControllerSearchProfilesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getProfilesControllerSearchProfilesQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const profilesControllerGetProfile = (
+  id: string,
+  options?: SecondParameter<typeof apiClient>,
+  signal?: AbortSignal,
+) => {
+  return apiClient<ProfileResponseDto>(
+    { url: `/profiles/${id}`, method: "GET", signal },
+    options,
+  );
+};
+
+export const getProfilesControllerGetProfileQueryKey = (id?: string) => {
+  return [`/profiles/${id}`] as const;
+};
+
+export const getProfilesControllerGetProfileQueryOptions = <
+  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+  TError = ProfileResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getProfilesControllerGetProfileQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof profilesControllerGetProfile>>
+  > = ({ signal }) => profilesControllerGetProfile(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ProfilesControllerGetProfileQueryResult = NonNullable<
+  Awaited<ReturnType<typeof profilesControllerGetProfile>>
 >;
+export type ProfilesControllerGetProfileQueryError = ProfileResponseDto;
+
+export function useProfilesControllerGetProfile<
+  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+  TError = ProfileResponseDto,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+          TError,
+          Awaited<ReturnType<typeof profilesControllerGetProfile>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useProfilesControllerGetProfile<
+  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+  TError = ProfileResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+          TError,
+          Awaited<ReturnType<typeof profilesControllerGetProfile>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useProfilesControllerGetProfile<
+  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+  TError = ProfileResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useProfilesControllerGetProfile<
+  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+  TError = ProfileResponseDto,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getProfilesControllerGetProfileQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

@@ -5,32 +5,204 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
+import { useQuery } from "@tanstack/react-query";
+import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
+  UseQueryOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+
 import type { StatsControllerGetDeviceStatsParams } from "../schemas";
 
 import { apiClient } from "../client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export const getStatistics = () => {
-  /**
-   * @summary Get telemetry history for a device
-   */
-  const statsControllerGetDeviceStats = (
-    id: string,
-    params: StatsControllerGetDeviceStatsParams,
-    options?: SecondParameter<typeof apiClient<void>>,
-  ) => {
-    return apiClient<void>(
-      { url: `/stats/device/${id}`, method: "GET", params },
-      options,
-    );
-  };
-  return { statsControllerGetDeviceStats };
+/**
+ * @summary Get telemetry history for a device
+ */
+export const statsControllerGetDeviceStats = (
+  id: string,
+  params: StatsControllerGetDeviceStatsParams,
+  options?: SecondParameter<typeof apiClient>,
+  signal?: AbortSignal,
+) => {
+  return apiClient<void>(
+    { url: `/stats/device/${id}`, method: "GET", params, signal },
+    options,
+  );
 };
-export type StatsControllerGetDeviceStatsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getStatistics>["statsControllerGetDeviceStats"]
-    >
-  >
+
+export const getStatsControllerGetDeviceStatsQueryKey = (
+  id?: string,
+  params?: StatsControllerGetDeviceStatsParams,
+) => {
+  return [`/stats/device/${id}`, ...(params ? [params] : [])] as const;
+};
+
+export const getStatsControllerGetDeviceStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+  TError = unknown,
+>(
+  id: string,
+  params: StatsControllerGetDeviceStatsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getStatsControllerGetDeviceStatsQueryKey(id, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
+  > = ({ signal }) =>
+    statsControllerGetDeviceStats(id, params, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type StatsControllerGetDeviceStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
 >;
+export type StatsControllerGetDeviceStatsQueryError = unknown;
+
+export function useStatsControllerGetDeviceStats<
+  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+  TError = unknown,
+>(
+  id: string,
+  params: StatsControllerGetDeviceStatsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+          TError,
+          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatsControllerGetDeviceStats<
+  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+  TError = unknown,
+>(
+  id: string,
+  params: StatsControllerGetDeviceStatsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+          TError,
+          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useStatsControllerGetDeviceStats<
+  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+  TError = unknown,
+>(
+  id: string,
+  params: StatsControllerGetDeviceStatsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get telemetry history for a device
+ */
+
+export function useStatsControllerGetDeviceStats<
+  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+  TError = unknown,
+>(
+  id: string,
+  params: StatsControllerGetDeviceStatsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof apiClient>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getStatsControllerGetDeviceStatsQueryOptions(
+    id,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

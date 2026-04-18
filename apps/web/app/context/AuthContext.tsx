@@ -3,7 +3,13 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
 
 // API & Types
-import { getAuth } from "~/api/endpoints/auth";
+import {
+  authControllerAccountInfo,
+  authControllerCredentialsLogin,
+  authControllerCredentialsRegister,
+  authControllerGoogleLogin,
+  authControllerLogout,
+} from "~/api/endpoints/auth";
 import type {
   CredentialsLoginDto,
   GoogleLoginDto,
@@ -47,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = storage.get(STORAGE_KEYS.ACCESS_TOKEN);
 
       if (token) {
-        const user = await getAuth().authControllerAccountInfo();
+        const user = await authControllerAccountInfo();
         setUser(user);
       } else {
         setUser(null);
@@ -62,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Login Action
   const loginCredentials = async (dto: CredentialsLoginDto) => {
     try {
-      const response = await getAuth().authControllerCredentialsLogin(dto);
+      const response = await authControllerCredentialsLogin(dto);
 
       if (response?.accessToken) {
         // Save tokens
@@ -80,7 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loginGoogle = async (dto: GoogleLoginDto) => {
     try {
-      const response = await getAuth().authControllerGoogleLogin(dto);
+      const response = await authControllerGoogleLogin(dto);
 
       if (response?.accessToken) {
         // Save tokens
@@ -99,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Register Action
   const register = async (dto: RegisterAccountDto) => {
     try {
-      await getAuth().authControllerCredentialsRegister(dto);
+      await authControllerCredentialsRegister(dto);
       navigate("/auth/login");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -113,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
       if (refreshToken) {
         // Fire and forget logout request
-        await getAuth().authControllerLogout({ refreshToken });
+        await authControllerLogout({ refreshToken });
       }
     } catch (error) {
       console.warn("Logout API call failed", error);

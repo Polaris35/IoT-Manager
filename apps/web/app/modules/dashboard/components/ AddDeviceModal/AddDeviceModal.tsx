@@ -8,7 +8,7 @@ import type {
 } from "~/api/schemas";
 import StepConfig from "./StepConfig";
 import StepSummary from "./StepSummary";
-import { getDevices } from "~/api/endpoints/devices";
+import { devicesControllerCreateDevice } from "~/api/endpoints/devices";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -21,7 +21,6 @@ export type FormDataType = Partial<Omit<CreateDeviceDto, "profileId">> & {
   profile?: ProfileResponseDto | null;
 };
 
-const { devicesControllerCreateDevice } = getDevices();
 export default function AddDeviceModal(props: AddDeviceModalProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormDataType>({});
