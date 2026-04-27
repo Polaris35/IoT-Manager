@@ -1,12 +1,16 @@
 import { Dialog, DialogContent } from "@mui/material";
+import { Dialog, DialogContent } from "@mui/material";
 import { useState } from "react";
 import StepGeneral from "./StepGeneral";
+import type { CreateDeviceDto, CreateDeviceDtoProtocol } from "~/api/schemas";
 import type { CreateDeviceDto, CreateDeviceDtoProtocol } from "~/api/schemas";
 import StepConfig from "./StepConfig";
 import StepSummary from "./StepSummary";
 import { devicesControllerCreateDevice } from "~/api/endpoints/devices";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { devicesControllerCreateDeviceBody } from "~/api/endpoints/devices.zod";
+import z from "zod";
 import { devicesControllerCreateDeviceBody } from "~/api/endpoints/devices.zod";
 import z from "zod";
 
@@ -29,10 +33,25 @@ const FromDataSchema = devicesControllerCreateDeviceBody
     }),
   });
 export type FormDataType = Partial<z.infer<typeof FromDataSchema>>;
+const FromDataSchema = devicesControllerCreateDeviceBody
+  .omit({
+    profileId: true,
+  })
+  .safeExtend({
+    profile: z.object({
+      id: z.string(),
+      name: z.enum(["MQTT", "ZIGBEE", "TUYA"]),
+      vendor: z.string(),
+      protocol: z.string(),
+      description: z.string().optional(),
+    }),
+  });
+export type FormDataType = Partial<z.infer<typeof FromDataSchema>>;
 
 export default function AddDeviceModal(props: AddDeviceModalProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormDataType>({});
+  const [finalErrors, setFinalErrors] = useState<string[]>([]);
   const [finalErrors, setFinalErrors] = useState<string[]>([]);
 
   const queryClient = useQueryClient();
@@ -62,6 +81,28 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
   };
 
   const handleFinalSubmit = () => {
+    const { profile, ...dataWithoutProfile } = formData;
+    //Partial for disable undefined and null errors
+    const deviceDto: Partial<CreateDeviceDto> = {
+      ...dataWithoutProfile,
+      profileId: formData.profile?.id as string,
+      protocol: profile?.protocol as CreateDeviceDtoProtocol,
+    };
+    setFinalErrors([]);
+    try {
+      devicesControllerCreateDeviceBody.parse(deviceDto);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.issues.map((issue) => {
+          const field = issue.path.join(".");
+          return `${field}: ${issue.message}`;
+        });
+        setFinalErrors(errorMessages);
+      }
+    }
+    if (finalErrors.length === 0) {
+      mutate(deviceDto as CreateDeviceDto);
+    }
     const { profile, ...dataWithoutProfile } = formData;
     //Partial for disable undefined and null errors
     const deviceDto: Partial<CreateDeviceDto> = {
