@@ -1,29 +1,39 @@
-import { Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { Dialog, DialogContent } from "@mui/material";
 import { useState } from "react";
 import StepGeneral from "./StepGeneral";
-import type {
-  CreateDeviceDto,
-  CreateDeviceDtoProtocol,
-  ProfileResponseDto,
-} from "~/api/schemas";
+import type { CreateDeviceDto, CreateDeviceDtoProtocol } from "~/api/schemas";
 import StepConfig from "./StepConfig";
 import StepSummary from "./StepSummary";
 import { devicesControllerCreateDevice } from "~/api/endpoints/devices";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { devicesControllerCreateDeviceBody } from "~/api/endpoints/devices.zod";
+import z from "zod";
 
 export type AddDeviceModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-export type FormDataType = Partial<Omit<CreateDeviceDto, "profileId">> & {
-  profile?: ProfileResponseDto | null;
-};
+const FromDataSchema = devicesControllerCreateDeviceBody
+  .omit({
+    profileId: true,
+  })
+  .safeExtend({
+    profile: z.object({
+      id: z.string(),
+      name: z.enum(["MQTT", "ZIGBEE", "TUYA"]),
+      vendor: z.string(),
+      protocol: z.string(),
+      description: z.string().optional(),
+    }),
+  });
+export type FormDataType = Partial<z.infer<typeof FromDataSchema>>;
 
 export default function AddDeviceModal(props: AddDeviceModalProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormDataType>({});
+  const [finalErrors, setFinalErrors] = useState<string[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -36,10 +46,7 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
       // TODO: Add devices list query key
       queryClient.invalidateQueries({ queryKey: [""] });
       toast.success("Device was added successfully! :)");
-
-      // 1. Закрываем модалку
-      // 2. Инвалидируем кэш react-query (чтобы список устройств обновился)
-      // 3. Показываем уведомление (Toast/Snackbar)
+      onClose();
     },
   });
 
@@ -51,21 +58,28 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
   };
 
   const handleFinalSubmit = () => {
-    // Простая валидация перед отправкой
-    if (!formData.name || !formData.externalId || !formData.profile?.id) {
-      return; // Можно добавить локальный стейт ошибки для Summary
-    }
-
-    // Трансформация из UI-типа в DTO для сервера
-    const payload: CreateDeviceDto = {
-      name: formData.name,
-      externalId: formData.externalId,
-      profileId: formData.profile.id,
-      connectionConfig: formData.connectionConfig || {},
-      protocol: formData.profile.protocol as CreateDeviceDtoProtocol,
+    const { profile, ...dataWithoutProfile } = formData;
+    //Partial for disable undefined and null errors
+    const deviceDto: Partial<CreateDeviceDto> = {
+      ...dataWithoutProfile,
+      profileId: formData.profile?.id as string,
+      protocol: profile?.protocol as CreateDeviceDtoProtocol,
     };
-
-    mutate(payload);
+    setFinalErrors([]);
+    try {
+      devicesControllerCreateDeviceBody.parse(deviceDto);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.issues.map((issue) => {
+          const field = issue.path.join(".");
+          return `${field}: ${issue.message}`;
+        });
+        setFinalErrors(errorMessages);
+      }
+    }
+    if (finalErrors.length === 0) {
+      mutate(deviceDto as CreateDeviceDto);
+    }
   };
 
   const onBack = () => {
@@ -89,11 +103,9 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
           <StepSummary
             defaultValues={formData}
             onBack={onBack}
-            onConfirm={() => {
-              console.log("result: ", formData);
-            }}
+            onConfirm={handleFinalSubmit}
             isPending={false}
-            error={null}
+            error={finalErrors}
           />
         );
       default:
@@ -103,6 +115,7 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
 
   const onClose = () => {
     setStep(1);
+    setFormData({});
     props.onClose();
   };
   return (

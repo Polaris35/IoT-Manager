@@ -7,7 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 import type { FormDataType } from "./AddDeviceModal";
-import { useForm, type Control } from "react-hook-form";
+import { useForm, type Control, type FieldErrors } from "react-hook-form";
 import { useEffect } from "react";
 
 type StepConfigProps = {
@@ -17,7 +17,11 @@ type StepConfigProps = {
 };
 
 export default function StepConfig(props: StepConfigProps) {
-  const { control, handleSubmit } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     defaultValues: props.defaultValues,
   });
   const protocol = props.defaultValues.profile?.protocol;
@@ -31,14 +35,14 @@ export default function StepConfig(props: StepConfigProps) {
   const renderConfig = () => {
     switch (protocol) {
       case "ZIGBEE":
-        return <ZigbeeConfig control={control} />;
+        return <ZigbeeConfig control={control} errors={errors} />;
 
       case "DIY":
       case "MQTT":
-        return <MqttConfig control={control} />;
+        return <MqttConfig control={control} errors={errors} />;
 
       case "TUYA":
-        return <TuyaConfig control={control} />;
+        return <TuyaConfig control={control} errors={errors} />;
       default:
         throw new Error(`Unknown protocol {${protocol}} in StepConfig`);
     }
@@ -68,8 +72,10 @@ export default function StepConfig(props: StepConfigProps) {
 
 function ZigbeeConfig({
   control,
+  errors,
 }: {
   control: Control<FormDataType, any, FormDataType>;
+  errors: FieldErrors<FormDataType>;
 }) {
   return (
     <>
@@ -80,6 +86,9 @@ function ZigbeeConfig({
           {...control.register("externalId", { required: true })}
         />
       </FormControl>
+      {errors.externalId && (
+        <span className="text-red-500">Friendly name is required</span>
+      )}
       <FormControl>
         <FormLabel>Topic Prefix</FormLabel>
         <TextField
@@ -96,8 +105,10 @@ function ZigbeeConfig({
 
 function MqttConfig({
   control,
+  errors,
 }: {
   control: Control<FormDataType, any, FormDataType>;
+  errors: FieldErrors<FormDataType>;
 }) {
   return (
     <>
@@ -109,6 +120,9 @@ function MqttConfig({
           {...control.register("externalId", { required: true })}
         />
       </FormControl>
+      {errors.externalId && (
+        <span className="text-red-500">Inique device id is required</span>
+      )}
       <FormControl>
         <FormLabel>State Topic</FormLabel>
         <TextField
@@ -119,6 +133,9 @@ function MqttConfig({
           })}
         />
       </FormControl>
+      {errors.connectionConfig && (
+        <span className="text-red-500">state topic is required</span>
+      )}
       <FormControl>
         <FormLabel>Command Topic</FormLabel>
         <TextField
@@ -136,8 +153,10 @@ function MqttConfig({
 
 function TuyaConfig({
   control,
+  errors,
 }: {
   control: Control<FormDataType, any, FormDataType>;
+  errors: FieldErrors<FormDataType>;
 }) {
   return (
     <>
@@ -149,6 +168,9 @@ function TuyaConfig({
           {...control.register("externalId", { required: true })}
         />
       </FormControl>
+      {errors.externalId && (
+        <span className="text-red-500">device id is required</span>
+      )}
       <FormControl>
         <FormLabel>User ID</FormLabel>
         <TextField
