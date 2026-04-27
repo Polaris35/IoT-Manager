@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   DialogTitle,
   FormControl,
@@ -19,9 +20,13 @@ export type StepGeneralProps = {
   onNextStep: (data: FormDataType) => void;
 };
 export default function StepGeneral(props: StepGeneralProps) {
-  const { control, handleSubmit } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
-      profile: props.defaultValues.profile || null,
+      profile: props.defaultValues.profile || undefined,
       deviceName: props.defaultValues.name || "",
     },
   });
@@ -53,7 +58,10 @@ export default function StepGeneral(props: StepGeneralProps) {
       <form
         className="flex flex-col gap-4 w-full"
         onSubmit={handleSubmit((data) => {
-          props.onNextStep({ name: data.deviceName, profile: data.profile });
+          props.onNextStep({
+            name: data.deviceName,
+            profile: data.profile,
+          });
         })}
         noValidate
       >
@@ -82,6 +90,9 @@ export default function StepGeneral(props: StepGeneralProps) {
             />
           )}
         />
+        {errors.profile && (
+          <Alert severity="warning">{errors.profile.message}</Alert>
+        )}
 
         <FormControl>
           <FormLabel htmlFor="device-name">Device name</FormLabel>
@@ -94,6 +105,9 @@ export default function StepGeneral(props: StepGeneralProps) {
             size="small"
           />
         </FormControl>
+        {errors.deviceName && (
+          <Alert severity="warning">Device name is required</Alert>
+        )}
 
         <div className="flex justify-end">
           <Button type="submit" variant="outlined">

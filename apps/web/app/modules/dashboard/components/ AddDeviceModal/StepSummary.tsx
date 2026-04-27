@@ -1,5 +1,12 @@
 import type { FormDataType } from "./AddDeviceModal";
-import { Box, Button, DialogTitle, Paper, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  DialogTitle,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { humanize } from "~/utils/humanize";
 import SaveIcon from "@mui/icons-material/Save";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
@@ -9,7 +16,7 @@ type StepSummaryProps = {
   onBack: () => void;
   onConfirm: () => void;
   isPending: boolean;
-  error: Error | null;
+  error: string[];
 };
 
 const PROTOCOL_LABELS: Record<string, string> = {
@@ -98,6 +105,17 @@ export default function StepSummary(props: StepSummaryProps) {
           </>
         )}
       </Paper>
+      {props.error && (
+        <div className="flex flex-col">
+          {props.error.map((err, idx) => {
+            return (
+              <Alert key={idx} severity="warning">
+                {err}
+              </Alert>
+            );
+          })}
+        </div>
+      )}
       <div className="flex justify-between mt-4">
         <Button
           disabled={props.isPending}
@@ -111,9 +129,8 @@ export default function StepSummary(props: StepSummaryProps) {
           loading={props.isPending}
           type="submit"
           variant="outlined"
-          // loadingPosition="start"
           onClick={props.onConfirm}
-          loadingPosition="start" // Спиннер будет вместо иконки, текст останется
+          loadingPosition="start"
           startIcon={<SaveIcon />}
         >
           Confirm
