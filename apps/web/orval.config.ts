@@ -3,14 +3,13 @@ import { defineConfig } from "orval";
 export default defineConfig({
   iot: {
     input: {
-      // Путь к swagger файлу (локальный или URL)
       target: "http://localhost:3000/api/swagger-json",
     },
     output: {
-      mode: "tags-split",
-      target: "app/modules",
-      schemas: "app/types/schemas",
-      client: "axios",
+      mode: "tags",
+      target: "app/api/endpoints",
+      schemas: "app/api/schemas",
+      client: "react-query",
       mock: false,
       override: {
         mutator: {
@@ -19,6 +18,17 @@ export default defineConfig({
         },
       },
       prettier: true,
+    },
+  },
+  iotZod: {
+    input: {
+      target: "http://localhost:3000/api/swagger-json",
+    },
+    output: {
+      mode: "tags",
+      client: "zod",
+      target: "app/api/endpoints",
+      fileExtension: ".zod.ts",
     },
   },
 });

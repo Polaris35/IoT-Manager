@@ -21,7 +21,10 @@ import { GoogleLoginDto } from './dto/google-login.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Register a new account with email and password' })
+  @ApiOperation({
+    summary: 'Register a new account with email and password',
+    operationId: 'credentialsRegister',
+  })
   @ApiResponse({
     status: 201,
     description: 'The account has been successfully registered.',
@@ -32,7 +35,10 @@ export class AuthController {
     return this.authService.credentialsRegister(dto);
   }
 
-  @ApiOperation({ summary: 'Login with email and password' })
+  @ApiOperation({
+    summary: 'Login with email and password',
+    operationId: 'credentialsLogin',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns tokens and user info',
@@ -52,7 +58,10 @@ export class AuthController {
 
   @Public()
   @Post('google/login')
-  @ApiOperation({ summary: 'Login via Google OAuth2' })
+  @ApiOperation({
+    summary: 'Login via Google OAuth2',
+    operationId: 'googleLogin',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns access and refresh tokens',
@@ -65,14 +74,17 @@ export class AuthController {
     });
   }
 
-  @ApiOperation({ summary: 'Logout from the system' })
+  @ApiOperation({ summary: 'Logout from the system', operationId: 'logout' })
   @Public()
   @Post('logout')
   logout(@Body() logoutDto: LogoutDto) {
     this.authService.logout(logoutDto);
   }
 
-  @ApiOperation({ summary: 'Refresh access and refresh tokens' })
+  @ApiOperation({
+    summary: 'Refresh access and refresh tokens',
+    operationId: 'refreshTokens',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns access  and refresh tokens',
@@ -87,7 +99,10 @@ export class AuthController {
     });
   }
 
-  @ApiOperation({ summary: 'Get current user account info' })
+  @ApiOperation({
+    summary: 'Get current user account info',
+    operationId: 'getAccountInfo',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns user account information',

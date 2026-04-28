@@ -4,12 +4,11 @@ import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
-import Badge from "@mui/material/Badge";
 import { alpha } from "@mui/material/styles";
 
 import MenuIcon from "@mui/icons-material/MenuRounded";
-import NotificationsIcon from "@mui/icons-material/NotificationsRounded";
-import ColorModeSelect from "~/theme/ColorModeSelect";
+import ColorModeIconDropdown from "~/theme/ColorModeIconDropdown";
+import { SmartAddButton } from "../AddButton";
 
 interface AppNavbarProps {
   onMenuClick: () => void;
@@ -81,13 +80,8 @@ export default function AppNavbar({ onMenuClick }: AppNavbarProps) {
         </Typography>
 
         <Stack direction="row" spacing={1} alignItems="center">
-          <ColorModeSelect />
-
-          <IconButton>
-            <Badge badgeContent={4} color="error" variant="dot">
-              <NotificationsIcon sx={{ color: "text.secondary" }} />
-            </Badge>
-          </IconButton>
+          <SmartAddButton />
+          <ColorModeIconDropdown />
         </Stack>
       </Toolbar>
     </AppBar>

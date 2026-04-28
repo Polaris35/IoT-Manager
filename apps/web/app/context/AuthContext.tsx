@@ -1,14 +1,21 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
+import {
+  credentialsLogin,
+  credentialsRegister,
+  getAccountInfo,
+  googleLogin,
+  logout as logoutRequest,
+} from "~/api/endpoints/auth";
 
 // API & Types
-import { getAuth } from "~/modules/auth/auth";
+
 import type {
   CredentialsLoginDto,
   GoogleLoginDto,
   RegisterAccountDto,
-} from "~/types/schemas";
+} from "~/api/schemas";
 
 // Utils
 import { STORAGE_KEYS } from "~/constants";
@@ -47,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = storage.get(STORAGE_KEYS.ACCESS_TOKEN);
 
       if (token) {
-        const user = await getAuth().authControllerAccountInfo();
+        const user = await getAccountInfo();
         setUser(user);
       } else {
         setUser(null);
@@ -62,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Login Action
   const loginCredentials = async (dto: CredentialsLoginDto) => {
     try {
-      const response = await getAuth().authControllerCredentialsLogin(dto);
+      const response = await credentialsLogin(dto);
 
       if (response?.accessToken) {
         // Save tokens
@@ -80,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loginGoogle = async (dto: GoogleLoginDto) => {
     try {
-      const response = await getAuth().authControllerGoogleLogin(dto);
+      const response = await googleLogin(dto);
 
       if (response?.accessToken) {
         // Save tokens
@@ -99,7 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Register Action
   const register = async (dto: RegisterAccountDto) => {
     try {
-      await getAuth().authControllerCredentialsRegister(dto);
+      await credentialsRegister(dto);
       navigate("/auth/login");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -113,7 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
       if (refreshToken) {
         // Fire and forget logout request
-        await getAuth().authControllerLogout({ refreshToken });
+        await logoutRequest({ refreshToken });
       }
     } catch (error) {
       console.warn("Logout API call failed", error);

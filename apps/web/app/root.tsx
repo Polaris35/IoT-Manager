@@ -6,12 +6,14 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { Toaster } from "react-hot-toast";
 
 import type { Route } from "./+types/root";
 import "./app.css";
 import AppTheme from "./theme/AppTheme";
 import { AuthProvider } from "./context/AuthContext";
 import { CssBaseline } from "@mui/material";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -48,14 +50,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
+const queryClient = new QueryClient();
 
 export default function App() {
   return (
     <AppTheme disableCustomTheme={false}>
       <CssBaseline enableColorScheme />
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Outlet />
+
+          <Toaster />
+        </AuthProvider>
+      </QueryClientProvider>
     </AppTheme>
   );
 }
@@ -77,7 +84,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
+    <main className="pt-16 p-4 container mx-auto text-black">
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (

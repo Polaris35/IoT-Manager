@@ -3,7 +3,9 @@ import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import MuiCard from "@mui/material/Card";
-import { FacebookButton, GoogleButton, LoginForm } from "~/modules/auth";
+import LoginForm from "../components/LoginForm";
+import GoogleButton from "../components/GoogleButton";
+import FacebookButton from "../components/FacebookButton";
 
 export default function LoginPage() {
   return (

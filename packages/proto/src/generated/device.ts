@@ -176,6 +176,7 @@ export interface ProfileResponse {
    * For Search operations, this field can be left empty to save bandwidth.
    */
   mappings: string;
+  /** Same for commands */
   commands: string;
   commandMode: string;
 }

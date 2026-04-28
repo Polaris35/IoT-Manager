@@ -25,7 +25,7 @@ export class ProfilesService implements OnModuleInit {
         limit: dto.limit,
       }),
     );
-    return profiles;
+    return profiles.profiles;
   }
 
   getProfile(id: string) {

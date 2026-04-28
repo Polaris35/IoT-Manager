@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface ZigbeeConnectionConfigDto {
-  /** User-friendly name from Zigbee2MQTT */
-  friendlyName: string;
-}
+export type GetDeviceStatsParams = {
+  range: string;
+};

@@ -3,7 +3,9 @@ import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import MuiCard from "@mui/material/Card";
-import { FacebookButton, GoogleButton, RegisterForm } from "~/modules/auth";
+import RegisterForm from "../components/RegisterForm";
+import GoogleButton from "../components/GoogleButton";
+import FacebookButton from "../components/FacebookButton";
 
 export default function RegisterPage() {
   return (

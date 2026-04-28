@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
+import type { RegisterAccountDto } from "~/api/schemas";
 import { useAuth } from "~/context/AuthContext";
-import type { RegisterAccountDto } from "~/types/schemas";
 
 export const useRegisterForm = () => {
   const { register: registerUser } = useAuth(); // Rename to avoid conflict with RHF

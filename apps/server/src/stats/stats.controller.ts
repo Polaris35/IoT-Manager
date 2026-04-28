@@ -12,7 +12,10 @@ export class StatsController {
 
   @Public()
   @Get('device/:id')
-  @ApiOperation({ summary: 'Get telemetry history for a device' })
+  @ApiOperation({
+    summary: 'Get telemetry history for a device',
+    operationId: 'getDeviceStats',
+  })
   async getDeviceStats(
     @Param('id') id: string,
     @Query('range') range: string = '-1h', // -1h, -24h, -7d

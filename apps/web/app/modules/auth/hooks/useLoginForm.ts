@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router";
+import type { CredentialsLoginDto } from "~/api/schemas";
 import { useAuth } from "~/context/AuthContext";
-import type { CredentialsLoginDto } from "~/types/schemas";
 
 // UI-specific type extending the API DTO
 export type LoginFormInputs = CredentialsLoginDto & {
