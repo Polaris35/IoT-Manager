@@ -4,18 +4,20 @@ import StepGeneral from "./StepGeneral";
 import type { CreateDeviceDto, CreateDeviceDtoProtocol } from "~/api/schemas";
 import StepConfig from "./StepConfig";
 import StepSummary from "./StepSummary";
-import { devicesControllerCreateDevice } from "~/api/endpoints/devices";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { devicesControllerCreateDeviceBody } from "~/api/endpoints/devices.zod";
+
 import z from "zod";
+import { createDeviceBody } from "~/api/endpoints/devices.zod";
+import { createDevice } from "~/api/endpoints/devices";
 
 export type AddDeviceModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-const FromDataSchema = devicesControllerCreateDeviceBody
+const FromDataSchema = createDeviceBody
   .omit({
     profileId: true,
   })
@@ -39,7 +41,7 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (dto: CreateDeviceDto) => {
-      return devicesControllerCreateDevice(dto);
+      return createDevice(dto);
     },
     onError: (error) => {
       setFinalErrors([error.message]);
@@ -49,7 +51,6 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
       // TODO: Add devices list query key
       queryClient.invalidateQueries({ queryKey: [""] });
       toast.success("Device was added successfully! :)");
-      onClose();
       onClose();
     },
   });
@@ -71,7 +72,7 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
     };
     setFinalErrors([]);
     try {
-      devicesControllerCreateDeviceBody.parse(deviceDto);
+      createDeviceBody.parse(deviceDto);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessages = error.issues.map((issue) => {
@@ -119,7 +120,6 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
 
   const onClose = () => {
     setStep(1);
-    setFormData({});
     setFormData({});
     props.onClose();
   };
