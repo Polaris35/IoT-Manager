@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 import SearchSelect from "~/components/SearchSelect";
 import { useQuery } from "@tanstack/react-query";
-import { profilesControllerSearchProfiles as searchProfiles } from "~/api/endpoints/profiles";
+import { searchProfiles } from "~/api/endpoints/profiles";
 import { useDebounce } from "use-debounce";
 import type { ProfileResponseDto } from "~/api/schemas";
 import { Controller, useForm } from "react-hook-form";

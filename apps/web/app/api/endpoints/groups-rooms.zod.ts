@@ -12,7 +12,7 @@ import * as zod from 'zod';
 /**
  * @summary Create a new device group
  */
-export const groupsControllerCreateBody = zod.object({
+export const createGroupBody = zod.object({
   "name": zod.string().describe('The name of the group (e.g., room name)'),
   "description": zod.string().optional().describe('Optional description of the group')
 })
@@ -20,54 +20,54 @@ export const groupsControllerCreateBody = zod.object({
 /**
  * @summary Get list of user groups
  */
-export const groupsControllerFindAllResponseItem = zod.object({
+export const getUserGroupsResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "description": zod.string().optional(),
-  "createdAt": zod.string().datetime({}),
+  "createdAt": zod.iso.datetime({}),
   "devicesCount": zod.number().describe('Total number of devices in this group')
 })
-export const groupsControllerFindAllResponse = zod.array(groupsControllerFindAllResponseItem)
+export const getUserGroupsResponse = zod.array(getUserGroupsResponseItem)
 
 /**
  * @summary Get group details
  */
-export const groupsControllerFindOneParams = zod.object({
+export const findGroupParams = zod.object({
   "id": zod.string()
 })
 
-export const groupsControllerFindOneResponse = zod.object({
+export const findGroupResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "description": zod.string().optional(),
-  "createdAt": zod.string().datetime({}),
+  "createdAt": zod.iso.datetime({}),
   "devicesCount": zod.number().describe('Total number of devices in this group')
 })
 
 /**
  * @summary Update group details
  */
-export const groupsControllerUpdateParams = zod.object({
+export const updateGroupParams = zod.object({
   "id": zod.string()
 })
 
-export const groupsControllerUpdateBody = zod.object({
+export const updateGroupBody = zod.object({
   "name": zod.string().optional().describe('The name of the group (e.g., room name)'),
   "description": zod.string().optional().describe('Optional description of the group')
 })
 
-export const groupsControllerUpdateResponse = zod.object({
+export const updateGroupResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "description": zod.string().optional(),
-  "createdAt": zod.string().datetime({}),
+  "createdAt": zod.iso.datetime({}),
   "devicesCount": zod.number().describe('Total number of devices in this group')
 })
 
 /**
  * @summary Delete group
  */
-export const groupsControllerRemoveParams = zod.object({
+export const deleteGroupParams = zod.object({
   "id": zod.string()
 })
 

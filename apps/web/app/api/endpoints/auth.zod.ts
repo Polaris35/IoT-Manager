@@ -5,80 +5,87 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
-import * as zod from 'zod';
-
-
+import * as zod from "zod";
 
 /**
  * @summary Register a new account with email and password
  */
-export const authControllerCredentialsRegisterBody = zod.object({
-  "fullName": zod.string(),
-  "email": zod.string(),
-  "password": zod.string()
-})
+export const credentialsRegisterBody = zod.object({
+  fullName: zod.string(),
+  email: zod.string(),
+  password: zod.string(),
+});
 
 /**
  * @summary Login with email and password
  */
-export const authControllerCredentialsLoginBody = zod.object({
-  "email": zod.string(),
-  "password": zod.string()
-})
+export const credentialsLoginBody = zod.object({
+  email: zod.string(),
+  password: zod.string(),
+});
 
-export const authControllerCredentialsLoginResponse = zod.object({
-  "account": zod.object({
-  "id": zod.string().describe('Unique identifier of the user'),
-  "fullName": zod.string().describe('Full name of the user'),
-  "email": zod.string().describe('User email address')
-}).describe('User account details'),
-  "accessToken": zod.string().describe('JWT Access Token (short-lived)'),
-  "refreshToken": zod.string().describe('Refresh Token (long-lived, used to renew access token)')
-})
+export const credentialsLoginResponse = zod.object({
+  account: zod
+    .object({
+      id: zod.string().describe("Unique identifier of the user"),
+      fullName: zod.string().describe("Full name of the user"),
+      email: zod.string().describe("User email address"),
+    })
+    .describe("User account details"),
+  accessToken: zod.string().describe("JWT Access Token (short-lived)"),
+  refreshToken: zod
+    .string()
+    .describe("Refresh Token (long-lived, used to renew access token)"),
+});
 
 /**
  * @summary Login via Google OAuth2
  */
-export const authControllerGoogleLoginBody = zod.object({
-  "code": zod.string().describe('Authorization code received from Google')
-})
+export const googleLoginBody = zod.object({
+  code: zod.string().describe("Authorization code received from Google"),
+});
 
-export const authControllerGoogleLoginResponse = zod.object({
-  "account": zod.object({
-  "id": zod.string().describe('Unique identifier of the user'),
-  "fullName": zod.string().describe('Full name of the user'),
-  "email": zod.string().describe('User email address')
-}).describe('User account details'),
-  "accessToken": zod.string().describe('JWT Access Token (short-lived)'),
-  "refreshToken": zod.string().describe('Refresh Token (long-lived, used to renew access token)')
-})
+export const googleLoginResponse = zod.object({
+  account: zod
+    .object({
+      id: zod.string().describe("Unique identifier of the user"),
+      fullName: zod.string().describe("Full name of the user"),
+      email: zod.string().describe("User email address"),
+    })
+    .describe("User account details"),
+  accessToken: zod.string().describe("JWT Access Token (short-lived)"),
+  refreshToken: zod
+    .string()
+    .describe("Refresh Token (long-lived, used to renew access token)"),
+});
 
 /**
  * @summary Logout from the system
  */
-export const authControllerLogoutBody = zod.object({
-  "refreshToken": zod.string()
-})
+export const logoutBody = zod.object({
+  refreshToken: zod.string(),
+});
 
 /**
  * @summary Refresh access and refresh tokens
  */
-export const authControllerRefreshTokensBody = zod.object({
-  "agent": zod.string(),
-  "refreshToken": zod.string()
-})
+export const refreshTokensBody = zod.object({
+  agent: zod.string(),
+  refreshToken: zod.string(),
+});
 
-export const authControllerRefreshTokensResponse = zod.object({
-  "accessToken": zod.string().describe('JWT Access Token (short-lived)'),
-  "refreshToken": zod.string().describe('Refresh Token (long-lived, used to renew access token)')
-})
+export const refreshTokensResponse = zod.object({
+  accessToken: zod.string().describe("JWT Access Token (short-lived)"),
+  refreshToken: zod
+    .string()
+    .describe("Refresh Token (long-lived, used to renew access token)"),
+});
 
 /**
  * @summary Get current user account info
  */
-export const authControllerAccountInfoResponse = zod.object({
-  "id": zod.string().describe('Unique identifier of the user'),
-  "fullName": zod.string().describe('Full name of the user'),
-  "email": zod.string().describe('User email address')
-})
-
+export const getAccountInfoResponse = zod.object({
+  id: zod.string().describe("Unique identifier of the user"),
+  fullName: zod.string().describe("Full name of the user"),
+  email: zod.string().describe("User email address"),
+});

@@ -9,15 +9,21 @@ import * as zod from 'zod';
 
 
 
-export const profilesControllerSearchProfilesQueryLimitDefault = 20;
+/**
+ * @summary Search profiles
+ */
+export const searchProfilesQueryLimitDefault = 20;
 
-export const profilesControllerSearchProfilesQueryParams = zod.object({
+export const searchProfilesQueryParams = zod.object({
   "q": zod.string().optional().describe('Search field (device name or vendor)'),
   "protocol": zod.enum(['MQTT', 'ZIGBEE', 'TUYA']).optional().describe('Filter by protocol'),
-  "limit": zod.number().default(profilesControllerSearchProfilesQueryLimitDefault)
+  "limit": zod.number().default(searchProfilesQueryLimitDefault)
 })
 
-export const profilesControllerGetProfileParams = zod.object({
+/**
+ * @summary Get the profile by id
+ */
+export const getProfileParams = zod.object({
   "id": zod.string()
 })
 

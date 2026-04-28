@@ -12,11 +12,11 @@ import * as zod from 'zod';
 /**
  * @summary Get telemetry history for a device
  */
-export const statsControllerGetDeviceStatsParams = zod.object({
+export const getDeviceStatsParams = zod.object({
   "id": zod.string()
 })
 
-export const statsControllerGetDeviceStatsQueryParams = zod.object({
+export const getDeviceStatsQueryParams = zod.object({
   "range": zod.string()
 })
 

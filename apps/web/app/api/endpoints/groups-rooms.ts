@@ -34,7 +34,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 /**
  * @summary Create a new device group
  */
-export const groupsControllerCreate = (
+export const createGroup = (
   createGroupDto: CreateGroupDto,
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
@@ -51,24 +51,24 @@ export const groupsControllerCreate = (
   );
 };
 
-export const getGroupsControllerCreateMutationOptions = <
+export const getCreateGroupMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof groupsControllerCreate>>,
+    Awaited<ReturnType<typeof createGroup>>,
     TError,
     { data: CreateGroupDto },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof groupsControllerCreate>>,
+  Awaited<ReturnType<typeof createGroup>>,
   TError,
   { data: CreateGroupDto },
   TContext
 > => {
-  const mutationKey = ["groupsControllerCreate"];
+  const mutationKey = ["createGroup"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -78,30 +78,30 @@ export const getGroupsControllerCreateMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof groupsControllerCreate>>,
+    Awaited<ReturnType<typeof createGroup>>,
     { data: CreateGroupDto }
   > = (props) => {
     const { data } = props ?? {};
 
-    return groupsControllerCreate(data, requestOptions);
+    return createGroup(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type GroupsControllerCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof groupsControllerCreate>>
+export type CreateGroupMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createGroup>>
 >;
-export type GroupsControllerCreateMutationBody = CreateGroupDto;
-export type GroupsControllerCreateMutationError = unknown;
+export type CreateGroupMutationBody = CreateGroupDto;
+export type CreateGroupMutationError = unknown;
 
 /**
  * @summary Create a new device group
  */
-export const useGroupsControllerCreate = <TError = unknown, TContext = unknown>(
+export const useCreateGroup = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof groupsControllerCreate>>,
+      Awaited<ReturnType<typeof createGroup>>,
       TError,
       { data: CreateGroupDto },
       TContext
@@ -110,19 +110,19 @@ export const useGroupsControllerCreate = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof groupsControllerCreate>>,
+  Awaited<ReturnType<typeof createGroup>>,
   TError,
   { data: CreateGroupDto },
   TContext
 > => {
-  const mutationOptions = getGroupsControllerCreateMutationOptions(options);
+  const mutationOptions = getCreateGroupMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
 /**
  * @summary Get list of user groups
  */
-export const groupsControllerFindAll = (
+export const getUserGroups = (
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
 ) => {
@@ -132,61 +132,52 @@ export const groupsControllerFindAll = (
   );
 };
 
-export const getGroupsControllerFindAllQueryKey = () => {
+export const getGetUserGroupsQueryKey = () => {
   return [`/groups`] as const;
 };
 
-export const getGroupsControllerFindAllQueryOptions = <
-  TData = Awaited<ReturnType<typeof groupsControllerFindAll>>,
+export const getGetUserGroupsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUserGroups>>,
   TError = unknown,
 >(options?: {
   query?: Partial<
-    UseQueryOptions<
-      Awaited<ReturnType<typeof groupsControllerFindAll>>,
-      TError,
-      TData
-    >
+    UseQueryOptions<Awaited<ReturnType<typeof getUserGroups>>, TError, TData>
   >;
   request?: SecondParameter<typeof apiClient>;
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getGroupsControllerFindAllQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getGetUserGroupsQueryKey();
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof groupsControllerFindAll>>
-  > = ({ signal }) => groupsControllerFindAll(requestOptions, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getUserGroups>>> = ({
+    signal,
+  }) => getUserGroups(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof groupsControllerFindAll>>,
+    Awaited<ReturnType<typeof getUserGroups>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GroupsControllerFindAllQueryResult = NonNullable<
-  Awaited<ReturnType<typeof groupsControllerFindAll>>
+export type GetUserGroupsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUserGroups>>
 >;
-export type GroupsControllerFindAllQueryError = unknown;
+export type GetUserGroupsQueryError = unknown;
 
-export function useGroupsControllerFindAll<
-  TData = Awaited<ReturnType<typeof groupsControllerFindAll>>,
+export function useGetUserGroups<
+  TData = Awaited<ReturnType<typeof getUserGroups>>,
   TError = unknown,
 >(
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getUserGroups>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof groupsControllerFindAll>>,
+          Awaited<ReturnType<typeof getUserGroups>>,
           TError,
-          Awaited<ReturnType<typeof groupsControllerFindAll>>
+          Awaited<ReturnType<typeof getUserGroups>>
         >,
         "initialData"
       >;
@@ -196,23 +187,19 @@ export function useGroupsControllerFindAll<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGroupsControllerFindAll<
-  TData = Awaited<ReturnType<typeof groupsControllerFindAll>>,
+export function useGetUserGroups<
+  TData = Awaited<ReturnType<typeof getUserGroups>>,
   TError = unknown,
 >(
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getUserGroups>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof groupsControllerFindAll>>,
+          Awaited<ReturnType<typeof getUserGroups>>,
           TError,
-          Awaited<ReturnType<typeof groupsControllerFindAll>>
+          Awaited<ReturnType<typeof getUserGroups>>
         >,
         "initialData"
       >;
@@ -222,17 +209,13 @@ export function useGroupsControllerFindAll<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGroupsControllerFindAll<
-  TData = Awaited<ReturnType<typeof groupsControllerFindAll>>,
+export function useGetUserGroups<
+  TData = Awaited<ReturnType<typeof getUserGroups>>,
   TError = unknown,
 >(
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getUserGroups>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -244,17 +227,13 @@ export function useGroupsControllerFindAll<
  * @summary Get list of user groups
  */
 
-export function useGroupsControllerFindAll<
-  TData = Awaited<ReturnType<typeof groupsControllerFindAll>>,
+export function useGetUserGroups<
+  TData = Awaited<ReturnType<typeof getUserGroups>>,
   TError = unknown,
 >(
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getUserGroups>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -262,7 +241,7 @@ export function useGroupsControllerFindAll<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGroupsControllerFindAllQueryOptions(options);
+  const queryOptions = getGetUserGroupsQueryOptions(options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -277,7 +256,7 @@ export function useGroupsControllerFindAll<
 /**
  * @summary Get group details
  */
-export const groupsControllerFindOne = (
+export const findGroup = (
   id: string,
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
@@ -288,70 +267,59 @@ export const groupsControllerFindOne = (
   );
 };
 
-export const getGroupsControllerFindOneQueryKey = (id?: string) => {
+export const getFindGroupQueryKey = (id?: string) => {
   return [`/groups/${id}`] as const;
 };
 
-export const getGroupsControllerFindOneQueryOptions = <
-  TData = Awaited<ReturnType<typeof groupsControllerFindOne>>,
+export const getFindGroupQueryOptions = <
+  TData = Awaited<ReturnType<typeof findGroup>>,
   TError = unknown,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof findGroup>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getGroupsControllerFindOneQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getFindGroupQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof groupsControllerFindOne>>
-  > = ({ signal }) => groupsControllerFindOne(id, requestOptions, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof findGroup>>> = ({
+    signal,
+  }) => findGroup(id, requestOptions, signal);
 
   return {
     queryKey,
     queryFn,
     enabled: !!id,
     ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof groupsControllerFindOne>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  } as UseQueryOptions<Awaited<ReturnType<typeof findGroup>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 };
 
-export type GroupsControllerFindOneQueryResult = NonNullable<
-  Awaited<ReturnType<typeof groupsControllerFindOne>>
+export type FindGroupQueryResult = NonNullable<
+  Awaited<ReturnType<typeof findGroup>>
 >;
-export type GroupsControllerFindOneQueryError = unknown;
+export type FindGroupQueryError = unknown;
 
-export function useGroupsControllerFindOne<
-  TData = Awaited<ReturnType<typeof groupsControllerFindOne>>,
+export function useFindGroup<
+  TData = Awaited<ReturnType<typeof findGroup>>,
   TError = unknown,
 >(
   id: string,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof findGroup>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof groupsControllerFindOne>>,
+          Awaited<ReturnType<typeof findGroup>>,
           TError,
-          Awaited<ReturnType<typeof groupsControllerFindOne>>
+          Awaited<ReturnType<typeof findGroup>>
         >,
         "initialData"
       >;
@@ -361,24 +329,20 @@ export function useGroupsControllerFindOne<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGroupsControllerFindOne<
-  TData = Awaited<ReturnType<typeof groupsControllerFindOne>>,
+export function useFindGroup<
+  TData = Awaited<ReturnType<typeof findGroup>>,
   TError = unknown,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof findGroup>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof groupsControllerFindOne>>,
+          Awaited<ReturnType<typeof findGroup>>,
           TError,
-          Awaited<ReturnType<typeof groupsControllerFindOne>>
+          Awaited<ReturnType<typeof findGroup>>
         >,
         "initialData"
       >;
@@ -388,18 +352,14 @@ export function useGroupsControllerFindOne<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGroupsControllerFindOne<
-  TData = Awaited<ReturnType<typeof groupsControllerFindOne>>,
+export function useFindGroup<
+  TData = Awaited<ReturnType<typeof findGroup>>,
   TError = unknown,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof findGroup>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -411,18 +371,14 @@ export function useGroupsControllerFindOne<
  * @summary Get group details
  */
 
-export function useGroupsControllerFindOne<
-  TData = Awaited<ReturnType<typeof groupsControllerFindOne>>,
+export function useFindGroup<
+  TData = Awaited<ReturnType<typeof findGroup>>,
   TError = unknown,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof groupsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof findGroup>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -430,7 +386,7 @@ export function useGroupsControllerFindOne<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGroupsControllerFindOneQueryOptions(id, options);
+  const queryOptions = getFindGroupQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -445,7 +401,7 @@ export function useGroupsControllerFindOne<
 /**
  * @summary Update group details
  */
-export const groupsControllerUpdate = (
+export const updateGroup = (
   id: string,
   updateGroupDto: UpdateGroupDto,
   options?: SecondParameter<typeof apiClient>,
@@ -461,24 +417,24 @@ export const groupsControllerUpdate = (
   );
 };
 
-export const getGroupsControllerUpdateMutationOptions = <
+export const getUpdateGroupMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof groupsControllerUpdate>>,
+    Awaited<ReturnType<typeof updateGroup>>,
     TError,
     { id: string; data: UpdateGroupDto },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof groupsControllerUpdate>>,
+  Awaited<ReturnType<typeof updateGroup>>,
   TError,
   { id: string; data: UpdateGroupDto },
   TContext
 > => {
-  const mutationKey = ["groupsControllerUpdate"];
+  const mutationKey = ["updateGroup"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -488,30 +444,30 @@ export const getGroupsControllerUpdateMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof groupsControllerUpdate>>,
+    Awaited<ReturnType<typeof updateGroup>>,
     { id: string; data: UpdateGroupDto }
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return groupsControllerUpdate(id, data, requestOptions);
+    return updateGroup(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type GroupsControllerUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof groupsControllerUpdate>>
+export type UpdateGroupMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateGroup>>
 >;
-export type GroupsControllerUpdateMutationBody = UpdateGroupDto;
-export type GroupsControllerUpdateMutationError = unknown;
+export type UpdateGroupMutationBody = UpdateGroupDto;
+export type UpdateGroupMutationError = unknown;
 
 /**
  * @summary Update group details
  */
-export const useGroupsControllerUpdate = <TError = unknown, TContext = unknown>(
+export const useUpdateGroup = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof groupsControllerUpdate>>,
+      Awaited<ReturnType<typeof updateGroup>>,
       TError,
       { id: string; data: UpdateGroupDto },
       TContext
@@ -520,43 +476,43 @@ export const useGroupsControllerUpdate = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof groupsControllerUpdate>>,
+  Awaited<ReturnType<typeof updateGroup>>,
   TError,
   { id: string; data: UpdateGroupDto },
   TContext
 > => {
-  const mutationOptions = getGroupsControllerUpdateMutationOptions(options);
+  const mutationOptions = getUpdateGroupMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
 /**
  * @summary Delete group
  */
-export const groupsControllerRemove = (
+export const deleteGroup = (
   id: string,
   options?: SecondParameter<typeof apiClient>,
 ) => {
   return apiClient<void>({ url: `/groups/${id}`, method: "DELETE" }, options);
 };
 
-export const getGroupsControllerRemoveMutationOptions = <
+export const getDeleteGroupMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof groupsControllerRemove>>,
+    Awaited<ReturnType<typeof deleteGroup>>,
     TError,
     { id: string },
     TContext
   >;
   request?: SecondParameter<typeof apiClient>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof groupsControllerRemove>>,
+  Awaited<ReturnType<typeof deleteGroup>>,
   TError,
   { id: string },
   TContext
 > => {
-  const mutationKey = ["groupsControllerRemove"];
+  const mutationKey = ["deleteGroup"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -566,30 +522,30 @@ export const getGroupsControllerRemoveMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof groupsControllerRemove>>,
+    Awaited<ReturnType<typeof deleteGroup>>,
     { id: string }
   > = (props) => {
     const { id } = props ?? {};
 
-    return groupsControllerRemove(id, requestOptions);
+    return deleteGroup(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type GroupsControllerRemoveMutationResult = NonNullable<
-  Awaited<ReturnType<typeof groupsControllerRemove>>
+export type DeleteGroupMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteGroup>>
 >;
 
-export type GroupsControllerRemoveMutationError = unknown;
+export type DeleteGroupMutationError = unknown;
 
 /**
  * @summary Delete group
  */
-export const useGroupsControllerRemove = <TError = unknown, TContext = unknown>(
+export const useDeleteGroup = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof groupsControllerRemove>>,
+      Awaited<ReturnType<typeof deleteGroup>>,
       TError,
       { id: string },
       TContext
@@ -598,12 +554,12 @@ export const useGroupsControllerRemove = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof groupsControllerRemove>>,
+  Awaited<ReturnType<typeof deleteGroup>>,
   TError,
   { id: string },
   TContext
 > => {
-  const mutationOptions = getGroupsControllerRemoveMutationOptions(options);
+  const mutationOptions = getDeleteGroupMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

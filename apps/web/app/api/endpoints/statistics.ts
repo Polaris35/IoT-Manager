@@ -18,7 +18,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { StatsControllerGetDeviceStatsParams } from "../schemas";
+import type { GetDeviceStatsParams } from "../schemas";
 
 import { apiClient } from "../client";
 
@@ -27,9 +27,9 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 /**
  * @summary Get telemetry history for a device
  */
-export const statsControllerGetDeviceStats = (
+export const getDeviceStats = (
   id: string,
-  params: StatsControllerGetDeviceStatsParams,
+  params: GetDeviceStatsParams,
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
 ) => {
@@ -39,26 +39,22 @@ export const statsControllerGetDeviceStats = (
   );
 };
 
-export const getStatsControllerGetDeviceStatsQueryKey = (
+export const getGetDeviceStatsQueryKey = (
   id?: string,
-  params?: StatsControllerGetDeviceStatsParams,
+  params?: GetDeviceStatsParams,
 ) => {
   return [`/stats/device/${id}`, ...(params ? [params] : [])] as const;
 };
 
-export const getStatsControllerGetDeviceStatsQueryOptions = <
-  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+export const getGetDeviceStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDeviceStats>>,
   TError = unknown,
 >(
   id: string,
-  params: StatsControllerGetDeviceStatsParams,
+  params: GetDeviceStatsParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -66,13 +62,11 @@ export const getStatsControllerGetDeviceStatsQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ??
-    getStatsControllerGetDeviceStatsQueryKey(id, params);
+    queryOptions?.queryKey ?? getGetDeviceStatsQueryKey(id, params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
-  > = ({ signal }) =>
-    statsControllerGetDeviceStats(id, params, requestOptions, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeviceStats>>> = ({
+    signal,
+  }) => getDeviceStats(id, params, requestOptions, signal);
 
   return {
     queryKey,
@@ -80,36 +74,32 @@ export const getStatsControllerGetDeviceStatsQueryOptions = <
     enabled: !!id,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+    Awaited<ReturnType<typeof getDeviceStats>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type StatsControllerGetDeviceStatsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
+export type GetDeviceStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDeviceStats>>
 >;
-export type StatsControllerGetDeviceStatsQueryError = unknown;
+export type GetDeviceStatsQueryError = unknown;
 
-export function useStatsControllerGetDeviceStats<
-  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+export function useGetDeviceStats<
+  TData = Awaited<ReturnType<typeof getDeviceStats>>,
   TError = unknown,
 >(
   id: string,
-  params: StatsControllerGetDeviceStatsParams,
+  params: GetDeviceStatsParams,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+          Awaited<ReturnType<typeof getDeviceStats>>,
           TError,
-          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
+          Awaited<ReturnType<typeof getDeviceStats>>
         >,
         "initialData"
       >;
@@ -119,25 +109,21 @@ export function useStatsControllerGetDeviceStats<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useStatsControllerGetDeviceStats<
-  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+export function useGetDeviceStats<
+  TData = Awaited<ReturnType<typeof getDeviceStats>>,
   TError = unknown,
 >(
   id: string,
-  params: StatsControllerGetDeviceStatsParams,
+  params: GetDeviceStatsParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+          Awaited<ReturnType<typeof getDeviceStats>>,
           TError,
-          Awaited<ReturnType<typeof statsControllerGetDeviceStats>>
+          Awaited<ReturnType<typeof getDeviceStats>>
         >,
         "initialData"
       >;
@@ -147,19 +133,15 @@ export function useStatsControllerGetDeviceStats<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useStatsControllerGetDeviceStats<
-  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+export function useGetDeviceStats<
+  TData = Awaited<ReturnType<typeof getDeviceStats>>,
   TError = unknown,
 >(
   id: string,
-  params: StatsControllerGetDeviceStatsParams,
+  params: GetDeviceStatsParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -171,19 +153,15 @@ export function useStatsControllerGetDeviceStats<
  * @summary Get telemetry history for a device
  */
 
-export function useStatsControllerGetDeviceStats<
-  TData = Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
+export function useGetDeviceStats<
+  TData = Awaited<ReturnType<typeof getDeviceStats>>,
   TError = unknown,
 >(
   id: string,
-  params: StatsControllerGetDeviceStatsParams,
+  params: GetDeviceStatsParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof statsControllerGetDeviceStats>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -191,11 +169,7 @@ export function useStatsControllerGetDeviceStats<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getStatsControllerGetDeviceStatsQueryOptions(
-    id,
-    params,
-    options,
-  );
+  const queryOptions = getGetDeviceStatsQueryOptions(id, params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

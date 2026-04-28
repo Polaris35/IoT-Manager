@@ -9,7 +9,10 @@ import * as zod from 'zod';
 
 
 
-export const devicesControllerCreateDeviceBody = zod.object({
+/**
+ * @summary Create a new device
+ */
+export const createDeviceBody = zod.object({
   "name": zod.string().describe('User-defined name for the device'),
   "protocol": zod.enum(['MQTT', 'ZIGBEE', 'TUYA']).describe('Communication protocol of the device'),
   "profileId": zod.string().describe('UUID of the device profile (template)'),
@@ -26,7 +29,10 @@ export const devicesControllerCreateDeviceBody = zod.object({
 })]).describe('Protocol-specific connection settings. The structure depends on the `protocol` field.')
 })
 
-export const devicesControllerUpdateDeviceBody = zod.object({
+/**
+ * @summary Update a device record
+ */
+export const updateDeviceBody = zod.object({
   "id": zod.string().describe('device id'),
   "userId": zod.string().describe('Id of device owner, for validation'),
   "name": zod.string().optional().describe('New name for the device'),
@@ -35,16 +41,22 @@ export const devicesControllerUpdateDeviceBody = zod.object({
 }).nullish().describe('New group ID for the device. Send `null` to remove from group.')
 })
 
-export const devicesControllerGetUserDevicesQueryPageDefault = 1;export const devicesControllerGetUserDevicesQueryLimitDefault = 10;
+/**
+ * @summary get all devices of authorithed user
+ */
+export const getUserDevicesQueryPageDefault = 1;export const getUserDevicesQueryLimitDefault = 10;
 
-export const devicesControllerGetUserDevicesQueryParams = zod.object({
-  "page": zod.number().default(devicesControllerGetUserDevicesQueryPageDefault).describe('Номер страницы'),
-  "limit": zod.number().default(devicesControllerGetUserDevicesQueryLimitDefault).describe('Количество на странице'),
+export const getUserDevicesQueryParams = zod.object({
+  "page": zod.number().default(getUserDevicesQueryPageDefault).describe('Номер страницы'),
+  "limit": zod.number().default(getUserDevicesQueryLimitDefault).describe('Количество на странице'),
   "protocol": zod.enum(['MQTT', 'ZIGBEE', 'TUYA']).optional().describe('Фильтр по протоколу'),
   "groupId": zod.string().optional().describe('ID группы')
 })
 
-export const devicesControllerGetDeviceParams = zod.object({
+/**
+ * @summary Request device by id
+ */
+export const getDeviceParams = zod.object({
   "id": zod.string()
 })
 

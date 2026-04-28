@@ -18,17 +18,17 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type {
-  ProfileResponseDto,
-  ProfilesControllerSearchProfilesParams,
-} from "../schemas";
+import type { ProfileResponseDto, SearchProfilesParams } from "../schemas";
 
 import { apiClient } from "../client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export const profilesControllerSearchProfiles = (
-  params?: ProfilesControllerSearchProfilesParams,
+/**
+ * @summary Search profiles
+ */
+export const searchProfiles = (
+  params?: SearchProfilesParams,
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
 ) => {
@@ -38,69 +38,56 @@ export const profilesControllerSearchProfiles = (
   );
 };
 
-export const getProfilesControllerSearchProfilesQueryKey = (
-  params?: ProfilesControllerSearchProfilesParams,
-) => {
+export const getSearchProfilesQueryKey = (params?: SearchProfilesParams) => {
   return [`/profiles`, ...(params ? [params] : [])] as const;
 };
 
-export const getProfilesControllerSearchProfilesQueryOptions = <
-  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+export const getSearchProfilesQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchProfiles>>,
   TError = ProfileResponseDto[],
 >(
-  params?: ProfilesControllerSearchProfilesParams,
+  params?: SearchProfilesParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof searchProfiles>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getProfilesControllerSearchProfilesQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getSearchProfilesQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
-  > = ({ signal }) =>
-    profilesControllerSearchProfiles(params, requestOptions, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchProfiles>>> = ({
+    signal,
+  }) => searchProfiles(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+    Awaited<ReturnType<typeof searchProfiles>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ProfilesControllerSearchProfilesQueryResult = NonNullable<
-  Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
+export type SearchProfilesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof searchProfiles>>
 >;
-export type ProfilesControllerSearchProfilesQueryError = ProfileResponseDto[];
+export type SearchProfilesQueryError = ProfileResponseDto[];
 
-export function useProfilesControllerSearchProfiles<
-  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+export function useSearchProfiles<
+  TData = Awaited<ReturnType<typeof searchProfiles>>,
   TError = ProfileResponseDto[],
 >(
-  params: undefined | ProfilesControllerSearchProfilesParams,
+  params: undefined | SearchProfilesParams,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof searchProfiles>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+          Awaited<ReturnType<typeof searchProfiles>>,
           TError,
-          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
+          Awaited<ReturnType<typeof searchProfiles>>
         >,
         "initialData"
       >;
@@ -110,24 +97,20 @@ export function useProfilesControllerSearchProfiles<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useProfilesControllerSearchProfiles<
-  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+export function useSearchProfiles<
+  TData = Awaited<ReturnType<typeof searchProfiles>>,
   TError = ProfileResponseDto[],
 >(
-  params?: ProfilesControllerSearchProfilesParams,
+  params?: SearchProfilesParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof searchProfiles>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+          Awaited<ReturnType<typeof searchProfiles>>,
           TError,
-          Awaited<ReturnType<typeof profilesControllerSearchProfiles>>
+          Awaited<ReturnType<typeof searchProfiles>>
         >,
         "initialData"
       >;
@@ -137,18 +120,14 @@ export function useProfilesControllerSearchProfiles<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useProfilesControllerSearchProfiles<
-  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+export function useSearchProfiles<
+  TData = Awaited<ReturnType<typeof searchProfiles>>,
   TError = ProfileResponseDto[],
 >(
-  params?: ProfilesControllerSearchProfilesParams,
+  params?: SearchProfilesParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof searchProfiles>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -156,19 +135,18 @@ export function useProfilesControllerSearchProfiles<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
+/**
+ * @summary Search profiles
+ */
 
-export function useProfilesControllerSearchProfiles<
-  TData = Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
+export function useSearchProfiles<
+  TData = Awaited<ReturnType<typeof searchProfiles>>,
   TError = ProfileResponseDto[],
 >(
-  params?: ProfilesControllerSearchProfilesParams,
+  params?: SearchProfilesParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerSearchProfiles>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof searchProfiles>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -176,10 +154,7 @@ export function useProfilesControllerSearchProfiles<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getProfilesControllerSearchProfilesQueryOptions(
-    params,
-    options,
-  );
+  const queryOptions = getSearchProfilesQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -191,7 +166,10 @@ export function useProfilesControllerSearchProfiles<
   return query;
 }
 
-export const profilesControllerGetProfile = (
+/**
+ * @summary Get the profile by id
+ */
+export const getProfile = (
   id: string,
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
@@ -202,34 +180,29 @@ export const profilesControllerGetProfile = (
   );
 };
 
-export const getProfilesControllerGetProfileQueryKey = (id?: string) => {
+export const getGetProfileQueryKey = (id?: string) => {
   return [`/profiles/${id}`] as const;
 };
 
-export const getProfilesControllerGetProfileQueryOptions = <
-  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+export const getGetProfileQueryOptions = <
+  TData = Awaited<ReturnType<typeof getProfile>>,
   TError = ProfileResponseDto,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getProfilesControllerGetProfileQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getGetProfileQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof profilesControllerGetProfile>>
-  > = ({ signal }) => profilesControllerGetProfile(id, requestOptions, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProfile>>> = ({
+    signal,
+  }) => getProfile(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -237,35 +210,31 @@ export const getProfilesControllerGetProfileQueryOptions = <
     enabled: !!id,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+    Awaited<ReturnType<typeof getProfile>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type ProfilesControllerGetProfileQueryResult = NonNullable<
-  Awaited<ReturnType<typeof profilesControllerGetProfile>>
+export type GetProfileQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getProfile>>
 >;
-export type ProfilesControllerGetProfileQueryError = ProfileResponseDto;
+export type GetProfileQueryError = ProfileResponseDto;
 
-export function useProfilesControllerGetProfile<
-  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+export function useGetProfile<
+  TData = Awaited<ReturnType<typeof getProfile>>,
   TError = ProfileResponseDto,
 >(
   id: string,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+          Awaited<ReturnType<typeof getProfile>>,
           TError,
-          Awaited<ReturnType<typeof profilesControllerGetProfile>>
+          Awaited<ReturnType<typeof getProfile>>
         >,
         "initialData"
       >;
@@ -275,24 +244,20 @@ export function useProfilesControllerGetProfile<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useProfilesControllerGetProfile<
-  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+export function useGetProfile<
+  TData = Awaited<ReturnType<typeof getProfile>>,
   TError = ProfileResponseDto,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+          Awaited<ReturnType<typeof getProfile>>,
           TError,
-          Awaited<ReturnType<typeof profilesControllerGetProfile>>
+          Awaited<ReturnType<typeof getProfile>>
         >,
         "initialData"
       >;
@@ -302,18 +267,14 @@ export function useProfilesControllerGetProfile<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useProfilesControllerGetProfile<
-  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+export function useGetProfile<
+  TData = Awaited<ReturnType<typeof getProfile>>,
   TError = ProfileResponseDto,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -321,19 +282,18 @@ export function useProfilesControllerGetProfile<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
+/**
+ * @summary Get the profile by id
+ */
 
-export function useProfilesControllerGetProfile<
-  TData = Awaited<ReturnType<typeof profilesControllerGetProfile>>,
+export function useGetProfile<
+  TData = Awaited<ReturnType<typeof getProfile>>,
   TError = ProfileResponseDto,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof profilesControllerGetProfile>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof getProfile>>, TError, TData>
     >;
     request?: SecondParameter<typeof apiClient>;
   },
@@ -341,7 +301,7 @@ export function useProfilesControllerGetProfile<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getProfilesControllerGetProfileQueryOptions(id, options);
+  const queryOptions = getGetProfileQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
