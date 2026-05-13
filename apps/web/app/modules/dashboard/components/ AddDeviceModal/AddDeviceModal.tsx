@@ -5,12 +5,15 @@ import type { CreateDeviceDto, CreateDeviceDtoProtocol } from "~/api/schemas";
 import StepConfig from "./StepConfig";
 import StepSummary from "./StepSummary";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 import z from "zod";
 import { createDeviceBody } from "~/api/endpoints/devices.zod";
-import { createDevice } from "~/api/endpoints/devices";
+import {
+  getGetUserDevicesQueryKey,
+  useCreateDevice,
+} from "~/api/endpoints/devices";
 
 export type AddDeviceModalProps = {
   isOpen: boolean;
@@ -39,19 +42,19 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
 
   const queryClient = useQueryClient();
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (dto: CreateDeviceDto) => {
-      return createDevice(dto);
-    },
-    onError: (error) => {
-      setFinalErrors([error.message]);
-    },
+  const { mutate, isPending } = useCreateDevice({
+    mutation: {
+      onError: (error: Error) => {
+        setFinalErrors([error.message]);
+      },
 
-    onSuccess: () => {
-      // TODO: Add devices list query key
-      queryClient.invalidateQueries({ queryKey: [""] });
-      toast.success("Device was added successfully! :)");
-      onClose();
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: [getGetUserDevicesQueryKey()],
+        });
+        toast.success("Device was added successfully! :)");
+        onClose();
+      },
     },
   });
 
@@ -64,7 +67,7 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
 
   const handleFinalSubmit = () => {
     const { profile, ...dataWithoutProfile } = formData;
-    //Partial for disable undefined and null errors
+
     const deviceDto: Partial<CreateDeviceDto> = {
       ...dataWithoutProfile,
       profileId: formData.profile?.id as string,
@@ -83,7 +86,7 @@ export default function AddDeviceModal(props: AddDeviceModalProps) {
       }
     }
     if (finalErrors.length === 0) {
-      mutate(deviceDto as CreateDeviceDto);
+      mutate({ data: deviceDto as CreateDeviceDto });
     }
   };
 
