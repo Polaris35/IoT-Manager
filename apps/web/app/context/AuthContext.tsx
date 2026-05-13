@@ -7,6 +7,7 @@ import {
   getAccountInfo,
   googleLogin,
   logout as logoutRequest,
+  useLogout,
 } from "~/api/endpoints/auth";
 
 // API & Types
@@ -47,6 +48,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  const logoutMutation = useLogout({
+    mutation: {
+      onError: (error) => {
+        console.warn("Logout API call failed", error);
+      },
+    },
+  });
 
   // Init Auth (Check token on load)
   useEffect(() => {
@@ -116,21 +125,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Logout Action
   const logout = async () => {
-    try {
-      const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
-      if (refreshToken) {
-        // Fire and forget logout request
-        await logoutRequest({ refreshToken });
-      }
-    } catch (error) {
-      console.warn("Logout API call failed", error);
-    } finally {
-      // Always clean up local state
-      storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
-      storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
-      setUser(null);
-      navigate("/auth/login");
+    const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
+    if (refreshToken) {
+      // Fire and forget logout request
+      logoutMutation.mutate({ data: { refreshToken } });
     }
+
+    // Always clean up local state
+    storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
+    storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
+    setUser(null);
+    navigate("/auth/login");
   };
 
   return (
