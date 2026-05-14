@@ -3,13 +3,11 @@ import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
-  credentialsLogin,
-  credentialsRegister,
   getAccountInfo,
   googleLogin,
-  logout as logoutRequest,
   useCredentialsLogin,
   useCredentialsRegister,
+  useGoogleLogin,
   useLogout,
 } from "~/api/endpoints/auth";
 
@@ -38,7 +36,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   credentialsLoginMutation: ReturnType<typeof useCredentialsLogin<AxiosError>>;
-  loginGoogle(data: GoogleLoginDto): Promise<void>;
+  googleLoginMutation: ReturnType<typeof useGoogleLogin<AxiosError>>;
   registerCredentialsMutation: ReturnType<
     typeof useCredentialsRegister<AxiosError>
   >;
@@ -94,6 +92,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
   });
 
+  const googleLoginMutation = useGoogleLogin<AxiosError>({
+    mutation: {
+      onSuccess: (data) => {
+        if (data?.accessToken) {
+          // Save tokens
+          storage.set(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
+          storage.set(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+          // Update State
+          setUser(data.account);
+        }
+
+        const from = location.state?.from || "/";
+        navigate(from, { replace: true });
+      },
+      onError(error) {
+        console.error(
+          "Exchange google authorization code failed: ",
+          error.message,
+        );
+      },
+    },
+  });
+
   // Init Auth (Check token on load)
   useEffect(() => {
     const initAuth = async () => {
@@ -111,24 +132,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     initAuth();
   }, []);
-
-  const loginGoogle = async (dto: GoogleLoginDto) => {
-    try {
-      const response = await googleLogin(dto);
-
-      if (response?.accessToken) {
-        // Save tokens
-        storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
-        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
-
-        // Update State
-        setUser(response.account);
-      }
-    } catch (error) {
-      console.error("Google Login failed:", error);
-      throw error; // Re-throw so the UI can show an error message
-    }
-  };
 
   // Logout Action
   const logout = async () => {
@@ -152,7 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated: !!user,
         isLoading,
         credentialsLoginMutation,
-        loginGoogle,
+        googleLoginMutation,
         registerCredentialsMutation,
         logout,
       }}
