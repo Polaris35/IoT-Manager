@@ -5,17 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { credentialsRegisterBody } from "~/api/endpoints/auth.zod";
 import { useCredentialsRegister } from "~/api/endpoints/auth";
 import type { AxiosError } from "axios";
+import { useAuth } from "~/context/AuthContext";
 
 export const useRegisterForm = () => {
-  const registerMutation = useCredentialsRegister<AxiosError>({
-    mutation: {
-      onSuccess: () => {
-        navigate("/auth/login");
-      },
-    },
-  });
-
-  const navigate = useNavigate();
+  const { registerCredentialsMutation: registerMutation } = useAuth();
 
   const {
     register, // RHF method

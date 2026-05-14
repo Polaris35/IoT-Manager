@@ -51,9 +51,6 @@ export default function LoginForm() {
           error={!!validationErrors.email}
           helperText={validationErrors.email?.message}
         />
-        <span className="text-red-500">
-          {validationErrors.email?.message || "error"}
-        </span>
       </FormControl>
 
       {/* Password Field */}
