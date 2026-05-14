@@ -10,7 +10,7 @@ export default function ProtectedRoute() {
   // Loading state (checking token)
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+      <div className="flex h-screen w-full items-center justify-center bg-gray-500">
         <CircularProgress />
       </div>
     );
@@ -20,7 +20,9 @@ export default function ProtectedRoute() {
   if (!isAuthenticated) {
     // replace: true - prevents going back to the protected route via browser "Back" button
     // state: { from: location } - saves current URL to redirect back after successful login
-    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+    return (
+      <Navigate to="/auth/login" state={{ from: location.pathname }} replace />
+    );
   }
 
   // Authenticated -> Render child routes

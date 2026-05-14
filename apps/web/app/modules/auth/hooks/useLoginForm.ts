@@ -1,56 +1,43 @@
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router";
+import { useCredentialsLogin } from "~/api/endpoints/auth";
+import { credentialsLoginBody } from "~/api/endpoints/auth.zod";
 import type { CredentialsLoginDto } from "~/api/schemas";
-import { useAuth } from "~/context/AuthContext";
-
-// UI-specific type extending the API DTO
-export type LoginFormInputs = CredentialsLoginDto & {
-  remember: boolean;
-};
 
 export const useLoginForm = () => {
-  const { loginCredentials } = useAuth();
-  const [serverError, setServerError] = useState<string | null>(null);
-  // const mutation =
+  const loginMutation = useCredentialsLogin<AxiosError>({
+    mutation: {
+      onSuccess: () => {
+        navigate(from, { replace: true });
+      },
+    },
+  });
 
   const navigate = useNavigate();
   const location = useLocation();
 
   // Determine redirect path
-  const from = location.state?.from?.pathname || "/";
+  const from = location.state?.from || "/";
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormInputs>({
+    formState: { errors: validationErrors },
+  } = useForm<CredentialsLoginDto>({
+    resolver: zodResolver(credentialsLoginBody),
     defaultValues: {
       email: "",
       password: "",
-      remember: true,
     },
   });
 
-  const onSubmit = async (data: LoginFormInputs) => {
-    setServerError(null);
-    try {
-      // Logic for "Remember Me" can be handled here or in AuthContext
-      await loginCredentials({ email: data.email, password: data.password });
-
-      navigate(from, { replace: true });
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || "Login failed. Please try again.";
-      setServerError(Array.isArray(message) ? message.join(", ") : message);
-    }
-  };
-
   return {
     register,
-    handleSubmit: handleSubmit(onSubmit), // Return already wrapped handler
-    errors,
-    isSubmitting,
-    serverError,
+    handleSubmit: handleSubmit((data) => loginMutation.mutate({ data })),
+    validationErrors,
+    isSubmitting: loginMutation.isPending,
+    serverError: loginMutation.error?.message,
   };
 };

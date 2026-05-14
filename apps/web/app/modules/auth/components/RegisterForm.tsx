@@ -42,13 +42,7 @@ export default function RegisterForm() {
           fullWidth
           variant="outlined"
           size="small"
-          {...register("fullName", {
-            required: "Full name is required",
-            minLength: {
-              value: 2,
-              message: "Name must be at least 2 characters",
-            },
-          })}
+          {...register("fullName")}
           error={!!validationErrors.fullName}
           helperText={validationErrors.fullName?.message}
         />
@@ -70,13 +64,7 @@ export default function RegisterForm() {
           autoComplete="email"
           variant="outlined"
           size="small"
-          {...register("email", {
-            required: "Email is required",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Invalid email address",
-            },
-          })}
+          {...register("email")}
           error={!!validationErrors.email}
           helperText={validationErrors.email?.message}
         />
@@ -99,13 +87,7 @@ export default function RegisterForm() {
           autoComplete="new-password"
           variant="outlined"
           size="small"
-          {...register("password", {
-            required: "Password is required",
-            minLength: {
-              value: 6,
-              message: "Password must be at least 6 characters",
-            },
-          })}
+          {...register("password")}
           error={!!validationErrors.password}
           helperText={validationErrors.password?.message}
         />

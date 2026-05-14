@@ -4,9 +4,10 @@ import type { RegisterAccountDto } from "~/api/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { credentialsRegisterBody } from "~/api/endpoints/auth.zod";
 import { useCredentialsRegister } from "~/api/endpoints/auth";
+import type { AxiosError } from "axios";
 
 export const useRegisterForm = () => {
-  const registerMutation = useCredentialsRegister<Error>({
+  const registerMutation = useCredentialsRegister<AxiosError>({
     mutation: {
       onSuccess: () => {
         navigate("/auth/login");
