@@ -5,87 +5,90 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
-import * as zod from "zod";
+import * as zod from 'zod';
+
+
 
 /**
  * @summary Register a new account with email and password
  */
+export const credentialsRegisterBodyFullNameMin = 2;
+
+export const credentialsRegisterBodyPasswordMin = 4;
+
+
+
 export const credentialsRegisterBody = zod.object({
-  fullName: zod.string(),
-  email: zod.string(),
-  password: zod.string(),
-});
+  "fullName": zod.string().min(credentialsRegisterBodyFullNameMin),
+  "email": zod.email(),
+  "password": zod.string().min(credentialsRegisterBodyPasswordMin)
+})
 
 /**
  * @summary Login with email and password
  */
+export const credentialsLoginBodyPasswordMin = 4;
+
+
+
 export const credentialsLoginBody = zod.object({
-  email: zod.string(),
-  password: zod.string(),
-});
+  "email": zod.email(),
+  "password": zod.string().min(credentialsLoginBodyPasswordMin)
+})
 
 export const credentialsLoginResponse = zod.object({
-  account: zod
-    .object({
-      id: zod.string().describe("Unique identifier of the user"),
-      fullName: zod.string().describe("Full name of the user"),
-      email: zod.string().describe("User email address"),
-    })
-    .describe("User account details"),
-  accessToken: zod.string().describe("JWT Access Token (short-lived)"),
-  refreshToken: zod
-    .string()
-    .describe("Refresh Token (long-lived, used to renew access token)"),
-});
+  "account": zod.object({
+  "id": zod.string().describe('Unique identifier of the user'),
+  "fullName": zod.string().describe('Full name of the user'),
+  "email": zod.string().describe('User email address')
+}).describe('User account details'),
+  "accessToken": zod.string().describe('JWT Access Token (short-lived)'),
+  "refreshToken": zod.string().describe('Refresh Token (long-lived, used to renew access token)')
+})
 
 /**
  * @summary Login via Google OAuth2
  */
 export const googleLoginBody = zod.object({
-  code: zod.string().describe("Authorization code received from Google"),
-});
+  "code": zod.string().describe('Authorization code received from Google')
+})
 
 export const googleLoginResponse = zod.object({
-  account: zod
-    .object({
-      id: zod.string().describe("Unique identifier of the user"),
-      fullName: zod.string().describe("Full name of the user"),
-      email: zod.string().describe("User email address"),
-    })
-    .describe("User account details"),
-  accessToken: zod.string().describe("JWT Access Token (short-lived)"),
-  refreshToken: zod
-    .string()
-    .describe("Refresh Token (long-lived, used to renew access token)"),
-});
+  "account": zod.object({
+  "id": zod.string().describe('Unique identifier of the user'),
+  "fullName": zod.string().describe('Full name of the user'),
+  "email": zod.string().describe('User email address')
+}).describe('User account details'),
+  "accessToken": zod.string().describe('JWT Access Token (short-lived)'),
+  "refreshToken": zod.string().describe('Refresh Token (long-lived, used to renew access token)')
+})
 
 /**
  * @summary Logout from the system
  */
 export const logoutBody = zod.object({
-  refreshToken: zod.string(),
-});
+  "refreshToken": zod.string()
+})
 
 /**
  * @summary Refresh access and refresh tokens
  */
 export const refreshTokensBody = zod.object({
-  agent: zod.string(),
-  refreshToken: zod.string(),
-});
+  "agent": zod.string(),
+  "refreshToken": zod.string()
+})
 
 export const refreshTokensResponse = zod.object({
-  accessToken: zod.string().describe("JWT Access Token (short-lived)"),
-  refreshToken: zod
-    .string()
-    .describe("Refresh Token (long-lived, used to renew access token)"),
-});
+  "accessToken": zod.string().describe('JWT Access Token (short-lived)'),
+  "refreshToken": zod.string().describe('Refresh Token (long-lived, used to renew access token)')
+})
 
 /**
  * @summary Get current user account info
  */
 export const getAccountInfoResponse = zod.object({
-  id: zod.string().describe("Unique identifier of the user"),
-  fullName: zod.string().describe("Full name of the user"),
-  email: zod.string().describe("User email address"),
-});
+  "id": zod.string().describe('Unique identifier of the user'),
+  "fullName": zod.string().describe('Full name of the user'),
+  "email": zod.string().describe('User email address')
+})
+

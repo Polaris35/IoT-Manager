@@ -7,7 +7,9 @@
  */
 
 export interface RegisterAccountDto {
+  /** @minLength 2 */
   fullName: string;
   email: string;
+  /** @minLength 4 */
   password: string;
 }

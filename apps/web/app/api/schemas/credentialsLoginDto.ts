@@ -8,5 +8,6 @@
 
 export interface CredentialsLoginDto {
   email: string;
+  /** @minLength 4 */
   password: string;
 }
