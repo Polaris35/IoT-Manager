@@ -8,8 +8,13 @@ import Alert from "@mui/material/Alert";
 import { useRegisterForm } from "../hooks/useRegisterForm";
 
 export default function RegisterForm() {
-  const { register, handleSubmit, errors, isSubmitting, serverError } =
-    useRegisterForm();
+  const {
+    register,
+    handleSubmit,
+    validationErrors,
+    isSubmitting,
+    serverError,
+  } = useRegisterForm();
 
   return (
     <Box
@@ -22,7 +27,7 @@ export default function RegisterForm() {
       {serverError && <Alert severity="error">{serverError}</Alert>}
 
       {/* Full Name Field */}
-      <FormControl error={!!errors.fullName}>
+      <FormControl error={!!validationErrors.fullName}>
         <FormLabel
           htmlFor="fullName"
           sx={{ mb: 1, fontSize: "0.875rem", fontWeight: 500 }}
@@ -44,13 +49,13 @@ export default function RegisterForm() {
               message: "Name must be at least 2 characters",
             },
           })}
-          error={!!errors.fullName}
-          helperText={errors.fullName?.message}
+          error={!!validationErrors.fullName}
+          helperText={validationErrors.fullName?.message}
         />
       </FormControl>
 
       {/* Email Field */}
-      <FormControl error={!!errors.email}>
+      <FormControl error={!!validationErrors.email}>
         <FormLabel
           htmlFor="email"
           sx={{ mb: 1, fontSize: "0.875rem", fontWeight: 500 }}
@@ -72,13 +77,13 @@ export default function RegisterForm() {
               message: "Invalid email address",
             },
           })}
-          error={!!errors.email}
-          helperText={errors.email?.message}
+          error={!!validationErrors.email}
+          helperText={validationErrors.email?.message}
         />
       </FormControl>
 
       {/* Password Field */}
-      <FormControl error={!!errors.password}>
+      <FormControl error={!!validationErrors.password}>
         <FormLabel
           htmlFor="password"
           sx={{ mb: 1, fontSize: "0.875rem", fontWeight: 500 }}
@@ -101,8 +106,8 @@ export default function RegisterForm() {
               message: "Password must be at least 6 characters",
             },
           })}
-          error={!!errors.password}
-          helperText={errors.password?.message}
+          error={!!validationErrors.password}
+          helperText={validationErrors.password?.message}
         />
       </FormControl>
 

@@ -1,20 +1,27 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import type { RegisterAccountDto } from "~/api/schemas";
-import { useAuth } from "~/context/AuthContext";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { credentialsRegisterBody } from "~/api/endpoints/auth.zod";
+import { useCredentialsRegister } from "~/api/endpoints/auth";
 
 export const useRegisterForm = () => {
-  const { register: registerUser } = useAuth(); // Rename to avoid conflict with RHF
-  const [serverError, setServerError] = useState<string | null>(null);
+  const registerMutation = useCredentialsRegister<Error>({
+    mutation: {
+      onSuccess: () => {
+        navigate("/auth/login");
+      },
+    },
+  });
 
   const navigate = useNavigate();
 
   const {
     register, // RHF method
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors: validationErrors },
   } = useForm<RegisterAccountDto>({
+    resolver: zodResolver(credentialsRegisterBody),
     defaultValues: {
       email: "",
       password: "",
@@ -22,26 +29,11 @@ export const useRegisterForm = () => {
     },
   });
 
-  const onSubmit = async (data: RegisterAccountDto) => {
-    setServerError(null);
-    try {
-      await registerUser(data);
-      navigate("/auth/login", {
-        state: { message: "Registration successful! Please log in." },
-      });
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message ||
-        "Registration failed. Please try again.";
-      setServerError(Array.isArray(message) ? message.join(", ") : message);
-    }
-  };
-
   return {
     register,
-    handleSubmit: handleSubmit(onSubmit),
-    errors,
-    isSubmitting,
-    serverError,
+    handleSubmit: handleSubmit((data) => registerMutation.mutate({ data })),
+    validationErrors,
+    isSubmitting: registerMutation.isPending,
+    serverError: registerMutation.error?.message || null,
   };
 };
