@@ -2,8 +2,6 @@ import { Link as RouterLink } from "react-router";
 
 // MUI Components
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
@@ -13,8 +11,13 @@ import Alert from "@mui/material/Alert";
 import { useLoginForm } from "../hooks/useLoginForm";
 
 export default function LoginForm() {
-  const { register, handleSubmit, errors, isSubmitting, serverError } =
-    useLoginForm();
+  const {
+    register,
+    handleSubmit,
+    validationErrors,
+    isSubmitting,
+    serverError,
+  } = useLoginForm();
 
   return (
     <form
@@ -30,7 +33,7 @@ export default function LoginForm() {
       )}
 
       {/* Email Field */}
-      <FormControl error={!!errors.email}>
+      <FormControl error={!!validationErrors.email}>
         <FormLabel htmlFor="email" className="mb-1 text-sm font-medium">
           Email
         </FormLabel>
@@ -44,20 +47,14 @@ export default function LoginForm() {
           fullWidth
           variant="outlined"
           size="small"
-          {...register("email", {
-            required: "Email is required",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Invalid email address",
-            },
-          })}
-          error={!!errors.email}
-          helperText={errors.email?.message}
+          {...register("email")}
+          error={!!validationErrors.email}
+          helperText={validationErrors.email?.message}
         />
       </FormControl>
 
       {/* Password Field */}
-      <FormControl error={!!errors.password}>
+      <FormControl error={!!validationErrors.password}>
         <FormLabel htmlFor="password" className="mb-1 text-sm font-medium">
           Password
         </FormLabel>
@@ -70,25 +67,14 @@ export default function LoginForm() {
           fullWidth
           variant="outlined"
           size="small"
-          {...register("password", {
-            required: "Password is required",
-            minLength: {
-              value: 4,
-              message: "Password must be at least 4 characters",
-            },
-          })}
-          error={!!errors.password}
-          helperText={errors.password?.message}
+          {...register("password")}
+          error={!!validationErrors.password}
+          helperText={validationErrors.password?.message}
         />
       </FormControl>
 
-      {/* Remember Me & Forgot Password */}
+      {/* Forgot Password */}
       <div className="flex items-center justify-between">
-        <FormControlLabel
-          control={<Checkbox {...register("remember")} color="primary" />}
-          label="Remember me"
-        />
-
         <RouterLink
           to="/auth/forgot-password"
           className="text-sm text-blue-600 hover:underline"

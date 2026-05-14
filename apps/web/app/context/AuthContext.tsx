@@ -1,12 +1,14 @@
+import { AxiosError } from "axios";
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import {
-  credentialsLogin,
-  credentialsRegister,
   getAccountInfo,
   googleLogin,
-  logout as logoutRequest,
+  useCredentialsLogin,
+  useCredentialsRegister,
+  useGoogleLogin,
+  useLogout,
 } from "~/api/endpoints/auth";
 
 // API & Types
@@ -33,9 +35,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  loginCredentials: (data: CredentialsLoginDto) => Promise<void>;
-  loginGoogle(data: GoogleLoginDto): Promise<void>;
-  register: (data: RegisterAccountDto) => Promise<void>;
+  credentialsLoginMutation: ReturnType<typeof useCredentialsLogin<AxiosError>>;
+  googleLoginMutation: ReturnType<typeof useGoogleLogin<AxiosError>>;
+  registerCredentialsMutation: ReturnType<
+    typeof useCredentialsRegister<AxiosError>
+  >;
   logout: () => Promise<void>;
 }
 
@@ -47,6 +51,69 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const logoutMutation = useLogout({
+    mutation: {
+      onError: (error) => {
+        console.warn("Logout API call failed", error);
+      },
+    },
+  });
+
+  const credentialsLoginMutation = useCredentialsLogin<AxiosError>({
+    mutation: {
+      onSuccess: (data) => {
+        if (data?.accessToken) {
+          // Save tokens
+          storage.set(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
+          storage.set(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+          // Update State
+          setUser(data.account);
+        }
+
+        const from = location.state?.from || "/";
+        navigate(from, { replace: true });
+      },
+      onError(error) {
+        console.error("credentials login failed: ", error.message);
+      },
+    },
+  });
+
+  const registerCredentialsMutation = useCredentialsRegister<AxiosError>({
+    mutation: {
+      onSuccess: () => {
+        navigate("/auth/login");
+      },
+      onError: (error) => {
+        console.error("Registration failed:", error);
+      },
+    },
+  });
+
+  const googleLoginMutation = useGoogleLogin<AxiosError>({
+    mutation: {
+      onSuccess: (data) => {
+        if (data?.accessToken) {
+          // Save tokens
+          storage.set(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
+          storage.set(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+          // Update State
+          setUser(data.account);
+        }
+
+        const from = location.state?.from || "/";
+        navigate(from, { replace: true });
+      },
+      onError(error) {
+        console.error(
+          "Exchange google authorization code failed: ",
+          error.message,
+        );
+      },
+    },
+  });
 
   // Init Auth (Check token on load)
   useEffect(() => {
@@ -66,71 +133,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth();
   }, []);
 
-  // Login Action
-  const loginCredentials = async (dto: CredentialsLoginDto) => {
-    try {
-      const response = await credentialsLogin(dto);
-
-      if (response?.accessToken) {
-        // Save tokens
-        storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
-        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
-
-        // Update State
-        setUser(response.account);
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-      throw error; // Re-throw so the UI can show an error message
-    }
-  };
-
-  const loginGoogle = async (dto: GoogleLoginDto) => {
-    try {
-      const response = await googleLogin(dto);
-
-      if (response?.accessToken) {
-        // Save tokens
-        storage.set(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
-        storage.set(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
-
-        // Update State
-        setUser(response.account);
-      }
-    } catch (error) {
-      console.error("Google Login failed:", error);
-      throw error; // Re-throw so the UI can show an error message
-    }
-  };
-
-  // Register Action
-  const register = async (dto: RegisterAccountDto) => {
-    try {
-      await credentialsRegister(dto);
-      navigate("/auth/login");
-    } catch (error) {
-      console.error("Registration failed:", error);
-      throw error;
-    }
-  };
-
   // Logout Action
   const logout = async () => {
-    try {
-      const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
-      if (refreshToken) {
-        // Fire and forget logout request
-        await logoutRequest({ refreshToken });
-      }
-    } catch (error) {
-      console.warn("Logout API call failed", error);
-    } finally {
-      // Always clean up local state
-      storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
-      storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
-      setUser(null);
-      navigate("/auth/login");
+    const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
+    if (refreshToken) {
+      // Fire and forget logout request
+      logoutMutation.mutate({ data: { refreshToken } });
     }
+
+    // Always clean up local state
+    storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
+    storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
+    setUser(null);
+    navigate("/auth/login");
   };
 
   return (
@@ -139,9 +154,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isAuthenticated: !!user,
         isLoading,
-        loginCredentials,
-        loginGoogle,
-        register,
+        credentialsLoginMutation,
+        googleLoginMutation,
+        registerCredentialsMutation,
         logout,
       }}
     >

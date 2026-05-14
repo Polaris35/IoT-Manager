@@ -8,8 +8,13 @@ import Alert from "@mui/material/Alert";
 import { useRegisterForm } from "../hooks/useRegisterForm";
 
 export default function RegisterForm() {
-  const { register, handleSubmit, errors, isSubmitting, serverError } =
-    useRegisterForm();
+  const {
+    register,
+    handleSubmit,
+    validationErrors,
+    isSubmitting,
+    serverError,
+  } = useRegisterForm();
 
   return (
     <Box
@@ -22,7 +27,7 @@ export default function RegisterForm() {
       {serverError && <Alert severity="error">{serverError}</Alert>}
 
       {/* Full Name Field */}
-      <FormControl error={!!errors.fullName}>
+      <FormControl error={!!validationErrors.fullName}>
         <FormLabel
           htmlFor="fullName"
           sx={{ mb: 1, fontSize: "0.875rem", fontWeight: 500 }}
@@ -37,20 +42,14 @@ export default function RegisterForm() {
           fullWidth
           variant="outlined"
           size="small"
-          {...register("fullName", {
-            required: "Full name is required",
-            minLength: {
-              value: 2,
-              message: "Name must be at least 2 characters",
-            },
-          })}
-          error={!!errors.fullName}
-          helperText={errors.fullName?.message}
+          {...register("fullName")}
+          error={!!validationErrors.fullName}
+          helperText={validationErrors.fullName?.message}
         />
       </FormControl>
 
       {/* Email Field */}
-      <FormControl error={!!errors.email}>
+      <FormControl error={!!validationErrors.email}>
         <FormLabel
           htmlFor="email"
           sx={{ mb: 1, fontSize: "0.875rem", fontWeight: 500 }}
@@ -65,20 +64,14 @@ export default function RegisterForm() {
           autoComplete="email"
           variant="outlined"
           size="small"
-          {...register("email", {
-            required: "Email is required",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Invalid email address",
-            },
-          })}
-          error={!!errors.email}
-          helperText={errors.email?.message}
+          {...register("email")}
+          error={!!validationErrors.email}
+          helperText={validationErrors.email?.message}
         />
       </FormControl>
 
       {/* Password Field */}
-      <FormControl error={!!errors.password}>
+      <FormControl error={!!validationErrors.password}>
         <FormLabel
           htmlFor="password"
           sx={{ mb: 1, fontSize: "0.875rem", fontWeight: 500 }}
@@ -94,15 +87,9 @@ export default function RegisterForm() {
           autoComplete="new-password"
           variant="outlined"
           size="small"
-          {...register("password", {
-            required: "Password is required",
-            minLength: {
-              value: 6,
-              message: "Password must be at least 6 characters",
-            },
-          })}
-          error={!!errors.password}
-          helperText={errors.password?.message}
+          {...register("password")}
+          error={!!validationErrors.password}
+          helperText={validationErrors.password?.message}
         />
       </FormControl>
 
