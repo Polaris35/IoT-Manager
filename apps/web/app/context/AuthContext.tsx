@@ -4,20 +4,11 @@ import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
   getAccountInfo,
-  googleLogin,
   useCredentialsLogin,
   useCredentialsRegister,
   useGoogleLogin,
   useLogout,
 } from "~/api/endpoints/auth";
-
-// API & Types
-
-import type {
-  CredentialsLoginDto,
-  GoogleLoginDto,
-  RegisterAccountDto,
-} from "~/api/schemas";
 
 // Utils
 import { STORAGE_KEYS } from "~/constants";
