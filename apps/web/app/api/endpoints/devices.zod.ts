@@ -29,6 +29,16 @@ export const createDeviceBody = zod.object({
 })]).describe('Protocol-specific connection settings. The structure depends on the `protocol` field.')
 })
 
+export const createDeviceResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "externalId": zod.string(),
+  "profileId": zod.string(),
+  "protocol": zod.string(),
+  "userId": zod.string(),
+  "connectionConfig": zod.string()
+})
+
 /**
  * @summary Update a device record
  */
@@ -42,7 +52,7 @@ export const updateDeviceBody = zod.object({
 })
 
 /**
- * @summary get all devices of authorithed user
+ * @summary get all devices of authorized user
  */
 export const getUserDevicesQueryPageDefault = 1;export const getUserDevicesQueryLimitDefault = 10;
 
@@ -53,10 +63,29 @@ export const getUserDevicesQueryParams = zod.object({
   "groupId": zod.string().optional().describe('ID группы')
 })
 
+export const getUserDevicesResponse = zod.object({
+  "total": zod.number().describe('Total count of devices'),
+  "devices": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "protocol": zod.string()
+})).describe('Device list')
+})
+
 /**
  * @summary Request device by id
  */
 export const getDeviceParams = zod.object({
   "id": zod.string()
+})
+
+export const getDeviceResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "externalId": zod.string(),
+  "profileId": zod.string(),
+  "protocol": zod.string(),
+  "userId": zod.string(),
+  "connectionConfig": zod.string()
 })
 

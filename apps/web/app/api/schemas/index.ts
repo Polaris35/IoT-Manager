@@ -37,3 +37,6 @@ export * from "./updateDeviceDto";
 export * from "./updateDeviceDtoGroupId";
 export * from "./updateGroupDto";
 export * from "./zigbeeConnectionConfigDto";
+export * from "./deviceListItemDto";
+export * from "./deviceResponseDto";
+export * from "./devicesListDto";
