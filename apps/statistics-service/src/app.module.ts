@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { InfluxdbModule } from './influxdb/influxdb.module';
-import { CollectorModule } from './collector/collector.module';
+import { TelemetryModule } from './telemetry/telemetry.module';
 
 @Module({
   imports: [
@@ -10,7 +10,7 @@ import { CollectorModule } from './collector/collector.module';
       envFilePath: '.env',
     }),
     InfluxdbModule,
-    CollectorModule,
+    TelemetryModule,
   ],
 })
 export class AppModule {}
