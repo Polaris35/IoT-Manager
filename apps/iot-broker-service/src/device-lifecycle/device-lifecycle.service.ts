@@ -22,6 +22,7 @@ export class DeviceLifecycleService {
         if (config.stateTopic) {
           this.mqttService.registerDevice(
             device.id,
+            device.userId,
             device.profileId,
             config.stateTopic,
           );
@@ -31,7 +32,12 @@ export class DeviceLifecycleService {
         const prefix = config.topicPrefix || 'zigbee2mqtt';
         const topic = `${prefix}/${device.externalId}`;
 
-        this.mqttService.registerDevice(device.id, device.profileId, topic);
+        this.mqttService.registerDevice(
+          device.id,
+          device.userId,
+          device.profileId,
+          topic,
+        );
       }
     }
   }

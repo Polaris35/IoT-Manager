@@ -19,6 +19,7 @@ import { isRecord } from 'src/utils';
 interface SubscriptionContext {
   deviceId: string;
   profileId: string;
+  userId: string;
 }
 
 export interface MetricDefinition {
@@ -52,7 +53,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
    * used to obtain devices profile
    */
   private profileServiceClient: device.ProfilesServiceClient;
-  private mqttBrokerClient: mqtt.MqttClient;
+  private mqttBrokerClient!: mqtt.MqttClient;
 
   /**
    * Maps "MQTT Topic" -> "Context (DeviceID, ProfileID)"
@@ -110,6 +111,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
    */
   registerDevice(
     deviceId: string,
+    userId: string,
     profileId: string,
     stateTopic: string,
     commandTopic?: string,
@@ -125,7 +127,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         this.mqttBrokerClient.subscribe(stateTopic);
       }
       // Update context (in case the profile changed)
-      this.topicMap.set(stateTopic, { deviceId, profileId });
+      this.topicMap.set(stateTopic, { deviceId, profileId, userId });
     }
     if (commandTopic) {
       this.commandTopics.set(deviceId, commandTopic);
@@ -204,7 +206,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     // Publish to MQTT Broker
     return new Promise((resolve) => {
-      this.mqttBrokerClient.publish(finalTopic, finalPayload, (err: Error) => {
+      this.mqttBrokerClient.publish(finalTopic, finalPayload, (err) => {
         if (err) {
           this.logger.error(`Failed to publish command: ${err.message}`);
           resolve(false);
@@ -322,6 +324,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
         if (!isNaN(numericValue)) {
           this.telemetryService.publish({
+            userId: context.userId,
             deviceId: context.deviceId,
             timestamp: timestamp,
             metricType: metricDef.targetMetric,
@@ -510,6 +513,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     // Xiaomi
     this.registerDevice(
       'device-id-xiaomi-001',
+      '4812d2f7-4549-44a0-81eb-61c67823b620',
       'prof_zigbee_xiaomi_gzcgq01lm',
       'zigbee2mqtt/sensor_kitchen', // State Topic
       'zigbee2mqtt/sensor_kitchen/set', // Command Topic
@@ -518,6 +522,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     // Sonoff
     this.registerDevice(
       'device-id-sonoff-002',
+      '4812d2f7-4549-44a0-81eb-61c67823b620',
       'prof_wifi_sonoff_pow_r2',
       'tele/sonoff_living_room/SENSOR', // State Topic
       'cmnd/sonoff_living_room/POWER', // Command Topic (Base)
@@ -526,6 +531,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     // DIY
     this.registerDevice(
       'device-id-esp32-003',
+      '4812d2f7-4549-44a0-81eb-61c67823b620',
       'profile_diy_weather',
       'devices/esp32_garage/state',
       // No commands

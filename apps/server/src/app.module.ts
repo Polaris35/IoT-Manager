@@ -6,6 +6,7 @@ import { AuthClientModule } from '@auth/auth-client.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from '@auth/guards';
 import { StatsModule } from './stats/stats.module';
+import { StreamModule } from './stream/stream.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { StatsModule } from './stats/stats.module';
     AuthModule,
     DevicesModule,
     StatsModule,
+    StreamModule,
   ],
   providers: [
     {

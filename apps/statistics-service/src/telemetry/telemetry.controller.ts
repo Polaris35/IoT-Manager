@@ -9,7 +9,7 @@ import {
 import { TelemetryData, TelemetryService } from './telemetry.service';
 import { Channel, Message } from 'amqplib';
 
-@Controller('telemetry')
+@Controller()
 export class TelemetryController {
   private readonly logger = new Logger(TelemetryController.name);
   constructor(private readonly telemetryService: TelemetryService) {}
