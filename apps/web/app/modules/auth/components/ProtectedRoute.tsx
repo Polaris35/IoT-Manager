@@ -2,10 +2,19 @@
 import { Navigate, Outlet, useLocation } from "react-router";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAuth } from "~/context/AuthContext";
+import { useSseConnection } from "~/hooks/useSseConnection";
+import { STORAGE_KEYS } from "~/constants";
 
 export default function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+      : null;
+  const activeToken = isAuthenticated && !isLoading ? token : null;
+  useSseConnection(activeToken);
 
   // Loading state (checking token)
   if (isLoading) {
@@ -18,8 +27,6 @@ export default function ProtectedRoute() {
 
   // Not authenticated -> Redirect to login
   if (!isAuthenticated) {
-    // replace: true - prevents going back to the protected route via browser "Back" button
-    // state: { from: location } - saves current URL to redirect back after successful login
     return (
       <Navigate to="/auth/login" state={{ from: location.pathname }} replace />
     );
