@@ -3,15 +3,14 @@ import { immer } from "zustand/middleware/immer";
 
 export type DeviceMetrics = Record<string, string | number>;
 
-type DeviceLiveMetric = {
+export type DeviceLiveMetric = {
   deviceId: string;
   lastSeen: number;
   metrics: DeviceMetrics;
 };
 
-type DeviceStore = {
+type DeviceLiveMetricsStore = {
   devices: Record<string, DeviceLiveMetric>;
-
   updateMetric: (
     deviceId: string,
     metricKey: string,
@@ -21,12 +20,13 @@ type DeviceStore = {
   clear: () => void;
 };
 
-export const useDeviceStore = create<DeviceStore>()(
-  immer((set) => ({
+export const useDeviceLiveMetricsStore = create<DeviceLiveMetricsStore>()(
+  immer((set, get) => ({
     devices: {},
 
     updateMetric: (deviceId, metricKey, metricValue) =>
       set((state) => {
+        console.log("Beggining of updationg state");
         if (!state.devices[deviceId]) {
           state.devices[deviceId] = {
             deviceId,
@@ -38,6 +38,7 @@ export const useDeviceStore = create<DeviceStore>()(
         const device = state.devices[deviceId];
         device.lastSeen = Date.now();
         device.metrics[metricKey] = metricValue;
+        console.log("state successfully updated");
       }),
     updateMetricsBatch: (deviceId, newMetrics) =>
       set((state) => {

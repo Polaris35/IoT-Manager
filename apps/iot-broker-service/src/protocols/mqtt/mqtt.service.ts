@@ -512,7 +512,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     // Xiaomi
     this.registerDevice(
-      'device-id-xiaomi-001',
+      'a6068f89-18f5-459a-be18-324ccb23fd65',
       '4812d2f7-4549-44a0-81eb-61c67823b620',
       'prof_zigbee_xiaomi_gzcgq01lm',
       'zigbee2mqtt/sensor_kitchen', // State Topic
@@ -521,7 +521,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
     // Sonoff
     this.registerDevice(
-      'device-id-sonoff-002',
+      '61792dbb-7db1-4942-a85f-cbc6a512d8de',
       '4812d2f7-4549-44a0-81eb-61c67823b620',
       'prof_wifi_sonoff_pow_r2',
       'tele/sonoff_living_room/SENSOR', // State Topic

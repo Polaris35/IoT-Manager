@@ -1,5 +1,5 @@
 import { API_URL } from "~/constants";
-import { useDeviceStore } from "~/store/useLiveMetricsStore";
+import { useDeviceLiveMetricsStore } from "~/store/useLiveMetricsStore";
 
 class SseService {
   private eventSource: EventSource | null = null;
@@ -31,11 +31,11 @@ class SseService {
     this.eventSource.addEventListener("metrics", (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
+        // console.log(event.data);
 
-        useDeviceStore
+        useDeviceLiveMetricsStore
           .getState()
           .updateMetric(data.deviceId, data.metricType, data.value);
-        // console.log("Get new metric with data: ", data);
       } catch (e) {
         console.error("[SSE] Failed to parse metrics data", e);
       }
