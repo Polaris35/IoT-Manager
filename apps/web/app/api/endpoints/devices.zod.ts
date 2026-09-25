@@ -68,7 +68,8 @@ export const getUserDevicesResponse = zod.object({
   "devices": zod.array(zod.object({
   "id": zod.string(),
   "name": zod.string(),
-  "protocol": zod.string()
+  "protocol": zod.string(),
+  "metrics": zod.record(zod.string(), zod.union([zod.string(),zod.number()]))
 })).describe('Device list')
 })
 

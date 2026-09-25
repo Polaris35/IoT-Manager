@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { MqttService } from '../protocols/mqtt/mqtt.service';
 import {
   DeviceCreatedEventDto,
@@ -6,10 +6,15 @@ import {
   MqttConnectionConfigDto,
   ZigbeeConnectionConfigDto,
 } from '@iot-manager/nest-libs';
+import Redis from 'ioredis';
+import { REDIS_CLIENT } from '@redis-client/redis-client.module';
 
 @Injectable()
 export class DeviceLifecycleService {
-  constructor(private readonly mqttService: MqttService) {}
+  constructor(
+    private readonly mqttService: MqttService,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
+  ) {}
 
   registerNewDevice(device: DeviceCreatedEventDto) {
     if (
@@ -40,5 +45,8 @@ export class DeviceLifecycleService {
         );
       }
     }
+  }
+  async getCurrentMetrics(deviceId: string): Promise<Record<string, string>> {
+    return this.redis.hgetall(`device:${deviceId}:state`);
   }
 }

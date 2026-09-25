@@ -1,10 +1,22 @@
 import { useGetUserDevices } from "~/api/endpoints/devices";
 import toast from "react-hot-toast";
 import { SmartDeviceCard, DeviceCardSkeleton } from "./DeviceCard";
+import { useDeviceLiveMetricsStore } from "~/store";
+import { useEffect } from "react";
 
 export function DevicesGrid() {
   const devicesQuery = useGetUserDevices();
+  const setDeviceMetricsBatch = useDeviceLiveMetricsStore(
+    (state) => state.updateMetricsBatch,
+  );
 
+  useEffect(() => {
+    if (devicesQuery.isSuccess) {
+      devicesQuery.data.devices.map((device) => {
+        setDeviceMetricsBatch(device.id, device.metrics);
+      });
+    }
+  }, [devicesQuery.data]);
   if (devicesQuery.isError) {
     toast.error("Cannot load user devices list");
     console.error("Get user devices error: ", devicesQuery.error);

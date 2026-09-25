@@ -15,9 +15,8 @@ export class DeviceCreatedEventDto {
   externalId: string;
 
   @IsString()
-  profileId: string; // Ты сказал, что мы его передаем
+  profileId: string;
 
   @IsObject()
   connectionConfig: unknown;
-  // Тут можно типизировать строже через вложенные DTO, если нужно
 }

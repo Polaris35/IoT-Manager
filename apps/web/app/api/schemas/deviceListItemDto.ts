@@ -5,9 +5,11 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
+import type { DeviceListItemDtoMetrics } from "./deviceListItemDtoMetrics";
 
 export interface DeviceListItemDto {
   id: string;
   name: string;
   protocol: string;
+  metrics: DeviceListItemDtoMetrics;
 }

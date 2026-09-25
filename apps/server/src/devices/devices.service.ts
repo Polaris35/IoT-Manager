@@ -1,10 +1,14 @@
 import { device } from '@iot-manager/proto';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
+import { ClientGrpc, ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { CreateDeviceDto, UpdateDeviceDto } from './dto';
 import { DeviceProtocol } from '@iot-manager/nest-libs';
 import { FindDevicesDto } from './dto/devices/find-device.dto';
+import pLimit from 'p-limit';
+
+// limit for request device metrics
+const deviceMetricsLimit = pLimit(12);
 
 @Injectable()
 export class DevicesService implements OnModuleInit {
@@ -17,7 +21,11 @@ export class DevicesService implements OnModuleInit {
       );
   }
 
-  constructor(@Inject('DEVICE_PACKAGE') private client: ClientGrpc) {}
+  constructor(
+    @Inject('DEVICE_PACKAGE') private client: ClientGrpc,
+    @Inject('IOT_BROKER_CLIENT')
+    private readonly iotBroker: ClientProxy,
+  ) {}
 
   async createDevice(dto: CreateDeviceDto, userId: string) {
     const device = await firstValueFrom(
@@ -55,7 +63,7 @@ export class DevicesService implements OnModuleInit {
   }
 
   async getUserDevices(dto: FindDevicesDto, userId: string) {
-    const rezult = await firstValueFrom(
+    const devices = await firstValueFrom(
       this.deviceServiceClient.findDevices({
         userId,
         protocol: dto.protocol,
@@ -64,13 +72,23 @@ export class DevicesService implements OnModuleInit {
         page: dto.page,
       }),
     );
-    console.log(rezult);
+
+    const devicesWithMetrics = await Promise.all(
+      devices.devices.map((device) =>
+        deviceMetricsLimit(async () => {
+          const metrics = await firstValueFrom(
+            this.iotBroker.send('device.current-metrics.get', {
+              deviceId: device.id,
+            }),
+          );
+          return { metrics: metrics.metrics, ...device };
+        }),
+      ),
+    );
 
     return {
-      total: rezult.total,
-      devices: rezult.devices.map((device) => {
-        return device;
-      }),
+      total: devices.total,
+      devices: devicesWithMetrics,
     };
   }
 }

@@ -7,7 +7,15 @@ export class DeviceListItemDto extends OmitType(DeviceResponseDto, [
   'externalId',
   'profileId',
   'userId',
-] as const) {}
+] as const) {
+  @ApiProperty({
+    additionalProperties: {
+      oneOf: [{ type: 'string' }, { type: 'number' }],
+    },
+  })
+  @Expose()
+  metrics: Record<string, string | number>;
+}
 
 export class DevicesListDto {
   @ApiProperty({ example: 42, description: 'Total count of devices' })
