@@ -45,4 +45,18 @@ export class TelemetryController {
 
     return this.telemetryService.getDeviceStats(data.deviceId, range);
   }
+
+  @MessagePattern('get_latest_anchored_metrics')
+  getLatestAnchoredMetrics(
+    @Payload() data: { deviceId: string; range?: string; metricName: string },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Ctx() context: RmqContext,
+  ) {
+    const range = data.range || '6h'; // Default: 6 hour
+    return this.telemetryService.getLatestAnchoredMetrics(
+      data.deviceId,
+      data.metricName,
+      range,
+    );
+  }
 }

@@ -18,6 +18,7 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
   private client: InfluxDB;
   private writeApi: WriteApi;
   private queryApi: QueryApi;
+  private bucket: string;
 
   constructor(private readonly config: ConfigService) {}
 
@@ -29,14 +30,14 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
     const url = this.config.get<string>('INFLUXDB_URL');
     const token = this.config.get<string>('INFLUXDB_ADMIN_TOKEN');
     const org = this.config.get<string>('INFLUXDB_ORG');
-    const bucket = this.config.get<string>('INFLUXDB_BUCKET');
+    this.bucket = this.config.get<string>('INFLUXDB_BUCKET') as string;
 
-    if (!url || !token || !org || !bucket) {
+    if (!url || !token || !org || !this.bucket) {
       throw new Error('Missing InfluxDB configuration in .env');
     }
 
     this.logger.log(
-      `Connecting to InfluxDB at ${url} (Org: ${org}, Bucket: ${bucket})`,
+      `Connecting to InfluxDB at ${url} (Org: ${org}, Bucket: ${this.bucket})`,
     );
 
     // Initialize the main client
@@ -48,7 +49,7 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
     // Initialize Write API (for ingestion)
     // 'ns' stands for nanosecond precision.
     // The client automatically handles batching (buffering points and sending them in groups).
-    this.writeApi = this.client.getWriteApi(org, bucket, 'ns', {
+    this.writeApi = this.client.getWriteApi(org, this.bucket, 'ns', {
       batchSize: 1, // 👈 Писать каждую точку сразу (для тестов)
       flushInterval: 1000, // 👈 Или хотя бы раз в секунду
       // gzip: false, // Отключаем сжатие для локальной разработки (проще дебажить)
@@ -84,5 +85,8 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
    */
   async query(fluxQuery: string): Promise<any[]> {
     return this.queryApi.collectRows(fluxQuery);
+  }
+  get bucketName(): string {
+    return this.bucket;
   }
 }

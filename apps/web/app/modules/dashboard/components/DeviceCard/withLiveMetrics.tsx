@@ -1,6 +1,7 @@
 import { useDeviceLiveMetricsStore } from "~/store";
 import type { DeviceCardProps } from "./DeviceCard";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useFetchDeviceStats } from "~/api/endpoints/statistics";
 
 export interface LiveMetricsExternalProps {
   id: string;
@@ -12,7 +13,20 @@ export function withLiveMetrics<T extends DeviceCardProps>(
 ) {
   type WrappedProps = Omit<T, keyof DeviceCardProps> & LiveMetricsExternalProps;
   return function WrappedComponent(props: WrappedProps) {
+    const [currentActiveMetrics, setCurrentActiveMetric] = useState<
+      null | string
+    >(null);
+    const getLatestAnchoredMetricsMutation = useFetchDeviceStats();
     const { id, name, ...restProps } = props;
+
+    useEffect(() => {
+      if (currentActiveMetrics === null) {
+        return;
+      }
+      getLatestAnchoredMetricsMutation.mutate({
+        data: { deviceId: id, metricName: currentActiveMetrics },
+      });
+    }, [currentActiveMetrics]);
     const deviceWithMetrics = useDeviceLiveMetricsStore(
       (state) => state.devices[id],
     );
@@ -30,10 +44,17 @@ export function withLiveMetrics<T extends DeviceCardProps>(
       deviceName: name,
       lastSeeing: deviceWithMetrics?.lastSeen,
       isActive: false,
-      activeMetric: null,
-      onMetricClick: (metricName: string) => {},
+      activeMetric: currentActiveMetrics,
+      onMetricClick: (metricName: string) => {
+        if (currentActiveMetrics === metricName) {
+          return;
+        }
+        setCurrentActiveMetric(metricName);
+      },
       metrics: formattedMetrics,
-      graphicsData: [],
+      graphicsData: getLatestAnchoredMetricsMutation.data
+        ? getLatestAnchoredMetricsMutation.data
+        : [],
     } as unknown as T;
     return <Component {...finalProps} />;
   };

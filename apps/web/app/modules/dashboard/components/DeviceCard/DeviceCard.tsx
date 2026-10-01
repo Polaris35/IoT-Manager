@@ -35,7 +35,7 @@ type MetricType = {
 
 export function DeviceCard(props: DeviceCardProps) {
   const statusColor = props.isActive ? "bg-green-500" : "bg-red-500";
-
+  const hasMetricsData = props.graphicsData.length > 0;
   return (
     <Card sx={{ width: "100%", maxWidth: 320, borderRadius: 3, boxShadow: 3 }}>
       <CardContent
@@ -82,39 +82,45 @@ export function DeviceCard(props: DeviceCardProps) {
 
         {/* graphic */}
         <Box sx={{ width: "100%", height: 120, mt: 1 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={props.graphicsData}
-              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-            >
-              <defs>
-                <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
+          {hasMetricsData ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={props.graphicsData}
+                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              >
+                <defs>
+                  <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
 
-              <Tooltip
-                contentStyle={{
-                  background: "#1e293b",
-                  borderRadius: "8px",
-                  border: "none",
-                  color: "#fff",
-                }}
-                itemStyle={{ color: "#fff" }}
-                labelStyle={{ color: "#94a3b8", fontSize: "12px" }}
-              />
+                <Tooltip
+                  contentStyle={{
+                    background: "#1e293b",
+                    borderRadius: "8px",
+                    border: "none",
+                    color: "#fff",
+                  }}
+                  itemStyle={{ color: "#fff" }}
+                  labelStyle={{ color: "#94a3b8", fontSize: "12px" }}
+                />
 
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorPv)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorPv)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <p>Click the metric to view the chart</p>
+            </div>
+          )}
         </Box>
         <Divider />
         {/* footer */}
