@@ -31,7 +31,7 @@ export function DevicesGrid() {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,320px))] gap-3 w-full justify-center md:justify-start">
       {devicesQuery.isFetching && (
         <>
           <DeviceCardSkeleton />
