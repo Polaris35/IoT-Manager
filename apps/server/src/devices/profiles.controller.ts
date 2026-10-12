@@ -3,6 +3,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProfilesService } from './profiles.service';
 import { ProfileResponseDto, SearchProfileDto } from './dto';
 import { Public } from '@iot-manager/nest-libs';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('profiles')
 @ApiTags('Profiles')
@@ -24,7 +25,12 @@ export class ProfilesController {
   })
   @Get('/:id')
   @ApiOperation({ summary: 'Get the profile by id', operationId: 'getProfile' })
-  getProfile(@Param('id') profileId: string): Promise<ProfileResponseDto> {
-    return this.profilesService.getProfile(profileId);
+  async getProfile(
+    @Param('id') profileId: string,
+  ): Promise<ProfileResponseDto> {
+    const profile = await this.profilesService.getProfile(profileId);
+    return plainToInstance(ProfileResponseDto, profile, {
+      excludeExtraneousValues: true,
+    });
   }
 }

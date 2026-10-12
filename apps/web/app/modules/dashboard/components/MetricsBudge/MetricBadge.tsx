@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import { getMetricConfig } from "./config/metricsRegistry";
+import type { ProfileMappingDef } from "~/types/profile";
 
 interface MetricBadgeProps {
   metricKey: string;
   value: any;
+  backendDef?: ProfileMappingDef;
 }
 
 export const MetricBadge: React.FC<MetricBadgeProps> = ({
   metricKey,
   value,
+  backendDef,
 }) => {
-  // Получаем готовый к употреблению конфиг (иконка + цвета + отформатированная строка)
-  const config = getMetricConfig(metricKey);
+  const config = getMetricConfig(metricKey, backendDef);
   const Icon = config.icon;
   const formattedValue = config.format(value);
 
-  // Анимация пульсации (осталась без изменений)
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {

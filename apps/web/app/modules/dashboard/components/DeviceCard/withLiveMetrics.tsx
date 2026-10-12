@@ -3,10 +3,12 @@ import type { DeviceCardProps } from "./DeviceCard";
 import { useEffect, useState } from "react";
 import { useFetchDeviceStats } from "~/api/endpoints/statistics";
 import { formatLastSeen } from "~/utils/formatLastSeen";
+import { useGetProfile } from "~/api/endpoints/profiles";
 import { DateTime } from "luxon";
 
 export interface LiveMetricsExternalProps {
   id: string;
+  profileId: string;
   name: string;
 }
 
@@ -19,7 +21,14 @@ export function withLiveMetrics<T extends DeviceCardProps>(
       null | string
     >(null);
     const getLatestAnchoredMetricsMutation = useFetchDeviceStats();
+
     const { id, name, ...restProps } = props;
+    const profileQuery = useGetProfile(props.profileId, {
+      query: {
+        staleTime: 1000 * 60 * 60 * 24, // 24 hours
+        gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+      },
+    });
 
     useEffect(() => {
       if (currentActiveMetrics === null) {
@@ -29,15 +38,10 @@ export function withLiveMetrics<T extends DeviceCardProps>(
         data: { deviceId: id, metricName: currentActiveMetrics },
       });
     }, [currentActiveMetrics]);
+
     const deviceWithMetrics = useDeviceLiveMetricsStore(
       (state) => state.devices[id],
     );
-
-    const rawMetrics = deviceWithMetrics?.metrics ?? {};
-    const formattedMetrics = Object.entries(rawMetrics).map(([key, value]) => ({
-      name: key,
-      value,
-    }));
 
     const finalProps = {
       ...restProps,
@@ -53,11 +57,15 @@ export function withLiveMetrics<T extends DeviceCardProps>(
         }
         setCurrentActiveMetric(metricName);
       },
-      metrics: formattedMetrics,
+      metrics: deviceWithMetrics?.metrics ?? {},
       graphicsData: getLatestAnchoredMetricsMutation.data
         ? getLatestAnchoredMetricsMutation.data
         : [],
+      profileMappings: profileQuery?.data?.mappings
+        ? JSON.parse(profileQuery.data.mappings)
+        : undefined,
     } as unknown as T;
+
     return <Component {...finalProps} />;
   };
 }

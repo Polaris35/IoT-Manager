@@ -43,6 +43,7 @@ export function DevicesGrid() {
         devicesQuery.data.devices.map((device) => {
           return (
             <SmartDeviceCard
+              profileId={device.profileId}
               key={device.id}
               name={device.name}
               id={device.id}

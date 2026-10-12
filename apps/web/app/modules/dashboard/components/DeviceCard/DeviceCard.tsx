@@ -9,28 +9,24 @@ import {
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import MenuIcon from "@mui/icons-material/Menu";
 import { MetricBadge } from "../MetricsBudge/MetricBadge";
+import type { ProfileMappingDef } from "~/types/profile";
 
 export type DeviceCardProps = {
   deviceName: string;
   lastSeeing: string;
   isActive: boolean;
   group?: string;
+  profileMappings?: Record<string, ProfileMappingDef>;
 
   activeMetric: string | null;
   onMetricClick: (name: string) => void;
-  metrics: MetricType[];
+  metrics: Record<string, number | string>;
   graphicsData: graphicDataType[];
 };
 
 type graphicDataType = {
   timestamp: number;
   value: number;
-};
-
-type MetricType = {
-  name: string;
-  value: number | string;
-  unit?: string;
 };
 
 export function DeviceCard(props: DeviceCardProps) {
@@ -78,6 +74,7 @@ export function DeviceCard(props: DeviceCardProps) {
           metrics={props.metrics}
           activeMetric={props.activeMetric}
           onMetricClick={props.onMetricClick}
+          profileMappings={props.profileMappings}
         />
 
         {/* graphic */}
@@ -147,8 +144,9 @@ export function DeviceCard(props: DeviceCardProps) {
 }
 
 interface DeviceMetricsListProps {
-  metrics: MetricType[];
+  metrics: Record<string, number | string>;
   activeMetric: string | null;
+  profileMappings?: Record<string, ProfileMappingDef>;
   onMetricClick: (metricName: string) => void;
 }
 
@@ -174,16 +172,19 @@ export function DeviceMetricsList(props: DeviceMetricsListProps) {
         },
       }}
     >
-      {props.metrics.map((item) => {
-        if (item.name === "lastSeen") {
+      {Object.entries(props.metrics).map(([name, value]) => {
+        if (name === "lastSeen") {
           return;
         }
         return (
-          <button
-            key={item.name}
-            onClick={() => props.onMetricClick(item.name)}
-          >
-            <MetricBadge metricKey={item.name} value={item.value} />
+          <button key={name} onClick={() => props.onMetricClick(name)}>
+            <MetricBadge
+              metricKey={name}
+              value={value}
+              backendDef={
+                props.profileMappings ? props.profileMappings[name] : undefined
+              }
+            />
           </button>
         );
       })}

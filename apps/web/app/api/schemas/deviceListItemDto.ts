@@ -10,6 +10,7 @@ import type { DeviceListItemDtoMetrics } from "./deviceListItemDtoMetrics";
 export interface DeviceListItemDto {
   id: string;
   name: string;
+  profileId: string;
   protocol: string;
   metrics: DeviceListItemDtoMetrics;
 }

@@ -12,4 +12,9 @@ export interface ProfileResponseDto {
   vendor: string;
   protocol: string;
   description?: string;
+  /** mapping of metrics of device */
+  mappings: string;
+  /** mapping of commands for device */
+  commands?: string;
+  commandMode: string;
 }

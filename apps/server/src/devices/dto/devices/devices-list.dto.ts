@@ -5,7 +5,6 @@ import { Expose, Type } from 'class-transformer';
 export class DeviceListItemDto extends OmitType(DeviceResponseDto, [
   'connectionConfig',
   'externalId',
-  'profileId',
   'userId',
 ] as const) {
   @ApiProperty({

@@ -26,7 +26,6 @@ export const useDeviceLiveMetricsStore = create<DeviceLiveMetricsStore>()(
 
     updateMetric: (deviceId, metricKey, metricValue) =>
       set((state) => {
-        console.log("Beggining of updationg state");
         if (!state.devices[deviceId]) {
           state.devices[deviceId] = {
             deviceId,
@@ -38,7 +37,6 @@ export const useDeviceLiveMetricsStore = create<DeviceLiveMetricsStore>()(
         const device = state.devices[deviceId];
         device.lastSeen = Date.now();
         device.metrics[metricKey] = metricValue;
-        console.log("state successfully updated");
       }),
     updateMetricsBatch: (deviceId, newMetrics) =>
       set((state) => {
