@@ -1,0 +1,34 @@
+{
+  "temperature": {
+    "label": "Temperature",
+    "iconName": "thermostat",
+    "mainColor": "#ed6c02",
+    "bgColor": "#fff3e0",
+    "unit": "°C",
+    "formatType": "float1"
+  },
+  "humidity": {
+    "label": "Humidity",
+    "iconName": "waterDrop",
+    "mainColor": "#0288d1",
+    "bgColor": "#e1f5fe",
+    "unit": "%",
+    "formatType": "round"
+  },
+  "battery": {
+    "label": "Battery",
+    "iconName": "battery",
+    "mainColor": "#2e7d32",
+    "bgColor": "#e8f5e9",
+    "unit": "%",
+    "formatType": "round"
+  },
+  "status": {
+    "label": "Power",
+    "iconName": "power",
+    "mainColor": "#3f51b5",
+    "bgColor": "#e8eaf6",
+    "unit": "",
+    "formatType": "booleanOnOff"
+  }
+}

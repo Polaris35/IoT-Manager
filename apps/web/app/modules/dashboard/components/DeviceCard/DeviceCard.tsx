@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Divider,
@@ -9,6 +8,7 @@ import {
 } from "@mui/material";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import MenuIcon from "@mui/icons-material/Menu";
+import { MetricBadge } from "../MetricsBudge/MetricBadge";
 
 export type DeviceCardProps = {
   deviceName: string;
@@ -162,7 +162,7 @@ export function DeviceMetricsList(props: DeviceMetricsListProps) {
         alignItems: "stretch",
         width: "100%",
 
-        maxHeight: 120,
+        maxHeight: 150,
         overflowY: "auto",
         p: 0.5,
         "&::-webkit-scrollbar": {
@@ -175,29 +175,16 @@ export function DeviceMetricsList(props: DeviceMetricsListProps) {
       }}
     >
       {props.metrics.map((item) => {
-        const isActive = props.activeMetric === item.name;
-
+        if (item.name === "lastSeen") {
+          return;
+        }
         return (
-          <Button
+          <button
             key={item.name}
             onClick={() => props.onMetricClick(item.name)}
-            variant={isActive ? "contained" : "outlined"}
-            color={isActive ? "primary" : "inherit"}
-            sx={{
-              justifyContent: "space-between",
-              textTransform: "none",
-              borderRadius: 2,
-              p: 1.5,
-              flexShrink: 0,
-            }}
           >
-            <Typography variant="body2" sx={{ fontWeight: "medium" }}>
-              {item.name}
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-              {item.value} {item.unit || ""}
-            </Typography>
-          </Button>
+            <MetricBadge metricKey={item.name} value={item.value} />
+          </button>
         );
       })}
     </Box>
