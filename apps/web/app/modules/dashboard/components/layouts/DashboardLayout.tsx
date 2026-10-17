@@ -53,9 +53,9 @@ export default function DashboardLayout() {
             }}
           >
             {/* Centered container for content */}
-            <div className="mx-auto w-full max-w-7xl">
-              <Outlet />
-            </div>
+            {/*<div className="mx-auto w-full max-w-7xl">*/}
+            <Outlet />
+            {/*</div>*/}
           </Box>
         </Box>
       </Box>

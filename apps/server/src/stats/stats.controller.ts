@@ -1,7 +1,17 @@
 import { Public } from '@iot-manager/nest-libs';
-import { Controller, Get, Param, Inject, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Inject,
+  Query,
+  Post,
+  Body,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import { GetDeviceStatsDto } from './dto';
+import { StatsResponseDto } from './dto/stats-response.dto';
 
 @ApiTags('Statistics')
 @Controller('stats')
@@ -11,15 +21,13 @@ export class StatsController {
   ) {}
 
   @Public()
-  @Get('device/:id')
+  @Post('device')
   @ApiOperation({
-    summary: 'Get telemetry history for a device',
-    operationId: 'getDeviceStats',
+    summary: 'Fetch device metrics for charts',
+    operationId: 'fetchDeviceStats',
   })
-  async getDeviceStats(
-    @Param('id') id: string,
-    @Query('range') range: string = '-1h', // -1h, -24h, -7d
-  ) {
-    return this.statsClient.send('get_device_stats', { deviceId: id, range });
+  @ApiOkResponse({ type: StatsResponseDto, isArray: true })
+  async getAnchoredDeviceStats(@Body() dto: GetDeviceStatsDto) {
+    return this.statsClient.send('get_latest_anchored_metrics', dto);
   }
 }

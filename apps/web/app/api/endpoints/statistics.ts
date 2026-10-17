@@ -5,178 +5,105 @@
  * The IoT API description
  * OpenAPI spec version: 1.0.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
+  UseMutationOptions,
+  UseMutationResult,
 } from "@tanstack/react-query";
 
-import type { GetDeviceStatsParams } from "../schemas";
+import type { GetDeviceStatsDto, StatsResponseDto } from "../schemas";
 
 import { apiClient } from "../client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * @summary Get telemetry history for a device
+ * @summary Fetch device metrics for charts
  */
-export const getDeviceStats = (
-  id: string,
-  params: GetDeviceStatsParams,
+export const fetchDeviceStats = (
+  getDeviceStatsDto: GetDeviceStatsDto,
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
 ) => {
-  return apiClient<void>(
-    { url: `/stats/device/${id}`, method: "GET", params, signal },
+  return apiClient<StatsResponseDto[]>(
+    {
+      url: `/stats/device`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: getDeviceStatsDto,
+      signal,
+    },
     options,
   );
 };
 
-export const getGetDeviceStatsQueryKey = (
-  id?: string,
-  params?: GetDeviceStatsParams,
-) => {
-  return [`/stats/device/${id}`, ...(params ? [params] : [])] as const;
-};
-
-export const getGetDeviceStatsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getDeviceStats>>,
+export const getFetchDeviceStatsMutationOptions = <
   TError = unknown,
->(
-  id: string,
-  params: GetDeviceStatsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof apiClient>;
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey =
-    queryOptions?.queryKey ?? getGetDeviceStatsQueryKey(id, params);
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeviceStats>>> = ({
-    signal,
-  }) => getDeviceStats(id, params, requestOptions, signal);
-
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof getDeviceStats>>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof fetchDeviceStats>>,
     TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+    { data: GetDeviceStatsDto },
+    TContext
+  >;
+  request?: SecondParameter<typeof apiClient>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof fetchDeviceStats>>,
+  TError,
+  { data: GetDeviceStatsDto },
+  TContext
+> => {
+  const mutationKey = ["fetchDeviceStats"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof fetchDeviceStats>>,
+    { data: GetDeviceStatsDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return fetchDeviceStats(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
 };
 
-export type GetDeviceStatsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getDeviceStats>>
+export type FetchDeviceStatsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof fetchDeviceStats>>
 >;
-export type GetDeviceStatsQueryError = unknown;
+export type FetchDeviceStatsMutationBody = GetDeviceStatsDto;
+export type FetchDeviceStatsMutationError = unknown;
 
-export function useGetDeviceStats<
-  TData = Awaited<ReturnType<typeof getDeviceStats>>,
-  TError = unknown,
->(
-  id: string,
-  params: GetDeviceStatsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDeviceStats>>,
-          TError,
-          Awaited<ReturnType<typeof getDeviceStats>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof apiClient>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetDeviceStats<
-  TData = Awaited<ReturnType<typeof getDeviceStats>>,
-  TError = unknown,
->(
-  id: string,
-  params: GetDeviceStatsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getDeviceStats>>,
-          TError,
-          Awaited<ReturnType<typeof getDeviceStats>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof apiClient>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetDeviceStats<
-  TData = Awaited<ReturnType<typeof getDeviceStats>>,
-  TError = unknown,
->(
-  id: string,
-  params: GetDeviceStatsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof apiClient>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
 /**
- * @summary Get telemetry history for a device
+ * @summary Fetch device metrics for charts
  */
-
-export function useGetDeviceStats<
-  TData = Awaited<ReturnType<typeof getDeviceStats>>,
-  TError = unknown,
->(
-  id: string,
-  params: GetDeviceStatsParams,
+export const useFetchDeviceStats = <TError = unknown, TContext = unknown>(
   options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getDeviceStats>>, TError, TData>
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof fetchDeviceStats>>,
+      TError,
+      { data: GetDeviceStatsDto },
+      TContext
     >;
     request?: SecondParameter<typeof apiClient>;
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getGetDeviceStatsQueryOptions(id, params, options);
+): UseMutationResult<
+  Awaited<ReturnType<typeof fetchDeviceStats>>,
+  TError,
+  { data: GetDeviceStatsDto },
+  TContext
+> => {
+  const mutationOptions = getFetchDeviceStatsMutationOptions(options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey;
-
-  return query;
-}
+  return useMutation(mutationOptions, queryClient);
+};

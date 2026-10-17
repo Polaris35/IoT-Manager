@@ -23,6 +23,8 @@ import type {
 
 import type {
   CreateDeviceDto,
+  DeviceResponseDto,
+  DevicesListDto,
   GetUserDevicesParams,
   UpdateDeviceDto,
 } from "../schemas";
@@ -39,7 +41,7 @@ export const createDevice = (
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
 ) => {
-  return apiClient<void>(
+  return apiClient<DeviceResponseDto | void>(
     {
       url: `/devices`,
       method: "POST",
@@ -206,14 +208,14 @@ export const useUpdateDevice = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary get all devices of authorithed user
+ * @summary get all devices of authorized user
  */
 export const getUserDevices = (
   params?: GetUserDevicesParams,
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
 ) => {
-  return apiClient<void>(
+  return apiClient<DevicesListDto>(
     { url: `/devices`, method: "GET", params, signal },
     options,
   );
@@ -317,7 +319,7 @@ export function useGetUserDevices<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary get all devices of authorithed user
+ * @summary get all devices of authorized user
  */
 
 export function useGetUserDevices<
@@ -355,7 +357,7 @@ export const getDevice = (
   options?: SecondParameter<typeof apiClient>,
   signal?: AbortSignal,
 ) => {
-  return apiClient<void>(
+  return apiClient<DeviceResponseDto>(
     { url: `/devices/${id}`, method: "GET", signal },
     options,
   );

@@ -10,13 +10,19 @@ import * as zod from 'zod';
 
 
 /**
- * @summary Get telemetry history for a device
+ * @summary Fetch device metrics for charts
  */
-export const getDeviceStatsParams = zod.object({
-  "id": zod.string()
+export const fetchDeviceStatsBodyRangeDefault = "6h";
+
+export const fetchDeviceStatsBody = zod.object({
+  "range": zod.enum(['15m', '1h', '6h', '24h', '7d']).describe('Time window duration anchored to latest data').default(fetchDeviceStatsBodyRangeDefault).describe('Time window duration anchored to latest data'),
+  "deviceId": zod.uuid().describe('Unique identifier of the target device'),
+  "metricName": zod.string().describe('Telemetry metric tag key stored in InfluxDB')
 })
 
-export const getDeviceStatsQueryParams = zod.object({
-  "range": zod.string()
+export const fetchDeviceStatsResponseItem = zod.object({
+  "timestamp": zod.string(),
+  "value": zod.union([zod.string(),zod.number()])
 })
+export const fetchDeviceStatsResponse = zod.array(fetchDeviceStatsResponseItem)
 

@@ -14,11 +14,15 @@ import { CurrentUser } from '@iot-manager/nest-libs';
 import { DevicesService } from './devices.service';
 import {
   ApiBearerAuth,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { FindDevicesDto } from './dto/devices/find-device.dto';
+import { DevicesListDto } from './dto/devices/devices-list.dto';
+import { DeviceResponseDto } from './dto/devices/device-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('devices')
 @ApiTags('devices')
@@ -35,9 +39,16 @@ export class DevicesController {
     summary: 'Create a new device',
     operationId: 'createDevice',
   })
+  @ApiOkResponse({ type: DeviceResponseDto })
   @Post()
-  createDevice(@Body() dto: CreateDeviceDto, @CurrentUser('id') id: string) {
-    return this.devicesService.createDevice(dto, id);
+  async createDevice(
+    @Body() dto: CreateDeviceDto,
+    @CurrentUser('id') id: string,
+  ) {
+    const device = await this.devicesService.createDevice(dto, id);
+    return plainToInstance(DeviceResponseDto, device, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @ApiResponse({
@@ -48,9 +59,16 @@ export class DevicesController {
     summary: 'Update a device record',
     operationId: 'updateDevice',
   })
+  @ApiOkResponse({ type: DeviceResponseDto })
   @Put()
-  updateDevice(@Body() dto: UpdateDeviceDto, @CurrentUser('id') id: string) {
-    return this.devicesService.updateDevice(dto, id);
+  async updateDevice(
+    @Body() dto: UpdateDeviceDto,
+    @CurrentUser('id') id: string,
+  ) {
+    const device = await this.devicesService.updateDevice(dto, id);
+    return plainToInstance(DeviceResponseDto, device, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('/:id')
@@ -58,19 +76,30 @@ export class DevicesController {
     summary: 'Request device by id',
     operationId: 'getDevice',
   })
-  getDevice(@Param('id') deviceId: string, @CurrentUser('id') userId: string) {
-    return this.devicesService.getDevice(deviceId, userId);
+  @ApiOkResponse({ type: DeviceResponseDto })
+  async getDevice(
+    @Param('id') deviceId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    const device = await this.devicesService.getDevice(deviceId, userId);
+    return plainToInstance(DeviceResponseDto, device, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get()
   @ApiOperation({
-    summary: 'get all devices of authorithed user',
+    summary: 'get all devices of authorized user',
     operationId: 'getUserDevices',
   })
-  getUserDevices(
+  @ApiOkResponse({ type: DevicesListDto })
+  async getUserDevices(
     @Query() query: FindDevicesDto,
     @CurrentUser('id') userId: string,
   ) {
-    return this.devicesService.getUserDevices(query, userId);
+    const devices = await this.devicesService.getUserDevices(query, userId);
+    return plainToInstance(DevicesListDto, devices, {
+      excludeExtraneousValues: true,
+    });
   }
 }
