@@ -1,10 +1,11 @@
 import { useDeviceLiveMetricsStore } from "~/store";
-import type { DeviceCardProps } from "./DeviceCard";
+import { type DeviceCardProps, graphicTimeInterval } from "./DeviceCard";
 import { useEffect, useState } from "react";
 import { useFetchDeviceStats } from "~/api/endpoints/statistics";
 import { formatLastSeen } from "~/utils/formatLastSeen";
 import { useGetProfile } from "~/api/endpoints/profiles";
 import { DateTime } from "luxon";
+import { MetricRange } from "~/api/schemas";
 
 export interface LiveMetricsExternalProps {
   id: string;
@@ -20,6 +21,8 @@ export function withLiveMetrics<T extends DeviceCardProps>(
     const [currentActiveMetrics, setCurrentActiveMetric] = useState<
       null | string
     >(null);
+
+    const [graphicInterval, setGraphicInterval] = useState<MetricRange>();
     const getLatestAnchoredMetricsMutation = useFetchDeviceStats();
 
     const { id, name, ...restProps } = props;
@@ -35,14 +38,19 @@ export function withLiveMetrics<T extends DeviceCardProps>(
         return;
       }
       getLatestAnchoredMetricsMutation.mutate({
-        data: { deviceId: id, metricName: currentActiveMetrics },
+        data: {
+          deviceId: id,
+          metricName: currentActiveMetrics,
+          range: graphicInterval,
+        },
       });
-    }, [currentActiveMetrics]);
+    }, [currentActiveMetrics, graphicInterval]);
 
     const deviceWithMetrics = useDeviceLiveMetricsStore(
       (state) => state.devices[id],
     );
 
+    console.log(graphicInterval);
     const finalProps = {
       ...restProps,
       deviceName: name,
@@ -50,6 +58,7 @@ export function withLiveMetrics<T extends DeviceCardProps>(
         ? formatLastSeen(deviceWithMetrics?.lastSeen)
         : "",
       isActive: isDeviceOnline(deviceWithMetrics?.lastSeen),
+
       activeMetric: currentActiveMetrics,
       onMetricClick: (metricName: string) => {
         if (currentActiveMetrics === metricName) {
@@ -57,10 +66,13 @@ export function withLiveMetrics<T extends DeviceCardProps>(
         }
         setCurrentActiveMetric(metricName);
       },
+      graphicInterval,
+      setGraphicInterval,
       metrics: deviceWithMetrics?.metrics ?? {},
       graphicsData: getLatestAnchoredMetricsMutation.data
         ? getLatestAnchoredMetricsMutation.data
         : [],
+
       profileMappings: profileQuery?.data?.mappings
         ? JSON.parse(profileQuery.data.mappings)
         : undefined,

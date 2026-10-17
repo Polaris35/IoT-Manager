@@ -1,15 +1,27 @@
 import {
+  Autocomplete,
   Box,
   Card,
   CardContent,
   Divider,
   IconButton,
+  TextField,
   Typography,
 } from "@mui/material";
-import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import MenuIcon from "@mui/icons-material/Menu";
 import { MetricBadge } from "../MetricsBudge/MetricBadge";
 import type { ProfileMappingDef } from "~/types/profile";
+import { DateTime } from "luxon";
+import { useEffect, useState } from "react";
+import type { MetricRange } from "~/api/schemas";
 
 export type DeviceCardProps = {
   deviceName: string;
@@ -19,19 +31,37 @@ export type DeviceCardProps = {
   profileMappings?: Record<string, ProfileMappingDef>;
 
   activeMetric: string | null;
+  graphicInterval: string;
+  setGraphicInterval: (interval: string) => void;
+
   onMetricClick: (name: string) => void;
   metrics: Record<string, number | string>;
   graphicsData: graphicDataType[];
 };
 
 type graphicDataType = {
-  timestamp: number;
+  timestamp: string;
   value: number;
 };
+
+export const graphicTimeInterval: {
+  label: string;
+  value: MetricRange;
+}[] = [
+  { label: "last 15 minutes", value: "15m" },
+  { label: "last hour", value: "1h" },
+  { label: "last 6 hours", value: "6h" },
+  { label: "last day", value: "24h" },
+  { label: "last 7 days", value: "7d" },
+];
 
 export function DeviceCard(props: DeviceCardProps) {
   const statusColor = props.isActive ? "bg-green-500" : "bg-red-500";
   const hasMetricsData = props.graphicsData.length > 0;
+
+  const selectedOption =
+    graphicTimeInterval.find((item) => item.value === props.graphicInterval) ||
+    graphicTimeInterval[0];
   return (
     <Card sx={{ width: "100%", maxWidth: 320, borderRadius: 3, boxShadow: 3 }}>
       <CardContent
@@ -78,41 +108,83 @@ export function DeviceCard(props: DeviceCardProps) {
         />
 
         {/* graphic */}
-        <Box sx={{ width: "100%", height: 120, mt: 1 }}>
+        <Box sx={{ width: "100%", height: 150, mt: 1 }}>
           {hasMetricsData ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={props.graphicsData}
-                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-              >
-                <defs>
-                  <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-
-                <Tooltip
-                  contentStyle={{
-                    background: "#1e293b",
-                    borderRadius: "8px",
-                    border: "none",
-                    color: "#fff",
+            <>
+              <div className="flex justify-end">
+                <Autocomplete
+                  disablePortal
+                  options={graphicTimeInterval}
+                  isOptionEqualToValue={(option, value) =>
+                    option.value === value.value
+                  }
+                  value={selectedOption}
+                  sx={{ width: 200 }}
+                  renderInput={(params) => <TextField {...params} />}
+                  onChange={(event, option) => {
+                    if (option) {
+                      props.setGraphicInterval(option.value);
+                    }
                   }}
-                  itemStyle={{ color: "#fff" }}
-                  labelStyle={{ color: "#94a3b8", fontSize: "12px" }}
+                  disableClearable
+                  slotProps={{
+                    popupIndicator: {
+                      sx: {
+                        width: 28,
+                        height: 28,
+                        padding: 0,
+                        borderRadius: "50%",
+                        border: "none",
+                        "& .MuiSvgIcon-root": {
+                          fontSize: "1.2rem",
+                        },
+                      },
+                    },
+                  }}
                 />
+              </div>
+              <ResponsiveContainer width="100%" height="85%">
+                <AreaChart
+                  data={props.graphicsData}
+                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                >
+                  <defs>
+                    <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
 
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#colorPv)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+                  <XAxis
+                    dataKey="timestamp"
+                    tickFormatter={formatTimestamp}
+                    hide
+                  />
+                  <YAxis hide />
+
+                  <Tooltip
+                    contentStyle={{
+                      background: "#1e293b",
+                      borderRadius: "8px",
+                      border: "none",
+                      color: "#fff",
+                    }}
+                    itemStyle={{ color: "#fff" }}
+                    labelStyle={{ color: "#94a3b8", fontSize: "12px" }}
+                    labelFormatter={(label) => formatTimestamp(label)}
+                  />
+
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorPv)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </>
           ) : (
             <div className="flex h-full items-center justify-center">
               <p>Click the metric to view the chart</p>
@@ -142,6 +214,9 @@ export function DeviceCard(props: DeviceCardProps) {
     </Card>
   );
 }
+const formatTimestamp = (timestamp: string) => {
+  return DateTime.fromISO(timestamp).setZone("system").toFormat("HH:mm:ss");
+};
 
 interface DeviceMetricsListProps {
   metrics: Record<string, number | string>;
