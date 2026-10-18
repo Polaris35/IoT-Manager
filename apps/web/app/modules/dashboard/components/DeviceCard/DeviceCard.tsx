@@ -215,7 +215,14 @@ export function DeviceCard(props: DeviceCardProps) {
   );
 }
 const formatTimestamp = (timestamp: string) => {
-  return DateTime.fromISO(timestamp).setZone("system").toFormat("HH:mm:ss");
+  const dt = DateTime.fromISO(timestamp).setZone("system");
+  const twentyFourHoursAgo = DateTime.now().minus({ hours: 24 });
+
+  if (dt < twentyFourHoursAgo) {
+    return dt.toFormat("dd MMM HH:mm");
+  }
+
+  return dt.toFormat("HH:mm:ss");
 };
 
 interface DeviceMetricsListProps {
