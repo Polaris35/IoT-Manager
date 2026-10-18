@@ -42,7 +42,7 @@ import { GroupsController } from './groups.controller';
           transport: Transport.RMQ,
           options: {
             urls: [
-              `amqp://${config.get('RABBITMQ_USER')}:${config.get('RABBITMQ_PASSWORD')}@${config.get('RABBITMQ_HOST')}:${config.get('RABBITMQ_PORT')}/${config.get('RABBITMQ_VHOST') ? `/${config.get('RABBITMQ_VHOST')}` : ''}`,
+              `amqp://${config.get('RABBITMQ_USER')}:${config.get('RABBITMQ_PASSWORD')}@${config.get('RABBITMQ_HOST')}:${config.get('RABBITMQ_PORT')}${config.get('RABBITMQ_VHOST') ? `/${config.get('RABBITMQ_VHOST')}` : ''}`,
             ],
             queue: config.get('RABBITMQ_EVENTS_QUEUE'),
             queueOptions: {

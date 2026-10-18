@@ -86,6 +86,12 @@ services:
       - ./mosquitto/log:/mosquitto/log
     networks:
       - iot_network
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     restart: unless-stopped
 
   influxdb:
@@ -102,6 +108,12 @@ services:
       - "${INFLUXDB_HOST_PORT}:8086"
     volumes:
       - influxdb-data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - iot_network
     restart: unless-stopped
@@ -233,6 +245,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
       RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
       RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
 
@@ -243,6 +256,11 @@ services:
       INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
       INFLUXDB_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
       INFLUXDB_URL: ${INFLUXDB_URL}
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      mosquitto-broker:
+        condition: service_healthy
     networks:
       - iot_network
     restart: unless-stopped
