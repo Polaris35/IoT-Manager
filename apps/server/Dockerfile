@@ -43,22 +43,20 @@ RUN pnpm install --prod
 # 5. The final, lightweight image
 FROM base AS runner
 WORKDIR /app
-
-# Copying trimmed of the monorepo from pruner
-COPY --from=pruner /app/out/full/ .
-COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-
-RUN pnpm install --prod
-
-# Copy ONLY the compiled code from the 'builder' stage
-COPY --from=builder /app/apps/server/dist /app/apps/server/dist
-COPY --from=builder /app/packages/proto/dist /app/packages/proto/dist
-COPY --from=builder /app/packages/nest-libs/dist /app/packages/nest-libs/dist
-
 # --- Security settings ---
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
-RUN chown -R nestjs:nodejs /app
+
+# Copying production dependencies and compiled code with proper permissions
+COPY --from=prod_installer --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=prod_installer --chown=nestjs:nodejs /app/apps/server/node_modules ./apps/server/node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/apps/server/dist ./apps/server/dist
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
+COPY --from=pruner --chown=nestjs:nodejs /app/out/full/apps/server/package.json ./apps/server/package.json
+COPY --from=pruner --chown=nestjs:nodejs /app/out/full/package.json ./package.json
+
+
+RUN chown -R nestjs:nodejs /app && chown -R nestjs:nodejs /pnpm
 USER nestjs
 
 # --- Starting application ---
