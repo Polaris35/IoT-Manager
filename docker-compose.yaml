@@ -43,37 +43,36 @@ services:
   #     retries: 5
   #   restart: unless-stopped
 
-  redis-cache:
-    image: redis:7-alpine
-    container_name: ${COMPOSE_PROJECT_NAME}-redis-cache
-    ports:
-      - "${REDIS_HOST_PORT}:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - iot_network
-    restart: unless-stopped
+  # redis-cache:
+  #   image: redis:7-alpine
+  #   container_name: ${COMPOSE_PROJECT_NAME}-redis-cache
+  #   ports:
+  #     - "${REDIS_HOST_PORT}:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - iot_network
+  #   restart: unless-stopped
 
-  rabbitmq-broker:
-    image: rabbitmq:3.11-management-alpine
-    container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq-broker
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-    ports:
-      - "${RABBITMQ_HOST_PORT}:5672"
-      - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
-    # Переносим сюда
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - iot_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # rabbitmq-broker:
+  #   image: rabbitmq:3.11-management-alpine
+  #   container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq-broker
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+  #   ports:
+  #     - "${RABBITMQ_HOST_PORT}:5672"
+  #     - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+  #   networks:
+  #     - iot_network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   mosquitto-broker:
     image: eclipse-mosquitto:2
@@ -119,21 +118,27 @@ services:
     ports:
       - "${AUTH_SERVICE_HOST_PORT}:${AUTH_SERVICE_CONTAINER_PORT}"
     environment:
-      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}
-      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}
-      DB_USER: ${POSTGRES_AUTH_USER}
-      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
-      DB_NAME: ${POSTGRES_AUTH_DB}
       PORT: ${AUTH_SERVICE_CONTAINER_PORT}
+
+      DB_HOST: ${AUTH_SERVICE_DB_HOST}
+      DB_PORT: ${AUTH_SERVICE_DB_PORT}
+      DB_USER: ${AUTH_SERVICE_DB_USER}
+      DB_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
+      DB_NAME: ${AUTH_SERVICE_DB_NAME}
+      POSTGRES_SSL: ${AUTH_SERVICE_DB_SSL}
+
       JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
       REDIS_URL: ${REDIS_URL}
+
+      GOOGLE_CLIENT_ID: ${AUTH_SERVICE_GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${AUTH_SERVICE_GOOGLE_CLIENT_SECRET}
     networks:
       - iot_network
-    depends_on:
-      # postgres-auth:
-      #   condition: service_healthy
-      redis-cache:
-        condition: service_started
+    # depends_on:
+    # postgres-auth:
+    #   condition: service_healthy
+    # redis-cache:
+    #   condition: service_started
     restart: unless-stopped
 
   api-gateway:

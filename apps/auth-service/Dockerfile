@@ -45,20 +45,20 @@ FROM base AS runner
 WORKDIR /app
 
 # Copying trimmed of the monorepo from pruner
-COPY --from=pruner /app/out/full/ .
-COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nestjs
 
-RUN pnpm install --prod
+COPY --from=prod_installer --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=prod_installer --chown=nestjs:nodejs /app/apps/auth-service/node_modules ./apps/auth-service/node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/dist ./apps/auth-service/dist
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
+COPY --from=pruner --chown=nestjs:nodejs /app/out/full/apps/auth-service/package.json ./apps/auth-service/package.json
+COPY --from=pruner --chown=nestjs:nodejs /app/out/full/package.json ./package.json
 
-# Copy ONLY the compiled code from the 'builder' stage
-COPY --from=builder /app/apps/auth-service/dist /app/apps/auth-service/dist
-COPY --from=builder /app/packages/proto/dist /app/packages/proto/dist
+RUN chown -R nestjs:nodejs /app && chown -R nestjs:nodejs /pnpm
 
-# --- security settings ---
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
-RUN chown -R nestjs:nodejs /app
 USER nestjs
 
+WORKDIR /app/apps/auth-service
 # --- Starting application ---
 CMD ["pnpm", "--filter=auth-service", "start:prod"]
