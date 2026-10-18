@@ -14,7 +14,7 @@ async function bootstrap() {
       transport: Transport.RMQ,
       options: {
         urls: [
-          `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}/${process.env.RABBITMQ_VHOST || ''}`,
+          `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}:${process.env.RABBITMQ_PORT}/${process.env.RABBITMQ_VHOST ? `/${process.env.RABBITMQ_VHOST}` : ''}`,
         ],
         queue: process.env.RABBITMQ_EVENTS_QUEUE,
         queueOptions: {
@@ -32,7 +32,6 @@ async function bootstrap() {
       exceptionFactory: (errors: ValidationError[]) => {
         console.error('❌ VALIDATION FAILED:', JSON.stringify(errors, null, 2));
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return new RpcException(errors);
       },
     }),

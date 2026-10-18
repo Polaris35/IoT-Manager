@@ -22,7 +22,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           transport: Transport.RMQ,
           options: {
             urls: [
-              `amqp://${config.get('RABBITMQ_USER')}:${config.get('RABBITMQ_PASSWORD')}@${config.get('RABBITMQ_HOST')}:${config.get('RABBITMQ_PORT')}/${config.get('RABBITMQ_VHOST') || ''}`,
+              `amqp://${config.get('RABBITMQ_USER')}:${config.get('RABBITMQ_PASSWORD')}@${config.get('RABBITMQ_HOST')}:${config.get('RABBITMQ_PORT')}${config.get<string>('RABBITMQ_VHOST') ? `/${config.get<string>('RABBITMQ_VHOST')}` : ''}`,
             ],
             queue: config.get('RABBITMQ_EVENTS_QUEUE'), // Например 'iot_events_queue'
             queueOptions: {
