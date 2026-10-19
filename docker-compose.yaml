@@ -265,6 +265,20 @@ services:
       - iot_network
     restart: unless-stopped
 
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-web
+    ports:
+      - "${WEB_HOST_PORT:-5173}:3000"
+    environment:
+      VITE_API_URL: ${WEB_API_URL}
+      VITE_GOOGLE_CLIENT_ID: ${AUTH_SERVICE_GOOGLE_CLIENT_ID}
+    networks:
+      - iot_network
+    restart: unless-stopped
+
 networks:
   iot_network:
     driver: bridge
