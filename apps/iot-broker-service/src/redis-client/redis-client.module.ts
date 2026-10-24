@@ -17,14 +17,23 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
           throw new Error('REDIS_URL is not defined');
         }
 
+        const isTlsRequired =
+          url.startsWith('rediss://') || url.includes('upstash.io');
+
         const client = new Redis(url, {
-          tls: {
-            rejectUnauthorized: false,
-          },
+          ...(isTlsRequired && {
+            tls: {
+              rejectUnauthorized: false,
+            },
+          }),
         });
 
+        const connectionName = isTlsRequired
+          ? 'Remote TLS Redis'
+          : 'Local Redis';
+
         client.on('connect', () =>
-          console.log('✅ Connected to Upstash Redis'),
+          console.log(`✅ Connected to ${connectionName}`),
         );
         client.on('error', (err) => console.error('❌ Redis Error:', err));
 
