@@ -57,6 +57,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - iot_network
 
   # rabbitmq-broker:
   #   image: rabbitmq:3.11-management-alpine
@@ -150,11 +152,11 @@ services:
       GOOGLE_CLIENT_SECRET: ${AUTH_SERVICE_GOOGLE_CLIENT_SECRET}
     networks:
       - iot_network
-    # depends_on:
-    # postgres-auth:
-    #   condition: service_healthy
-    # redis-cache:
-    #   condition: service_started
+    depends_on:
+      # postgres-auth:
+      #   condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   api-gateway:
@@ -204,7 +206,10 @@ services:
       MQTT_BROKER_URL: ${MQTT_BROKER_URL}
       DEVICE_SERVICE_GRPC_URL: ${DEVICE_SERVICE_GRPC_URL}
 
-      REDIS_URL: ${BROKER_SERVICE_REDIS_URL}
+      REDIS_URL: ${REDIS_URL}/1
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - iot_network
     restart: unless-stopped
