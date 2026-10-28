@@ -3,49 +3,34 @@ services:
   #  INFRASTRUCTURE SERVICES
   # ===============================================
 
-  # postgres-auth:
-  #   image: postgres:15-alpine
-  #   container_name: ${COMPOSE_PROJECT_NAME}-postgres-auth
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_AUTH_USER}
-  #     POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_AUTH_DB}
-  #   ports:
-  #     - "${POSTGRES_AUTH_HOST_PORT}:5432"
-  #   volumes:
-  #     - postgres-auth-data:/var/lib/postgresql/data
-  #   networks:
-  #     - iot_network
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AUTH_USER} -d ${POSTGRES_AUTH_DB}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   restart: unless-stopped
+  postgres:
+    image: postgres:15-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
 
-  # postgres-device:
-  #   image: postgres:15-alpine
-  #   container_name: ${COMPOSE_PROJECT_NAME}-postgres-device
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_DEVICE_USER}
-  #     POSTGRES_PASSWORD: ${POSTGRES_DEVICE_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_DEVICE_DB}
-  #   ports:
-  #     - "${POSTGRES_DEVICE_HOST_PORT}:5432"
-  #   volumes:
-  #     - postgres-device-data:/var/lib/postgresql/data
-  #   networks:
-  #     - iot_network
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DEVICE_USER} -d ${POSTGRES_DEVICE_DB}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   restart: unless-stopped
+      POSTGRES_AUTH_DB: ${POSTGRES_AUTH_DB}
+      POSTGRES_DEVICE_DB: ${POSTGRES_DEVICE_DB}
+    ports:
+      - "${POSTGRES_HOST_PORT}:${POSTGRES_DOCKER_PORT}"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./seeds:/opt/seed
+    networks:
+      - iot_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_AUTH_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   redis:
     image: redis:alpine
-    container_name: local-redis
+    container_name: ${COMPOSE_PROJECT_NAME}-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -153,8 +138,8 @@ services:
     networks:
       - iot_network
     depends_on:
-      # postgres-auth:
-      #   condition: service_healthy
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -238,6 +223,9 @@ services:
       RABBITMQ_VHOST: ${RABBITMQ_VHOST}
       RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
       RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - iot_network
     restart: unless-stopped
