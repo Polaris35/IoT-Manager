@@ -8,93 +8,59 @@ console.log("🤖 IoT Simulator starting...");
 
 const DEVICES = [
   // ==========================================================
-  // 1. ZIGBEE: Xiaomi Sensor
-  // Profile id: prof_zigbee_xiaomi_gzcgq01lm
+  // 1. ZIGBEE: SONOFF TRVZB (thermostat)
   // ==========================================================
   {
-    id: "xiaomi",
-    name: "Xiaomi Sensor (Kitchen)",
-    topic: "zigbee2mqtt/sensor_kitchen",
-    commandTopic: "zigbee2mqtt/sensor_kitchen/set",
-    interval: 5000,
-
-    state: {
-      is_on: "OFF",
-      brightness: 100,
-    },
-
-    generate: function () {
-      return {
-        state: this.state.is_on,
-        brightness_percent: this.state.brightness,
-
-        temperature: Number((22 + Math.random()).toFixed(2)),
-        humidity: Number((45 + Math.random() * 5).toFixed(2)),
-        battery: 90,
-        voltage: 3000 + Math.floor(Math.random() * 100),
-        linkquality: 100 + Math.floor(Math.random() * 20),
-      };
-    },
-  },
-
-  // ==========================================================
-  // 2. TASMOTA: Sonoff POW R2
-  // Profile id: prof_wifi_sonoff_pow_r2
-  // ==========================================================
-  {
-    id: "sonoff",
-    name: "Sonoff POW (Living Room)",
-    topic: "tele/sonoff_living_room/SENSOR",
-    commandTopicRoot: "cmnd/sonoff_living_room/",
+    id: "sonoff_trv",
+    name: "SONOFF TRVZB (Bedroom)",
+    topic: "zigbee2mqtt/trv_bedroom",
+    commandTopic: "zigbee2mqtt/trv_bedroom/set",
     interval: 8000,
 
     state: {
-      power: "ON",
+      calibration: 0.0, // local_temperature_calibration
     },
 
     generate: function () {
-      const voltage = 220 + (Math.random() * 10 - 5);
-      const current = 2.5 + Math.random() * 0.5;
-      const power = voltage * current;
+      const baseTemp = 22.5 + (Math.random() * 0.5 - 0.25);
 
       return {
-        Time: new Date().toISOString(),
-
-        POWER: this.state.power,
-
-        ENERGY: {
-          TotalStartTime: "2024-01-01T00:00:00",
-          Total: 100.5,
-          Power: Number(power.toFixed(1)),
-          ApparentPower: Number(power.toFixed(1)),
-          ReactivePower: 0,
-          Factor: 1.0,
-          Voltage: Number(voltage.toFixed(1)), // V
-          Current: Number(current.toFixed(3)), // A
-        },
+        battery: Math.floor(80 + Math.random() * 10), // 80-90%
+        local_temperature: Number(baseTemp.toFixed(1)),
+        local_temperature_calibration: this.state.calibration,
+        linkquality: 120,
       };
     },
   },
 
   // ==========================================================
-  // 3. DIY: Custom ESP32
-  // Profile id: profile_diy_weather
+  // 2. ZIGBEE: Xiaomi ZNCZ04LM (smart plug)
   // ==========================================================
   {
-    id: "esp32",
-    name: "Custom ESP32 (Garage)",
-    topic: "devices/esp32_garage/state",
-    interval: 3000,
+    id: "xiaomi_plug",
+    name: "Xiaomi Plug (TV)",
+    topic: "zigbee2mqtt/plug_tv",
+    commandTopic: "zigbee2mqtt/plug_tv/set",
+    interval: 5000,
 
     state: {
-      status: "ok",
+      is_on: "ON",
     },
 
     generate: function () {
+      const isPowerOn = this.state.is_on === "ON";
+      const voltage = 225 + (Math.random() * 4 - 2); // 223 - 227 V
+      const current = isPowerOn ? 0.6 + Math.random() * 0.1 : 0;
+      const power = isPowerOn ? voltage * current : 0;
+
       return {
-        status: this.state.status,
-        temp: Number((15 + Math.random() * 2).toFixed(1)),
-        door_open: false,
+        state: this.state.is_on,
+        power: Number(power.toFixed(1)),
+        energy: 15.42,
+        current: Number(current.toFixed(2)),
+        voltage: Number(voltage.toFixed(1)),
+        device_temperature: 35.5 + Math.random(),
+        linkquality: 90,
       };
     },
   },
@@ -137,45 +103,30 @@ client.on("message", (topic, message) => {
   const msgStr = message.toString();
   console.log(`\n📨 [INCOMING CMD] Topic: ${topic} | Payload: ${msgStr}`);
 
-  // 1. ZIGBEE (JSON Payload)
-  if (topic.includes("zigbee2mqtt")) {
-    const device = DEVICES.find((d) => d.id === "xiaomi");
-    if (device) {
-      try {
-        const cmd = JSON.parse(msgStr);
+  try {
+    const cmd = JSON.parse(msgStr);
 
-        // Update simulator data
-        if (cmd.state) {
-          device.state.is_on = cmd.state;
-          console.log(`   👉 Xiaomi State changed to: ${device.state.is_on}`);
-        }
-        if (cmd.brightness_percent !== undefined) {
-          device.state.brightness = cmd.brightness_percent;
-          console.log(
-            `   👉 Xiaomi Brightness changed to: ${device.state.brightness}`,
-          );
-        }
-
-        // Feedback loop
+    // ZIGBEE: SONOFF TRVZB (thermostat)
+    if (topic === "zigbee2mqtt/trv_bedroom/set") {
+      const device = DEVICES.find((d) => d.id === "sonoff_trv");
+      if (device && cmd.local_temperature_calibration !== undefined) {
+        device.state.calibration = Number(cmd.local_temperature_calibration);
+        console.log(
+          `   👉 TRV Calibration changed to: ${device.state.calibration}°C`,
+        );
         publishTelemetry(device);
-      } catch (e) {
-        console.error("Invalid Zigbee JSON");
+      }
+      // ZIGBEE: Xiaomi ZNCZ04LM (smart plug)
+    } else if (topic === "zigbee2mqtt/plug_tv/set") {
+      const device = DEVICES.find((d) => d.id === "xiaomi_plug");
+      if (device && cmd.state !== undefined) {
+        device.state.is_on = cmd.state;
+        console.log(`   👉 TV Plug State changed to: ${device.state.is_on}`);
+        publishTelemetry(device);
       }
     }
-  }
-
-  // 2. TASMOTA (Suffix Topic)
-  // Example: cmnd/sonoff_living_room/POWER
-  else if (topic.includes("cmnd/sonoff")) {
-    const device = DEVICES.find((d) => d.id === "sonoff");
-
-    if (topic.endsWith("POWER")) {
-      device.state.power = msgStr; // "ON" или "OFF"
-      console.log(`   👉 Sonoff Power changed to: ${device.state.power}`);
-
-      // Feedback loop
-      publishTelemetry(device);
-    }
+  } catch (e) {
+    console.error("Failed to parse incoming command in simulator");
   }
 });
 

@@ -13,7 +13,6 @@
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
-    "mqtt": "^5.14.1",
-    "typescript": "^5.9.3"
+    "mqtt": "^5.14.1"
   }
 }

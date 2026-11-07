@@ -5,39 +5,41 @@ package device;
 // Import standard protobuf types for JSON handling, empty responses,
 // wrappers for optional fields, and timestamps.
 import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 // Service implemented in DeviceManagementService
 // and called from the API Gateway.
 service DeviceManagementService {
   // Creates a new device
-  rpc CreateDevice (CreateDeviceRequest) returns (Device);
+  rpc CreateDevice(CreateDeviceRequest) returns (Device);
   // Retrieves a device by ID
-  rpc GetDevice (GetDeviceRequest) returns (Device);
+  rpc GetDevice(GetDeviceRequest) returns (Device);
+  // Retrieves all devices in DB
+  rpc GetAllDevices(google.protobuf.Empty) returns (GetAllDevicesResponse);
   // Retrieves a list of devices with filtering and pagination
-  rpc FindDevices (FindDevicesRequest) returns (FindDevicesResponse);
+  rpc FindDevices(FindDevicesRequest) returns (FindDevicesResponse);
   // Updates device data (partial update)
-  rpc UpdateDevice (UpdateDeviceRequest) returns (Device);
+  rpc UpdateDevice(UpdateDeviceRequest) returns (Device);
   // Deletes a device
-  rpc DeleteDevice (DeleteDeviceRequest) returns (google.protobuf.Empty);
+  rpc DeleteDevice(DeleteDeviceRequest) returns (google.protobuf.Empty);
 
   // --- GROUP METHODS ---
 
   // Creates a new device group
-  rpc CreateGroup (CreateGroupRequest) returns (Group);
+  rpc CreateGroup(CreateGroupRequest) returns (Group);
 
   // Retrieves a single group by ID
-  rpc GetGroup (GetGroupRequest) returns (Group);
+  rpc GetGroup(GetGroupRequest) returns (Group);
 
   // Retrieves a list of groups with pagination
-  rpc FindGroups (FindGroupsRequest) returns (FindGroupsResponse);
+  rpc FindGroups(FindGroupsRequest) returns (FindGroupsResponse);
 
   // Updates group details
-  rpc UpdateGroup (UpdateGroupRequest) returns (Group);
+  rpc UpdateGroup(UpdateGroupRequest) returns (Group);
 
   // Deletes a group
-  rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupResponse);
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse);
 }
 
 // --- Core Messages ---
@@ -53,7 +55,6 @@ message Device {
   optional string groupId = 7;
   string connectionConfig = 8;
 }
-
 
 // --- Request and Response Messages ---
 
@@ -98,17 +99,21 @@ message UpdateDeviceRequest {
   // This allows distinguishing between "undefined" (field is not being updated)
   // and "empty string/value" (field should be cleared).
   optional google.protobuf.StringValue name = 3;
-  
+
   // For group_id, we need the ability to set it to null.
   // StringValue wrapper is perfect here. If an empty string (or specific value)
   // is passed within the wrapper, we can interpret it as "remove from group".
   optional google.protobuf.StringValue groupId = 4;
 }
- 
+
 // Request to delete a device
 message DeleteDeviceRequest {
   string id = 1;
   string userId = 2; // Used for access control checks
+}
+
+message GetAllDevicesResponse {
+  repeated Device devices = 1;
 }
 
 // ==========================================
@@ -150,9 +155,9 @@ message FindGroupsResponse {
 message UpdateGroupRequest {
   string id = 1;
   string userId = 2;
-  
+
   // Using optional to distinguish between "undefined" (do not update) and empty string
-  optional string name = 3; 
+  optional string name = 3;
   optional string description = 4;
 }
 
@@ -169,17 +174,17 @@ message DeleteGroupResponse {
 
 service ProfilesService {
   // Search profiles (e.g., for UI dropdown/autocomplete)
-  rpc Search (SearchProfilesRequest) returns (SearchProfilesResponse);
+  rpc Search(SearchProfilesRequest) returns (SearchProfilesResponse);
   // Retrieve a single profile (for validation or detailed view)
-  rpc FindOne (FindOneProfileRequest) returns (ProfileResponse);
+  rpc FindOne(FindOneProfileRequest) returns (ProfileResponse);
 }
 
 // --- Profile Messages ---
 
 message SearchProfilesRequest {
-  string query = 1;     // Search string (e.g., "sonoff")
-  string protocol = 2;  // Filter (e.g., "WIFI", "ZIGBEE") - empty string if not selected
-  int32 limit = 3;      // Number of records to return (default: 20)
+  string query = 1; // Search string (e.g., "sonoff")
+  string protocol = 2; // Filter (e.g., "WIFI", "ZIGBEE") - empty string if not selected
+  int32 limit = 3; // Number of records to return (default: 20)
 }
 
 message SearchProfilesResponse {
@@ -196,7 +201,7 @@ message ProfileResponse {
   string vendor = 3;
   string protocol = 4;
   string description = 5;
-  
+
   // Mappings are transferred as a Structure (JSON).
   // For Search operations, this field can be left empty to save bandwidth.
   string mappings = 6;

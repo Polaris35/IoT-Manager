@@ -68,6 +68,14 @@ export class DevicesController {
   }
 
   @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
+  async getAllDevices(): Promise<device.GetAllDevicesResponse> {
+    const devices = await this.devicesService.getAll();
+    return {
+      devices: devices.map((item) => this.mapEntityToProto(item)),
+    };
+  }
+
+  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
   async deleteDevice(request: device.DeleteDeviceRequest): Promise<void> {
     await this.devicesService.delete(request.id, request.userId);
   }
