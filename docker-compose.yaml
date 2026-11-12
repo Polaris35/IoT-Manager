@@ -45,25 +45,25 @@ services:
     networks:
       - iot_network
 
-  # rabbitmq-broker:
-  #   image: rabbitmq:3.11-management-alpine
-  #   container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq-broker
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-  #   ports:
-  #     - "${RABBITMQ_HOST_PORT}:5672"
-  #     - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
-  #   volumes:
-  #     - rabbitmq_data:/var/lib/rabbitmq
-  #   networks:
-  #     - iot_network
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  rabbitmq-broker:
+    image: rabbitmq:3.11-management-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq-broker
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_HOST_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - iot_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mosquitto-broker:
     image: eclipse-mosquitto:2
