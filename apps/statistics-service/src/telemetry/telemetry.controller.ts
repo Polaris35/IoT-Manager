@@ -21,14 +21,9 @@ export class TelemetryController {
 
     try {
       this.telemetryService.addTelemetry(data);
-
-      // Acknowledge message processing to RabbitMQ
       channel.ack(originalMsg);
     } catch (error: any) {
       this.logger.error(`Error saving telemetry: `, error);
-
-      // If DB write fails, we reject the message so it doesn't get lost
-      // (or use Dead Letter Queue in production)
       channel.nack(originalMsg);
     }
   }
@@ -39,7 +34,7 @@ export class TelemetryController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Ctx() context: RmqContext,
   ) {
-    const range = data.range || '-1h'; // Default: last hour
+    const range = data.range || '-1h';
 
     this.logger.log(`Fetching stats for ${data.deviceId} (Range: ${range})`);
 
@@ -52,7 +47,7 @@ export class TelemetryController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Ctx() context: RmqContext,
   ) {
-    const range = data.range || '6h'; // Default: 6 hour
+    const range = data.range || '6h';
     return this.telemetryService.getLatestAnchoredMetrics(
       data.deviceId,
       data.metricName,

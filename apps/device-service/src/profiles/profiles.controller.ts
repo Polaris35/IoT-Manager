@@ -16,7 +16,6 @@ export class ProfilesController implements device.ProfilesServiceController {
       data.limit,
     );
 
-    // Map the results to the gRPC response format
     const mappedProfiles = results.map((p) => ({
       id: p.id,
       name: p.name,

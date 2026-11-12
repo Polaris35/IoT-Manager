@@ -13,7 +13,6 @@ export default function RegisterPage() {
       variant="outlined"
       className="flex flex-col self-center w-full p-6 gap-4 mx-auto sm:w-[450px] shadow-[0_5px_15px_0_hsla(220,30%,5%,0.05),0_15px_35px_-5px_hsla(220,25%,10%,0.05)] data-[theme=dark]:shadow-[0_5px_15px_0_hsla(220,30%,5%,0.5),0_15px_35px_-5px_hsla(220,25%,10%,0.08)]"
     >
-      {/* <SitemarkIcon /> */}
       <Typography
         component="h1"
         variant="h4"

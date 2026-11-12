@@ -13,7 +13,7 @@ RUN npm i -g turbo
 COPY turbo.json package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps ./apps
 COPY packages ./packages
-# Run prune. It will create an 'out' folder with everything you need (including the source files).
+# Run prune. It will create an 'out' folder.
 RUN turbo prune server --docker
 
 # 3. ASSEMBLY STAGE

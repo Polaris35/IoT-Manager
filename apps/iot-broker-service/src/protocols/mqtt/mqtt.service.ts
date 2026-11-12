@@ -144,14 +144,12 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     capability: string,
     value: any,
   ): Promise<boolean> {
-    // Find base command topic for this device
     const mainTopic = this.commandTopics.get(deviceId);
     if (!mainTopic) {
       this.logger.warn(`No command topic registered for device ${deviceId}`);
       return false;
     }
 
-    // Retrieve device profile
     const profileId = this.deviceProfileMap.get(deviceId);
     if (!profileId) {
       this.logger.warn(`No profileId found for device ${deviceId}`);
@@ -165,8 +163,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
 
-    // Find command definition in the profile
-    // 'commands' is a map: { "state": { "param": "state", "type": "boolean" } }
     const commandDef = profile.commands[capability];
 
     if (!commandDef) {
@@ -176,7 +172,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
 
-    // Format/Cast value based on type definition
     const formattedValue = this.formatValue(value, commandDef);
 
     let finalTopic = mainTopic;
@@ -283,9 +278,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       const currentState: Record<string, string | number | boolean> = {};
       const timestamp = new Date();
 
-      // Iterate mappings (Rich Profile Structure)
-      // jsonPath - f.e. "energy.voltage"
-      // metricDef - f.e. { targetMetric: "voltage", type: "float", factor: 0.001 })
       for (const [jsonPath, metricDef] of Object.entries(profile.mappings)) {
         let rawValue = this.extractValueByPath<string | number | boolean>(
           payload,
@@ -302,10 +294,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           rawValue = rawValue * metricDef.factor;
         }
 
-        // --- A. Telemetry Logic (InfluxDB) ---
-        // InfluxDB accept only numbers.
         let numericValue = Number(rawValue);
-
         // Boolean special handling for diagrams (true=1, false=0)
         if (metricDef.type === 'boolean') {
           // if "ON"/"OFF" or true/false
@@ -328,11 +317,9 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           });
         }
 
-        // --- Device Shadow Logic (Redis) ---
         currentState[metricDef.targetMetric] = rawValue;
       }
 
-      // Update Redis Shadow
       if (Object.keys(currentState).length > 0) {
         currentState['lastSeen'] = timestamp.toISOString();
         await this.updateDeviceShadow(context.deviceId, currentState);

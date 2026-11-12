@@ -13,14 +13,12 @@ export default function DashboardLayout() {
   };
 
   return (
-    // Using Box allows easy access to theme.palette and sx prop
     <>
       <Box
         sx={{
           display: "flex",
           height: "100vh",
           overflow: "hidden",
-          // Automatically sets background color based on the active theme (light/dark)
           bgcolor: "background.default",
         }}
       >
@@ -49,13 +47,10 @@ export default function DashboardLayout() {
             sx={{
               flexGrow: 1,
               overflow: "auto",
-              p: { xs: 2, md: 3 }, // Responsive padding
+              p: { xs: 2, md: 3 },
             }}
           >
-            {/* Centered container for content */}
-            {/*<div className="mx-auto w-full max-w-7xl">*/}
             <Outlet />
-            {/*</div>*/}
           </Box>
         </Box>
       </Box>

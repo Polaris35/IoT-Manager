@@ -16,7 +16,6 @@ export default function ProtectedRoute() {
   const activeToken = isAuthenticated && !isLoading ? token : null;
   useSseConnection(activeToken);
 
-  // Loading state (checking token)
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-500">
@@ -25,13 +24,11 @@ export default function ProtectedRoute() {
     );
   }
 
-  // Not authenticated -> Redirect to login
   if (!isAuthenticated) {
     return (
       <Navigate to="/auth/login" state={{ from: location.pathname }} replace />
     );
   }
 
-  // Authenticated -> Render child routes
   return <Outlet />;
 }

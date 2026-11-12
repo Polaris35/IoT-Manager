@@ -23,7 +23,6 @@ COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
 RUN npm i -g turbo
 
-# Собираем React Router v7 (создаст папку /app/apps/web/build)
 RUN turbo build --filter=web
 
 # 4. Production installer
@@ -37,30 +36,27 @@ RUN pnpm install --prod --frozen-lockfile
 FROM base AS runner
 WORKDIR /app
 
-# Создаем пользователя для безопасности
+# ---- Security settings -----
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nestjs
 
-# Копируем зависимости
+# Copy dependencies
 COPY --from=prod_installer --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=prod_installer --chown=nestjs:nodejs /app/apps/web/node_modules ./apps/web/node_modules
 
-# Копируем собранный билдером результат (папка build) и package.json
+# Copy result from builder
 COPY --from=builder --chown=nestjs:nodejs /app/apps/web/build ./apps/web/build
 COPY --from=pruner --chown=nestjs:nodejs /app/out/full/apps/web/package.json ./apps/web/package.json
 COPY --from=pruner --chown=nestjs:nodejs /app/out/full/package.json ./package.json
 
-# Настраиваем права
+
 RUN chown -R nestjs:nodejs /app && chown -R nestjs:nodejs /pnpm
 
 USER nestjs
 
-# Переходим в рабочую директорию веб-приложения
 WORKDIR /app/apps/web
 
-# Указываем порт для React Router (по умолчанию 3000)
 ENV PORT=3000
 EXPOSE 3000
 
-# Запускаем штатный сервер React Router
 CMD ["pnpm", "start"]

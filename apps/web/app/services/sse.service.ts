@@ -31,7 +31,6 @@ class SseService {
     this.eventSource.addEventListener("metrics", (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-        // console.log(event.data);
 
         useDeviceLiveMetricsStore
           .getState()

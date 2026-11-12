@@ -22,20 +22,15 @@ export class TelemetryService {
 
   addTelemetry(data: TelemetryData) {
     const point = new Point('device_metrics')
-      // Tags: Indexed columns for fast filtering (WHERE clause)
       .tag('deviceId', data.deviceId)
       .tag('metric', data.metricType)
-      // Fields: Actual values (not indexed, used for calculations)
       .floatField('value', data.value)
-      // Timestamp: Ensure we use the device's time, not server processing time
       .timestamp(new Date(data.timestamp));
 
-    // Write to buffer
     this.influxService.writePoint(point);
   }
 
   async getDeviceStats(deviceId: string, range: string) {
-    // Flux query to fetch data from InfluxDB
     const query = `
         from(bucket: "${this.influxService.bucketName}")
           |> range(start: ${range})
@@ -59,7 +54,7 @@ export class TelemetryService {
       }));
     } catch (error) {
       this.logger.error(`Failed to fetch stats: `, error);
-      return []; // Return empty array on error
+      return [];
     }
   }
   async getLatestAnchoredMetrics(
@@ -70,7 +65,7 @@ export class TelemetryService {
     const bucket = this.influxService.bucketName;
     const interval = this.resolveInterval(range);
 
-    // 1. Fetch only the single latest timestamp
+    // Fetch only the single latest timestamp
     const latestQuery = `
       from(bucket: "${bucket}")
         |> range(start: -30d)
@@ -84,13 +79,13 @@ export class TelemetryService {
 
     const latestRows = await this.influxService.query(latestQuery);
     if (!latestRows || latestRows.length === 0) {
-      return []; // No telemetry ever recorded for this device/metric
+      return [];
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const latestTime = latestRows[0]._time; // e.g. "2026-10-01T22:15:00Z"
 
-    // 2. Query the aggregated window anchored to that exact timestamp
+    // Query the aggregated window anchored to that exact timestamp
     const historyQuery = `
       from(bucket: "${bucket}")
         |> range(start: -${range}, stop: time(v: "${latestTime}"))

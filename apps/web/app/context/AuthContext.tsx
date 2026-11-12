@@ -10,7 +10,6 @@ import {
   useLogout,
 } from "~/api/endpoints/auth";
 
-// Utils
 import { STORAGE_KEYS } from "~/constants";
 import { storage } from "~/utils/storage";
 
@@ -56,10 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     mutation: {
       onSuccess: (data) => {
         if (data?.accessToken) {
-          // Save tokens
           storage.set(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
           storage.set(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
-          // Update State
+
           setUser(data.account);
         }
 
@@ -87,10 +85,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     mutation: {
       onSuccess: (data) => {
         if (data?.accessToken) {
-          // Save tokens
           storage.set(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
           storage.set(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
-          // Update State
+
           setUser(data.account);
         }
 
@@ -128,11 +125,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     const refreshToken = storage.get(STORAGE_KEYS.REFRESH_TOKEN);
     if (refreshToken) {
-      // Fire and forget logout request
       logoutMutation.mutate({ data: { refreshToken } });
     }
 
-    // Always clean up local state
     storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
     storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
     setUser(null);

@@ -12,7 +12,6 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
 
-// Icons
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import DevicesIcon from "@mui/icons-material/DevicesOtherRounded";
 import GroupIcon from "@mui/icons-material/MeetingRoomRounded";
@@ -62,7 +61,6 @@ function MenuLinkItem({
         onClick={onClick}
         sx={{
           borderRadius: 2,
-          // React Router automatically adds 'active' class to NavLink
           "&.active": {
             bgcolor: "primary.50",
             color: "primary.main",
@@ -199,7 +197,7 @@ export default function SideMenu({ open, onClose, variant }: SideMenuProps) {
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
             width: DRAWER_WIDTH,
-            border: 0, // Border is handled by the stack content
+            border: 0,
           },
         }}
       >

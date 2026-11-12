@@ -19,13 +19,6 @@ import { device } from '@iot-manager/proto';
             url: configService.get<string>('DEVICE_SERVICE_GRPC_URL'),
             package: device.DEVICE_PACKAGE_NAME,
             protoPath: require.resolve('@iot-manager/proto/proto/device.proto'),
-            // loader: {
-            //   keepCase: true,
-            //   longs: String,
-            //   enums: String,
-            //   defaults: true,
-            //   oneofs: true,
-            // },
           },
         }),
         inject: [ConfigService],

@@ -40,19 +40,14 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
       `Connecting to InfluxDB at ${url} (Org: ${org}, Bucket: ${this.bucket})`,
     );
 
-    // Initialize the main client
     this.client = new InfluxDB({ url, token });
 
-    // Initialize Query API (for reading data, e.g., generating graphs)
     this.queryApi = this.client.getQueryApi(org);
 
-    // Initialize Write API (for ingestion)
-    // 'ns' stands for nanosecond precision.
-    // The client automatically handles batching (buffering points and sending them in groups).
     this.writeApi = this.client.getWriteApi(org, this.bucket, 'ns', {
-      batchSize: 1, // 👈 Писать каждую точку сразу (для тестов)
-      flushInterval: 1000, // 👈 Или хотя бы раз в секунду
-      // gzip: false, // Отключаем сжатие для локальной разработки (проще дебажить)
+      batchSize: 1,
+      flushInterval: 1000,
+      // gzip: false, // disable for easier debbuging
     });
   }
 

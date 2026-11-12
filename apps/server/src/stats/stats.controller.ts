@@ -1,13 +1,5 @@
 import { Public } from '@iot-manager/nest-libs';
-import {
-  Controller,
-  Get,
-  Param,
-  Inject,
-  Query,
-  Post,
-  Body,
-} from '@nestjs/common';
+import { Controller, Inject, Post, Body } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { GetDeviceStatsDto, StatsResponseDto } from './dto';

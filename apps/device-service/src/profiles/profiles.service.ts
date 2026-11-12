@@ -14,25 +14,22 @@ export class ProfilesService {
    * Searches for device profiles based on a query string and optional protocol filter.
    * Useful for autocomplete dropdowns in the UI.
    *
-   * @param query - The search string (e.g., "sonoff")
+   * @param query - The search string (e.g., "sonoff"), case-insensitive
    * @param protocol - Optional protocol filter (e.g., "WIFI")
    * @param limit - The maximum number of results to return (default: 20)
    * @returns A list of matching device profiles
    */
   async search(query: string, protocol?: string, limit = 20) {
     const whereCondition: any = {};
-    // 1. Filter by name (ILIKE is case-insensitive)
-    // Matches "Sonoff", "sonoff", and "SONOFF"
     if (query) {
       whereCondition.name = ILike(`%${query}%`);
     }
-    // 2. Filter by protocol (useful for UI radio buttons or selectors)
+
     if (protocol) {
       whereCondition.protocol = protocol;
     }
 
     return this.profileRepository.find({
-      // exclude mappings and command due to the lack of need
       select: {
         id: true,
         name: true,
@@ -41,8 +38,8 @@ export class ProfilesService {
         description: true,
       },
       where: whereCondition,
-      take: limit, // Limit the result set to prevent network overload
-      order: { name: 'ASC' }, // Sort alphabetically (A-Z)
+      take: limit,
+      order: { name: 'ASC' },
     });
   }
 

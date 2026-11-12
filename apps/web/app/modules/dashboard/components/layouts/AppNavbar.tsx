@@ -33,14 +33,11 @@ export default function AppNavbar({ onMenuClick }: AppNavbarProps) {
         // Reset default styles
         backgroundImage: "none",
 
-        // Background: Custom opacity (0.3) for glass effect
         backgroundColor: (theme) =>
           alpha(theme.palette.background.default, 0.3),
 
-        // Blur: Increased to 24px so content below is readable
         backdropFilter: "blur(24px)",
 
-        // Border: Subtle bottom separator
         borderBottom: "1px solid",
         borderColor: (theme) => alpha(theme.palette.divider, 0.1),
 
@@ -52,7 +49,6 @@ export default function AppNavbar({ onMenuClick }: AppNavbarProps) {
             ? `0 8px 32px -4px ${alpha(theme.palette.primary.main, 0.15)}`
             : `0 8px 32px -4px ${alpha(theme.palette.grey[400], 0.2)}`,
 
-        // Layering and transitions
         zIndex: (theme) => theme.zIndex.drawer + 1,
         transition: "all 0.3s ease-in-out",
       }}
