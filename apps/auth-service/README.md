@@ -1,98 +1,83 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Auth Service 🔐
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Handles user authentication, registration, JWT token generation/validation, and secure session caching.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 📌 Table of Contents
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Responsibility](#responsibility-)
+- [API Contracts (gRPC)](#-api-contracts-grpc)
+- [Database & Caching](#-database--caching)
+- [Standalone Local Development](#-standalone-local-development)
+- [Environment Variables](#-environment-variables)
 
-## Project setup
+---
 
-```bash
-$ pnpm install
-```
+## Responsibility 🎯
 
-## Compile and run the project
+- Handles secure user registration (password hashing via bcrypt) and credential validation.
+- Generates and verifies JWT (JSON Web Tokens) for system-wide authorization.
+- Caches and manages active user sessions/tokens in **Redis**.
+- Communicates exclusively via **gRPC** with the API Gateway and internal microservices.
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
+## 🔌 API Contracts (gRPC)
 
-# production mode
-$ pnpm run start:prod
-```
+This service exposes a gRPC server defined in [`packages/proto/auth.proto`](../../packages/proto).
 
-## Run tests
+**Primary gRPC Methods:**
 
-```bash
-# unit tests
-$ pnpm run test
+- `Login` — Authenticates credentials and returns a signed JWT.
+- `Register` — Creates a new user account and hashes the password.
+- `ValidateToken` — Verifies the authenticity and expiration of a JWT for incoming API Gateway requests.
 
-# e2e tests
-$ pnpm run test:e2e
+---
 
-# test coverage
-$ pnpm run test:cov
-```
+## 🗄 Database & Caching
 
-## Deployment
+- **Database:** PostgreSQL via TypeORM.
+- **Cache:** Redis for token validation caching and session management.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## ⚙️ Standalone Local Development
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+How to run this specific service locally for isolated debugging (without launching the whole stack):
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+1. **Install dependencies (from root workspace):**
 
-## Resources
+   ```bash
+   pnpm install
+   ```
 
-Check out a few resources that may come in handy when working with NestJS:
+1. **Start dependencies (Postgres & Redis via Docker):**
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+   ```Bash
+   docker compose up -d postgres redis
+   ```
 
-## Support
+1. **Run service in watch mode:**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+   ```Bash
+   pnpm dev --filter=auth-service
+   ```
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 🔑 Environment Variables
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Variable             | Default                | Description                               |
+| -------------------- | ---------------------- | ----------------------------------------- |
+| PORT                 | 50051                  | gRPC server port                          |
+| DB_HOST              | postgres               | Hostname for PostgreSQL database          |
+| DB_PORT              | 5432                   | Port for PostgreSQL database              |
+| DB_NAME              | iot_auth_db            | Name of the PostgreSQL database           |
+| DB_USER              | postgres_user          | Username for PostgreSQL connection        |
+| DB_PASSWORD          | strongpassword1        | Password for PostgreSQL connection        |
+| POSTGRES_SSL         | —                      | SSL mode for PostgreSQL connection        |
+| JWT_SECRET           | super_secret           | Secret key used to sign JWT tokens        |
+| GOOGLE_CLIENT_ID     | —                      | Google OAuth Client ID                    |
+| GOOGLE_CLIENT_SECRET | —                      | Google OAuth Client Secret                |
+| REDIS_URL            | redis://localhost:6379 | Connection string for Redis session cache |
