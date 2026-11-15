@@ -1,98 +1,74 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# IoT Broker Service 🤖
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The core integration engine of the platform. It bridges the gap between physical hardware (MQTT Broker) and the internal software ecosystem (RabbitMQ & Redis).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 📌 Table of Contents
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Responsibility](#-responsibility)
+- [Architecture & Data Flow](#-architecture--data-flow)
+- [Standalone Local Development](#-standalone-local-development)
+- [Environment Variables](#-environment-variables)
 
-## Project setup
+---
 
-```bash
-$ pnpm install
-```
+## 🎯 Responsibility
 
-## Compile and run the project
+- **MQTT Ingestion:** Connects to the Eclipse Mosquitto broker to receive raw telemetry and state updates from physical/emulated devices.
+- **Dynamic Normalization:** Fetches rich device profiles (via gRPC) and parses raw hardware payloads into standardized metrics using dot-notation path extraction and data type normalization (factors, booleans, floats).
+- **Device Shadow:** Maintains the real-time state of all connected devices in **Redis** (using Hash Sets / `HSET`) for instantaneous UI retrieval without querying time-series storage.
+- **Event-Driven Publishing:** Publishes normalized telemetry streams to **RabbitMQ** (`telemetry.created`) for downstream consumption by the statistics service.
+- **Command Dispatcher:** Consumes control commands from RabbitMQ (`send_command`), looks up execution rules based on device profiles, and translates them into hardware-specific MQTT commands (`json` payload mode or `topic` suffix mode).
+- **Cold Start Synchronization:** Automatically syncs and subscribes to active devices from the database upon application startup.
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
+## 📐 Architecture & Data Flow
 
-# production mode
-$ pnpm run start:prod
-```
+1. **Telemetry Flow:**
+   Device -> MQTT Broker -> `MqttService` (Parses via Profile) -> Redis (Updates Device Shadow) + RabbitMQ (Sends to Stats).
+2. **Control Flow:**
+   Frontend -> API Gateway -> RabbitMQ (`send_command`) -> `DeviceLifecycleController` -> `MqttService` (Formats payload/topic) -> MQTT Broker -> Device.
 
-## Run tests
+---
+
+## ⚙️ Standalone Local Development
+
+How to run this specific service locally for isolated debugging:
+
+**Install dependencies (from root workspace):**
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+pnpm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Start infrastructure dependencies (MQTT, Redis, RabbitMQ):**
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+docker compose up -d mosquitto-broker redis rabbitmq-broker
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**Run service in watch mode:**
 
-## Resources
+```Bash
+pnpm dev --filter=iot-broker-service
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## 🔑 Environment Variables
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+| Variable                 | Default                      | Description                                   |
+| ------------------------ | ---------------------------- | --------------------------------------------- |
+| RABBITMQ_USER            | admin                        | Username for RabbitMQ connection              |
+| RABBITMQ_PASSWORD        | secret_password              | Password for RabbitMQ connection              |
+| RABBITMQ_HOST            | rabbitmq-broker              | Hostname for RabbitMQ broker                  |
+| RABBITMQ_HOST_PORT       | 5672                         | Port for RabbitMQ connection                  |
+| RABBITMQ_VHOST           | —                            | Virtual host for RabbitMQ                     |
+| RABBITMQ_EVENTS_QUEUE    | iot_events_queue             | Queue name for IoT events                     |
+| RABBITMQ_TELEMETRY_QUEUE | iot_telemetry_queue          | Queue name for IoT telemetry data             |
+| RABBITMQ_STREAM_QUEUE    | gateway_stream_queue         | Queue name for IoT streaming data             |
+| DEVICE_SERVICE_GRPC_URL  | device-service:50055         | gRPC address of the Device Management service |
+| MQTT_BROKER_URL          | mqtt://mosquitto-broker:1883 | Connection string for Eclipse Mosquitto       |
+| REDIS_URL                | redis://redis:6379           | Connection string for Redis (Device Shadow)   |
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
