@@ -6,9 +6,10 @@ This project is a scalable IoT management platform designed for smart home enthu
 
 ## 📌 Table of Contents
 
-- [Architecture](#-architecture-&-data-flow)
-- [Monorepo Structure](#monorepo-structure)
+- [Architecture](#-architecture--data-flow)
+- [Monorepo Structure](#-monorepo-structure)
 - [Tech Stack](#-tech-stack)
+- [Preview](#-preview)
 - [Quick Start](#-quick-start)
 - [Environment Variables](#-environment-variables)
 - [Services Overview](#-services-overview)
@@ -74,7 +75,7 @@ To ensure code reusability, maintain strict typing across boundaries, and enforc
 - **Architecture:** Microservices, Event-Driven Architecture, CQRS (Command Query Responsibility Segregation), Server-Sent Events (SSE).
 - **DevOps & Tools:** Docker, Docker Compose, Turborepo (Monorepo), pnpm.
 
-## Peview
+## 📷 Preview
 
 |          Dashboard & Live Metrics           |                Add Device Wizard                |
 | :-----------------------------------------: | :---------------------------------------------: |
