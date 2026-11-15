@@ -55,17 +55,26 @@ How to run this specific service locally for isolated debugging:
    pnpm install
    ```
 
-   Start database and broker dependencies:
+2. **Set up environment variables:**
 
-   ```Bash
-   docker-compose up -d postgres rabbitmq-broker
+   ```bash
+   cp .env.example .env
+   cp ./apps/device-service/.env.example ./apps/device-service/.env
    ```
 
-   Run service in watch mode:
+3. **Start database and broker dependencies:**
+
+   ```Bash
+   docker compose up -d postgres rabbitmq-broker
+   ```
+
+4. **Run service in watch mode:**
 
    ```Bash
    pnpm dev --filter=device-service
    ```
+
+---
 
 ## 🔑 Environment Variables
 

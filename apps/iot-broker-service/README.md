@@ -37,23 +37,32 @@ The core integration engine of the platform. It bridges the gap between physical
 
 How to run this specific service locally for isolated debugging:
 
-**Install dependencies (from root workspace):**
+1. **Install dependencies (from root workspace):**
 
-```bash
-pnpm install
-```
+   ```bash
+   pnpm install
+   ```
 
-**Start infrastructure dependencies (MQTT, Redis, RabbitMQ):**
+2. **Set up environment variables:**
 
-```bash
-docker compose up -d mosquitto-broker redis rabbitmq-broker
-```
+   ```bash
+   cp .env.example .env
+   cp ./apps/iot-broker-service/.env.example ./apps/iot-broker-service/.env
+   ```
 
-**Run service in watch mode:**
+3. **Start infrastructure dependencies (MQTT, Redis, RabbitMQ):**
 
-```Bash
-pnpm dev --filter=iot-broker-service
-```
+   ```bash
+   docker compose up -d mosquitto-broker redis rabbitmq-broker
+   ```
+
+4. **Run service in watch mode:**
+
+   ```Bash
+   pnpm dev --filter=iot-broker-service
+   ```
+
+---
 
 ## 🔑 Environment Variables
 

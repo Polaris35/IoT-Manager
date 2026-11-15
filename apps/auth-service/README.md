@@ -52,13 +52,20 @@ How to run this specific service locally for isolated debugging (without launchi
    pnpm install
    ```
 
-1. **Start dependencies (Postgres & Redis via Docker):**
+2. **Set up environment variables:**
+
+   ```bash
+   cp .env.example .env
+   cp ./apps/auth-service/.env.example ./apps/auth-service/.env
+   ```
+
+3. **Start dependencies (Postgres & Redis via Docker):**
 
    ```Bash
    docker compose up -d postgres redis
    ```
 
-1. **Run service in watch mode:**
+4. **Run service in watch mode:**
 
    ```Bash
    pnpm dev --filter=auth-service
@@ -81,3 +88,7 @@ How to run this specific service locally for isolated debugging (without launchi
 | GOOGLE_CLIENT_ID     | —                      | Google OAuth Client ID                    |
 | GOOGLE_CLIENT_SECRET | —                      | Google OAuth Client Secret                |
 | REDIS_URL            | redis://localhost:6379 | Connection string for Redis session cache |
+
+```
+
+```

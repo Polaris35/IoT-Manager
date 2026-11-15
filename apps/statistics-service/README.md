@@ -42,19 +42,26 @@ How to run the statistics service locally:
    pnpm install
    ```
 
-   **Ensure InfluxDB and RabbitMQ are running:**
+2. **Set up environment variables:**
+
+   ```bash
+   cp .env.example .env
+   cp ./apps/statistics-service/.env.example ./apps/statistics-service/.env
+   ```
+
+3. **Ensure InfluxDB and RabbitMQ are running:**
 
    ```bash
    docker compose up -d influxdb rabbitmq-broker
    ```
 
-   **Run service in watch mode:**
+4. **Run service in watch mode:**
 
    ```bash
    pnpm dev --filter=statistics-service
    ```
 
-## 🔑 Environment Variables
+---
 
 ## 🔑 Environment Variables
 

@@ -13,14 +13,14 @@ A lightweight Node.js script designed to emulate physical IoT hardware (Zigbee s
 
 ## ⚙️ How to Run
 
-Make sure your MQTT Broker (Mosquitto) is running via Docker:
+1. **Make sure your MQTT Broker (Mosquitto) is running via Docker:**
 
-```bash
-docker compose up -d mosquitto-broker
-```
+   ```bash
+   docker compose up -d mosquitto-broker
+   ```
 
-**Run the simulator script:**
+2. **Run the simulator script:**
 
-```bash
-pnpm dev --filter=simulator
-```
+   ```bash
+   pnpm dev --filter=simulator
+   ```

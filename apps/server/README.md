@@ -36,25 +36,34 @@ The single entry point and Backend-For-Frontend (BFF) for the IoT platform. It h
 
 How to run the API Gateway locally:
 
-**Install dependencies (from root workspace):**
+1. **Install dependencies (from root workspace):**
 
-```bash
-pnpm install
-```
+   ```bash
+   pnpm install
+   ```
 
-**Ensure infrastructure dependencies are running (RabbitMQ, Postgres, etc.):**
+2. **Set up environment variables:**
 
-```Bash
-docker compose up -d auth-service device-dervice iot-broker-service statistics-service
-```
+   ```bash
+   cp .env.example .env
+   cp ./apps/server/.env.example ./apps/server/.env
+   ```
 
-**Run service in watch mode:**
+3. **Ensure infrastructure dependencies are running (RabbitMQ, Postgres, etc.):**
 
-```Bash
-pnpm dev --filter=server
-```
+   ```Bash
+   docker compose up -d auth-service device-dervice iot-broker-service statistics-service
+   ```
+
+4. **Run service in watch mode:**
+
+   ```Bash
+   pnpm dev --filter=server
+   ```
 
 **(Swagger UI will be available at http://localhost:3000/api/swagger)**
+
+---
 
 ## 🔑 Environment Variables
 

@@ -46,23 +46,23 @@ The frontend separates static data from real-time streams using a dual-layer app
 
 How to run the frontend application locally:
 
-**Install dependencies (from root workspace):**
+1. **Install dependencies (from root workspace):**
 
-```bash
-pnpm install
-```
+   ```bash
+   pnpm install
+   ```
 
-**Set up environment variables:**
+2. **Set up environment variables:**
 
-```bash
-cp .env.example .env
-```
+   ```bash
+   cp .env.example .env
+   ```
 
-**Run the development server:**
+3. **Run the development server:**
 
-```bash
-pnpm dev --filter=web
-```
+   ```bash
+   pnpm dev --filter=web
+   ```
 
 **(The app will typically be available at http://localhost:5173)**
 
