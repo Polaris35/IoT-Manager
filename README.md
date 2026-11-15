@@ -121,7 +121,7 @@ Make sure you have the following installed:
    ```
 
    ```bash
-     pnpm dev --filter=simulator
+   pnpm dev --filter=simulator
    ```
 
 5. **Access the application:**
