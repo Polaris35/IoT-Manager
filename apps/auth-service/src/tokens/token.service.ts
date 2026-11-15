@@ -1,9 +1,5 @@
 import { Account, Token } from '@entities';
-import {
-  // Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,12 +12,11 @@ import {
 } from 'nestjs-grpc-exceptions';
 import { ConfigService } from '@nestjs/config';
 import { auth } from '@iot-manager/proto';
-// import { CACHE_MANAGER } from '@nestjs/cache-manager';
-// import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class TokenService {
-  logger = new Logger(TokenService.name);
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(Token)
@@ -29,7 +24,7 @@ export class TokenService {
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
     private readonly configSerice: ConfigService,
-    // @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async refreshToken(
@@ -96,25 +91,22 @@ export class TokenService {
   }
 
   private async findTokenByValue(tokenValue: string) {
-    // const key = `refresh-token:${tokenValue}`;
+    const key = `refresh-token:${tokenValue}`;
 
-    // const cachedToken = await this.cacheManager.get<Token>(key);
-    // console.log(cachedToken);
-    // if (cachedToken) {
-    //   this.logger.log(`Cache HIT for token!`);
-    //   cachedToken.exp = new Date(cachedToken.exp);
-    //   return cachedToken;
-    // }
+    const cachedToken = await this.cacheManager.get<Token>(key);
+    if (cachedToken) {
+      cachedToken.exp = new Date(cachedToken.exp);
+      return cachedToken;
+    }
 
-    // this.logger.log(`Cache MISS for token.`);
     const tokenFromDb = await this.tokenRepository.findOne({
       where: { token: tokenValue },
       relations: ['account'],
     });
 
-    // if (tokenFromDb) {
-    //   await this.setTokenInCache(tokenFromDb);
-    // }
+    if (tokenFromDb) {
+      await this.setTokenInCache(tokenFromDb);
+    }
 
     return tokenFromDb;
   }
@@ -131,35 +123,25 @@ export class TokenService {
     });
     const savedToken = await this.tokenRepository.save(tokenEntity);
 
-    // console.log('beginning of caching token');
-    // await this.setTokenInCache(savedToken);
-    // console.log('end of caching tokens');
+    await this.setTokenInCache(savedToken);
 
     return savedToken;
   }
 
   private async deleteTokenByValue(tokenValue: string): Promise<void> {
-    // const key = `refresh-token:${tokenValue}`;
+    const key = `refresh-token:${tokenValue}`;
     await Promise.all([
       this.tokenRepository.delete({ token: tokenValue }),
-      // this.cacheManager.del(key),
+      this.cacheManager.del(key),
     ]);
   }
 
-  // private async setTokenInCache(token: Token): Promise<void> {
-  // const key = `refresh-token:${token.token}`;
-  //   const ttl = (new Date(token.exp).getTime() - Date.now()) / 1000;
+  private async setTokenInCache(token: Token): Promise<void> {
+    const key = `refresh-token:${token.token}`;
+    const ttl = (new Date(token.exp).getTime() - Date.now()) / 1000;
 
-  //   if (ttl > 0) {
-  //     await this.cacheManager.set(key, token, ttl);
-  //     this.logger.debug(
-  //       'added token to cache, key: ',
-  //       key,
-  //       'ttl: ',
-  //       ttl,
-  //       'token: ',
-  //       token,
-  //     );
-  //   }
-  // }
+    if (ttl > 0) {
+      await this.cacheManager.set(key, token, ttl);
+    }
+  }
 }

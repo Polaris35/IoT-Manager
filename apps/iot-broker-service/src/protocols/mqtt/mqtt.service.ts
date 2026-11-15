@@ -84,13 +84,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       this.config.get<string>('MQTT_BROKER_URL') || 'mqtt://localhost:1883';
     this.mqttBrokerClient = mqtt.connect(url);
 
-    this.mqttBrokerClient.on('connect', () => {
-      console.log('✅ [MqttService] Connected to Mosquitto');
-      setTimeout(
-        () => this.initializeDemoData(), // <-- Initialize hardcoded data for Demo
-        10000,
-      );
-    });
     this.mqttBrokerClient.on('error', (err) =>
       console.error('❌ [MqttService] Error:', err),
     );
@@ -121,11 +114,14 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     if (stateTopic) {
       // Avoid duplicate subscriptions
       if (!this.topicMap.has(stateTopic)) {
-        console.log(
-          `[MQTT] Subscribing to ${stateTopic} (Device: ${deviceId}, Profile: ${profileId})`,
+        const sharedTopic = `$share/iot-brokers/${stateTopic}`;
+
+        this.logger.log(
+          `[MQTT] Subscribing to ${sharedTopic} (Device: ${deviceId})`,
         );
-        this.mqttBrokerClient.subscribe(stateTopic);
+        this.mqttBrokerClient.subscribe(sharedTopic);
       }
+
       // Update context (in case the profile changed)
       this.topicMap.set(stateTopic, { deviceId, profileId, userId });
     }
@@ -148,14 +144,12 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     capability: string,
     value: any,
   ): Promise<boolean> {
-    // Find base command topic for this device
     const mainTopic = this.commandTopics.get(deviceId);
     if (!mainTopic) {
       this.logger.warn(`No command topic registered for device ${deviceId}`);
       return false;
     }
 
-    // Retrieve device profile
     const profileId = this.deviceProfileMap.get(deviceId);
     if (!profileId) {
       this.logger.warn(`No profileId found for device ${deviceId}`);
@@ -169,8 +163,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
 
-    // Find command definition in the profile
-    // 'commands' is a map: { "state": { "param": "state", "type": "boolean" } }
     const commandDef = profile.commands[capability];
 
     if (!commandDef) {
@@ -180,7 +172,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
 
-    // Format/Cast value based on type definition
     const formattedValue = this.formatValue(value, commandDef);
 
     let finalTopic = mainTopic;
@@ -287,9 +278,6 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       const currentState: Record<string, string | number | boolean> = {};
       const timestamp = new Date();
 
-      // Iterate mappings (Rich Profile Structure)
-      // jsonPath - f.e. "energy.voltage"
-      // metricDef - f.e. { targetMetric: "voltage", type: "float", factor: 0.001 })
       for (const [jsonPath, metricDef] of Object.entries(profile.mappings)) {
         let rawValue = this.extractValueByPath<string | number | boolean>(
           payload,
@@ -306,10 +294,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           rawValue = rawValue * metricDef.factor;
         }
 
-        // --- A. Telemetry Logic (InfluxDB) ---
-        // InfluxDB accept only numbers.
         let numericValue = Number(rawValue);
-
         // Boolean special handling for diagrams (true=1, false=0)
         if (metricDef.type === 'boolean') {
           // if "ON"/"OFF" or true/false
@@ -332,11 +317,9 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           });
         }
 
-        // --- Device Shadow Logic (Redis) ---
         currentState[metricDef.targetMetric] = rawValue;
       }
 
-      // Update Redis Shadow
       if (Object.keys(currentState).length > 0) {
         currentState['lastSeen'] = timestamp.toISOString();
         await this.updateDeviceShadow(context.deviceId, currentState);
@@ -426,115 +409,5 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     } catch (e) {
       this.logger.error(`Failed to update Redis shadow for ${deviceId}`, e);
     }
-  }
-
-  /**
-   * Initializes hardcoded data for the diploma demo.
-   * TODO: Replace with Cold Start synchronization via gRPC (DeviceService.ListDevices).
-   */
-  private initializeDemoData() {
-    this.logger.warn(
-      '🧪 [DEMO MODE] Initializing hardcoded profiles and subscriptions...',
-    );
-
-    // =================================================================
-    // 1. ZIGBEE PROFILE (Xiaomi)
-    // =================================================================
-    this.profileCache.set('prof_zigbee_xiaomi_gzcgq01lm', {
-      id: 'prof_zigbee_xiaomi_gzcgq01lm',
-      name: 'Xiaomi Sensor (Demo)',
-      vendor: 'Xiaomi',
-      protocol: 'ZIGBEE',
-      description: 'Demo Profile',
-      commandMode: 'json',
-
-      mappings: {
-        temperature: { targetMetric: 'temperature', type: 'float' },
-        humidity: { targetMetric: 'humidity', type: 'float' },
-        battery: { targetMetric: 'battery', type: 'float' },
-        voltage: { targetMetric: 'voltage', type: 'float', factor: 0.001 },
-        state: { targetMetric: 'status', type: 'boolean' },
-        brightness_percent: { targetMetric: 'brightness', type: 'float' },
-      },
-
-      commands: {
-        state: { param: 'state', type: 'boolean' },
-        brightness: {
-          param: 'brightness_percent',
-          type: 'float',
-          min: 0,
-          max: 100,
-        },
-      },
-    });
-
-    // =================================================================
-    // 2. MQTT PROFILE (Sonoff Tasmota)
-    // =================================================================
-    this.profileCache.set('prof_wifi_sonoff_pow_r2', {
-      id: 'prof_wifi_sonoff_pow_r2',
-      name: 'Sonoff POW (Demo)',
-      vendor: 'Sonoff',
-      protocol: 'MQTT',
-      description: 'Demo Profile',
-      commandMode: 'topic',
-
-      mappings: {
-        POWER: { targetMetric: 'status', type: 'boolean' },
-        'ENERGY.Voltage': { targetMetric: 'voltage', type: 'float' },
-        'ENERGY.Power': { targetMetric: 'power', type: 'float' },
-        'ENERGY.Current': { targetMetric: 'current', type: 'float' },
-      },
-
-      commands: {
-        switch: { param: 'POWER', type: 'boolean' },
-      },
-    });
-
-    // =================================================================
-    // 3. DIY PROFILE (Simple)
-    // =================================================================
-    this.profileCache.set('profile_diy_weather', {
-      id: 'profile_diy_weather',
-      name: 'DIY ESP32',
-      vendor: 'DIY',
-      protocol: 'MQTT',
-      description: 'Demo Profile',
-      commandMode: 'json',
-
-      mappings: {
-        temp: { targetMetric: 'temperature', type: 'float' },
-        status: { targetMetric: 'status', type: 'string' },
-      },
-
-      commands: {}, // Без команд
-    });
-
-    // Xiaomi
-    this.registerDevice(
-      'a6068f89-18f5-459a-be18-324ccb23fd65',
-      '4812d2f7-4549-44a0-81eb-61c67823b620',
-      'prof_zigbee_xiaomi_gzcgq01lm',
-      'zigbee2mqtt/sensor_kitchen', // State Topic
-      'zigbee2mqtt/sensor_kitchen/set', // Command Topic
-    );
-
-    // Sonoff
-    this.registerDevice(
-      '61792dbb-7db1-4942-a85f-cbc6a512d8de',
-      '4812d2f7-4549-44a0-81eb-61c67823b620',
-      'prof_wifi_sonoff_pow_r2',
-      'tele/sonoff_living_room/SENSOR', // State Topic
-      'cmnd/sonoff_living_room/POWER', // Command Topic (Base)
-    );
-
-    // DIY
-    this.registerDevice(
-      'device-id-esp32-003',
-      '4812d2f7-4549-44a0-81eb-61c67823b620',
-      'profile_diy_weather',
-      'devices/esp32_garage/state',
-      // No commands
-    );
   }
 }

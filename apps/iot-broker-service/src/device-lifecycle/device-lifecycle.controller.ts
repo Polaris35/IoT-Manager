@@ -32,7 +32,6 @@ export class DeviceLifecycleController {
       channel.ack(originalMsg);
     } catch (error) {
       console.error('Error processing device event', error);
-      // channel.nack(originalMsg);
     }
   }
 

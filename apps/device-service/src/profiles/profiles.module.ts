@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
-import { DeviceEntity, DeviceProfileEntity } from '@entities';
+import { DeviceProfileEntity } from '@entities';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfilesController } from './profiles.controller';
 

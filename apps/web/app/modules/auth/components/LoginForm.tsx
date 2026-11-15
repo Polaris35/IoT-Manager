@@ -1,13 +1,11 @@
 import { Link as RouterLink } from "react-router";
 
-// MUI Components
 import Button from "@mui/material/Button";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 
-// Hook
 import { useLoginForm } from "../hooks/useLoginForm";
 
 export default function LoginForm() {

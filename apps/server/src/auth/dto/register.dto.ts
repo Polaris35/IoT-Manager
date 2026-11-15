@@ -11,7 +11,7 @@ export class RegisterAccountDto {
   fullName: string;
 
   @IsEmail()
-  @ApiProperty({ example: 'ikozluk160@gmail.com', format: 'email' })
+  @ApiProperty({ example: 'example@gmail.com', format: 'email' })
   @IsNotEmpty()
   email: string;
 

@@ -1,98 +1,82 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# API Gateway (BFF) 🚪
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The single entry point and Backend-For-Frontend (BFF) for the IoT platform. It handles external HTTP/REST traffic, authenticates requests, routes synchronous calls to internal microservices via gRPC, and bridges real-time events to the frontend using Server-Sent Events (SSE).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 📌 Table of Contents
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Responsibility](#-responsibility)
+- [Architecture & Routing](#-architecture--routing)
+- [Standalone Local Development](#-standalone-local-development)
+- [Environment Variables](#-environment-variables)
 
-## Project setup
+---
 
-```bash
-$ pnpm install
-```
+## 🎯 Responsibility
 
-## Compile and run the project
+- **REST API:** Exposes clean, documented endpoints for the React frontend (decorated with Swagger/OpenAPI).
+- **Request Validation:** Validates all incoming payloads using `class-validator`, `class-transformer`, and DTOs.
+- **Authentication & Authorization:** Intercepts requests, validates JWT tokens (interacting with `auth-service`), and passes user context downstream.
+- **gRPC Client Proxy:** Acts as a gRPC client, securely forwarding synchronous requests (such as device CRUD, profile searches, and user actions) to internal microservices.
+- **Real-Time Multiplexing:** Acts as a hybrid app (HTTP + RabbitMQ consumer), listening to live system events and streaming them to the browser via **Server-Sent Events (SSE)** using reactive programming (RxJS).
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
+## 📐 Architecture & Routing
 
-# production mode
-$ pnpm run start:prod
-```
+- **Sync Traffic (REST ➔ gRPC):**
+  Client requests (`POST /devices`, `GET /profiles`) hit the Gateway controllers, get validated, and are proxied to internal NestJS microservices over gRPC channels.
+- **Async Traffic (RabbitMQ ➔ SSE):**
+  The Gateway runs a built-in RabbitMQ microservice consumer that listens to internal event buses (`gateway_stream_queue`). Using RxJS `Subject` and `merge()`, it multiplexes different event types (`metrics`, `notifications`) into a single persistent SSE stream (`GET /stream/events`) for the client.
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ pnpm run test
+## ⚙️ Standalone Local Development
 
-# e2e tests
-$ pnpm run test:e2e
+How to run the API Gateway locally:
 
-# test coverage
-$ pnpm run test:cov
-```
+1. **Install dependencies (from root workspace):**
 
-## Deployment
+   ```bash
+   pnpm install
+   ```
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+2. **Set up environment variables:**
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+   ```bash
+   cp .env.example .env
+   cp ./apps/server/.env.example ./apps/server/.env
+   ```
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+3. **Ensure infrastructure dependencies are running (RabbitMQ, Postgres, etc.):**
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+   ```Bash
+   docker compose up -d auth-service device-dervice iot-broker-service statistics-service
+   ```
 
-## Resources
+4. **Run service in watch mode:**
 
-Check out a few resources that may come in handy when working with NestJS:
+   ```Bash
+   pnpm dev --filter=server
+   ```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+**(Swagger UI will be available at http://localhost:3000/api/swagger)**
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 🔑 Environment Variables
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Variable                 | Default              | Description                                   |
+| ------------------------ | -------------------- | --------------------------------------------- |
+| PORT                     | 3000                 | HTTP Server port                              |
+| RABBITMQ_USER            | admin                | Username for RabbitMQ connection              |
+| RABBITMQ_PASSWORD        | secret_password      | Password for RabbitMQ connection              |
+| RABBITMQ_HOST            | rabbitmq-broker      | Hostname for RabbitMQ broker                  |
+| RABBITMQ_HOST_PORT       | 5672                 | Port for RabbitMQ connection                  |
+| RABBITMQ_VHOST           | —                    | Virtual host for RabbitMQ                     |
+| RABBITMQ_EVENTS_QUEUE    | iot_events_queue     | Queue name for IoT events                     |
+| RABBITMQ_TELEMETRY_QUEUE | iot_telemetry_queue  | Queue name for IoT telemetry data             |
+| RABBITMQ_STREAM_QUEUE    | gateway_stream_queue | Queue name for IoT streaming data             |
+| AUTH_SERVICE_URL         | auth-service:50051   | gRPC address of the Auth Service              |
+| DEVICE_SERVICE_GRPC_URL  | device-service:50055 | gRPC address of the Device Management service |

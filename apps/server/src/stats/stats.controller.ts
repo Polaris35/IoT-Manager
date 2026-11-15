@@ -1,17 +1,10 @@
 import { Public } from '@iot-manager/nest-libs';
-import {
-  Controller,
-  Get,
-  Param,
-  Inject,
-  Query,
-  Post,
-  Body,
-} from '@nestjs/common';
+import { Controller, Inject, Post, Body } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
-import { GetDeviceStatsDto } from './dto';
-import { StatsResponseDto } from './dto/stats-response.dto';
+import { GetDeviceStatsDto, StatsResponseDto } from './dto';
+import { plainToInstance } from 'class-transformer';
+import { firstValueFrom } from 'rxjs';
 
 @ApiTags('Statistics')
 @Controller('stats')
@@ -28,6 +21,11 @@ export class StatsController {
   })
   @ApiOkResponse({ type: StatsResponseDto, isArray: true })
   async getAnchoredDeviceStats(@Body() dto: GetDeviceStatsDto) {
-    return this.statsClient.send('get_latest_anchored_metrics', dto);
+    const deviceMetrics = await firstValueFrom(
+      this.statsClient.send('get_latest_anchored_metrics', dto),
+    );
+    return plainToInstance(StatsResponseDto, deviceMetrics, {
+      excludeExtraneousValues: true,
+    });
   }
 }

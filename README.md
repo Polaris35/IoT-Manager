@@ -1,135 +1,141 @@
-# Turborepo starter
+# IoT-Manager 🚀
 
-This Turborepo starter is maintained by the Turborepo core team.
+This project is a scalable IoT management platform designed for smart home enthusiasts and administrators to seamlessly connect, monitor, and control diverse devices (Zigbee, MQTT) through a single, unified dashboard. It solves the problem of hardware fragmentation by abstracting device communication via real-time digital twins (Device Shadows) and profile-driven UI. The full-stack solution is powered by a reactive React/Zustand frontend and a robust NestJS microservices backend utilizing PostgreSQL, InfluxDB, Redis, RabbitMQ, and gRPC.
 
-## Using this example
+---
 
-Run the following command:
+## 📌 Table of Contents
 
-```sh
-npx create-turbo@latest
-```
+- [Architecture](#-architecture--data-flow)
+- [Monorepo Structure](#-monorepo-structure)
+- [Tech Stack](#-tech-stack)
+- [Preview](#-preview)
+- [Quick Start](#-quick-start)
+- [Environment Variables](#-environment-variables)
+- [Services Overview](#-services-overview)
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+### 📐 Architecture & Data Flow
 
-### Apps and Packages
+- **Frontend (React)** — Communicates with the backend via REST API (TanStack Query) for configuration and maintains a persistent Server-Sent Events (SSE) connection for real-time dashboard updates.
+- **API Gateway** — Acts as the single entry point. It handles JWT validation, routes synchronous requests to internal microservices via gRPC, and multiplexes RabbitMQ events into the SSE stream.
+- **Microservices**:
+  - `auth-service` — Handles user authentication, registration, and JWT token issuance.
+  - `device-service` — Manages relational state (PostgreSQL). Responsible for CRUD operations on Devices and Device Profiles (rich metadata containing metric mappings and capabilities).
+  - `iot-broker-service` — The core integration engine. Connects to the MQTT Broker, normalizes raw hardware payloads into standardized telemetry using dynamic profiles, maintains the Device Shadow (current state) in Redis, routes normalized events to RabbitMQ, and translates UI commands back into hardware-specific MQTT payloads.
+  - `statistics-service` — The time-series data sink. Consumes high-throughput telemetry streams from RabbitMQ and persists them into InfluxDB for historical analysis and chart rendering.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### 📦 Monorepo Workspace Packages
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+To ensure code reusability, maintain strict typing across boundaries, and enforce a Single Source of Truth, shared logic and contracts are extracted into dedicated workspace packages:
 
-### Utilities
+- `packages/proto` — Contains Protocol Buffer (`.proto`) files and auto-generated TypeScript types. Acts as the definitive contract for all internal gRPC communication between microservices.
+- `packages/nest-libs` — A shared library containing reusable NestJS modules, custom decorators, validation schemas (Class Validator), standardized DTOs, and global enums (e.g., `DeviceProtocol`). Eliminates code duplication across all NestJS microservices.
 
-This Turborepo has some additional tools already setup for you:
+---
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## 📂 Monorepo Structure
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+.
+├── apps
+│   ├── auth-service
+│   ├── device-service
+│   ├── iot-broker-service
+│   ├── server
+│   ├── simulator
+│   ├── statistics-service
+│   └── web
+├── docker-compose.yaml
+├── mosquitto
+│   ├── config
+│   ├── data
+│   └── log
+├── init-scripts
+│   ├── 01-create-databases.sh
+│   └── 02-restore-devise-profiles.sh
+├── package.json
+├── packages
+│   ├── nest-libs
+│   └── proto
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── README.md
+├── seeds
+│   └── device_profiles_seed.sql
+└── turbo.json
 ```
 
-### Develop
+## 🛠 Tech Stack
 
-To develop all apps and packages, run the following command:
+- **Frontend:** React (Vite), TypeScript, Material UI (MUI), Tailwind CSS, Zustand (State Management), TanStack Query (Data Fetching).
+- **Backend:** Node.js, NestJS, TypeScript, Zod / class-validator.
+- **Database & Messaging:** PostgreSQL, Redis, InfluxDB, RabbitMQ , Eclipse Mosquitto (MQTT Broker).
+- **Architecture:** Microservices, Event-Driven Architecture, CQRS (Command Query Responsibility Segregation), Server-Sent Events (SSE).
+- **DevOps & Tools:** Docker, Docker Compose, Turborepo (Monorepo), pnpm.
 
-```
-cd my-turborepo
+## 📷 Preview
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+|          Dashboard & Live Metrics           |                Add Device Wizard                |
+| :-----------------------------------------: | :---------------------------------------------: |
+| ![Dashboard placeholder](docs/dasboard.png) | ![Wizard placeholder](docs/addDeviceWizard.png) |
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+## 🚀 Quick Start
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Prerequisites
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Make sure you have the following installed:
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+- [Git](https://git-scm.com/)
+- [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
+- [Node.js](https://nodejs.org/) (v18+) and [pnpm](https://pnpm.io/)
 
-### Remote Caching
+### Running the System
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+1. **Clone the repository:**
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+   ```bash
+   git clone https://github.com/Polaris35/IoT-Manager.git
+   cd IoT-Manager
+   ```
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+4. **Start services:**
 
-```
-cd my-turborepo
+   ```bash
+   docker compose up -d
+   ```
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+   4.1. **If you want to simulate devices, run the following commands:**
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+   ```bash
+   pnpm install
+   ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+   ```bash
+   pnpm dev --filter=simulator
+   ```
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+5. **Access the application:**
+   - **Frontend (UI):** http://localhost:5173
+   - **API Gateway (Swagger UI):** http://localhost:3000/api/swagger
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
+## 🧩 Services Overview
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+| **Service**        | **Path**                   | **Tech**      | **Description**                                                      |
+| ------------------ | -------------------------- | ------------- | -------------------------------------------------------------------- |
+| **Web UI**         | `/apps/web`                | React / Vite  | User dashboard for monitoring metrics and device management.         |
+| **API Gateway**    | `/apps/server`             | NestJS        | Single entry point. REST API, Auth Guard, and SSE Stream aggregator. |
+| **Auth Service**   | `/apps/auth-service`       | NestJS / gRPC | JWT generation, password hashing, and user management.               |
+| **Device Service** | `/apps/device-service`     | NestJS / gRPC | Postgres CRUD operations for devices and rich hardware profiles.     |
+| **IoT Broker**     | `/apps/iot-broker-service` | NestJS / MQTT | Core engine. Subscribes to MQTT, updates Redis Shadows, parses JSON. |
+| **Statistics**     | `/apps/statistics-service` | NestJS / RMQ  | Consumes RabbitMQ telemetry queue and writes to InfluxDB.            |
+| **Simulator**      | `/apps/simulator`          | Node.js       | Script to emulate Zigbee and Tasmota devices for testing purposes.   |

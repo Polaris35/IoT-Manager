@@ -39,9 +39,6 @@ export class DeviceGroupResponseDto {
   @ApiProperty({ example: '2025-11-28T12:00:00Z' })
   createdAt: Date;
 
-  // This is crucial for rendering.
-  // It allows the frontend to show a badge like "Living Room (5 devices)"
-  // without downloading the actual list of devices.
   @ApiProperty({
     example: 5,
     description: 'Total number of devices in this group',

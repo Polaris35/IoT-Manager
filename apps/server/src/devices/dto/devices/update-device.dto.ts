@@ -23,7 +23,7 @@ export class UpdateDeviceDto {
     example: 'Спальня: ночник',
   })
   @IsString()
-  @IsNotEmpty() // Если поле передано, оно не должно быть пустым
+  @IsNotEmpty()
   @IsOptional()
   name?: string;
 

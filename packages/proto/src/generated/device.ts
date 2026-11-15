@@ -95,6 +95,10 @@ export interface DeleteDeviceRequest {
   userId: string;
 }
 
+export interface GetAllDevicesResponse {
+  devices: Device[];
+}
+
 export interface Group {
   id: string;
   userId: string;
@@ -197,6 +201,10 @@ export interface DeviceManagementServiceClient {
 
   getDevice(request: GetDeviceRequest): Observable<Device>;
 
+  /** Retrieves all devices in DB */
+
+  getAllDevices(request: Empty): Observable<GetAllDevicesResponse>;
+
   /** Retrieves a list of devices with filtering and pagination */
 
   findDevices(request: FindDevicesRequest): Observable<FindDevicesResponse>;
@@ -244,6 +252,12 @@ export interface DeviceManagementServiceController {
 
   getDevice(request: GetDeviceRequest): Promise<Device> | Observable<Device> | Device;
 
+  /** Retrieves all devices in DB */
+
+  getAllDevices(
+    request: Empty,
+  ): Promise<GetAllDevicesResponse> | Observable<GetAllDevicesResponse> | GetAllDevicesResponse;
+
   /** Retrieves a list of devices with filtering and pagination */
 
   findDevices(
@@ -288,6 +302,7 @@ export function DeviceManagementServiceControllerMethods() {
     const grpcMethods: string[] = [
       "createDevice",
       "getDevice",
+      "getAllDevices",
       "findDevices",
       "updateDevice",
       "deleteDevice",

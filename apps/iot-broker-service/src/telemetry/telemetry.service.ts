@@ -18,9 +18,6 @@ export class TelemetryService {
 
   publish(data: TelemetryData) {
     this.dbClient.emit('telemetry.created', data);
-    // console.log(
-    //   `[Telemetry] Sent ${data.metricType}:${data.value} for ${data.deviceId}`,
-    // );
     this.streamClient.emit('stream.metrics', data);
   }
 }

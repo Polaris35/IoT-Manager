@@ -32,7 +32,7 @@ import { GrpcServerExceptionFilter } from 'nestjs-grpc-exceptions';
               }
             : undefined,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // Только для разработки
+        synchronize: true,
       }),
     }),
     TokenModule,

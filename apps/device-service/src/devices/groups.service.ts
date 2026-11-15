@@ -33,7 +33,6 @@ export class GroupsService {
 
     const savedGroup = await this.groupRepository.save(group);
 
-    // Return consistent structure with devicesCount
     return {
       ...savedGroup,
       devicesCount: 0,
@@ -49,7 +48,6 @@ export class GroupsService {
    * @throws RpcException if group is not found
    */
   async findOne(id: string, userId: string): Promise<GroupWithCount> {
-    // Optimized: Use QueryBuilder to count devices without fetching them
     const group = await this.groupRepository
       .createQueryBuilder('group')
       .where('group.id = :id', { id })
@@ -61,7 +59,6 @@ export class GroupsService {
       throw new GrpcNotFoundException('Group not found');
     }
 
-    // Cast is safe here because loadRelationCountAndMap populates the property
     return group as GroupWithCount;
   }
 
@@ -108,16 +105,13 @@ export class GroupsService {
     userId: string,
     updates: Partial<GroupEntity>,
   ): Promise<GroupWithCount> {
-    // Ensure the group exists and belongs to the user
     const group = await this.findOne(id, userId);
 
-    // Merge updates into the existing entity
     this.groupRepository.merge(group, updates);
     const saved = await this.groupRepository.save(group);
 
     return {
       ...saved,
-      // Persist the count we fetched in findOne
       devicesCount: group.devicesCount,
     };
   }

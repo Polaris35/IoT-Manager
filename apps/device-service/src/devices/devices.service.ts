@@ -135,6 +135,10 @@ export class DevicesService {
     return { items, total };
   }
 
+  async getAll() {
+    return this.deviceRepository.find();
+  }
+
   /**
    * Updates an existing device.
    *

@@ -59,7 +59,6 @@ export class GroupsController {
     return { success };
   }
 
-  // --- MAPPER ---
   private mapGroupToProto(entity: GroupWithCount): device.Group {
     return {
       id: entity.id,

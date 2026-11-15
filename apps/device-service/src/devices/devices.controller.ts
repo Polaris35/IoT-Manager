@@ -55,16 +55,26 @@ export class DevicesController {
   ): Promise<device.Device> {
     const updates: Partial<DeviceEntity> = {};
     if (request.name) updates.name = request.name;
-    // Logic for groupId: if an empty string is received, reset the group (assign undefined); otherwise, set the provided group ID.
+
     if (request.groupId !== undefined) {
       updates.groupId = request.groupId === '' ? undefined : request.groupId;
     }
+
     const deviceEntity = await this.devicesService.update(
       request.id,
       request.userId,
       updates,
     );
+
     return this.mapEntityToProto(deviceEntity);
+  }
+
+  @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
+  async getAllDevices(): Promise<device.GetAllDevicesResponse> {
+    const devices = await this.devicesService.getAll();
+    return {
+      devices: devices.map((item) => this.mapEntityToProto(item)),
+    };
   }
 
   @GrpcMethod(device.DEVICE_MANAGEMENT_SERVICE_NAME)
@@ -72,7 +82,6 @@ export class DevicesController {
     await this.devicesService.delete(request.id, request.userId);
   }
 
-  // --- PRIVATE MAPPER (Entity -> Proto Device) ---
   private mapEntityToProto(entity: DeviceEntity): device.Device {
     return {
       id: entity.id,

@@ -3,56 +3,48 @@ services:
   #  INFRASTRUCTURE SERVICES
   # ===============================================
 
-  # postgres-auth:
-  #   image: postgres:15-alpine
-  #   container_name: ${COMPOSE_PROJECT_NAME}-postgres-auth
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_AUTH_USER}
-  #     POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_AUTH_DB}
-  #   ports:
-  #     - "${POSTGRES_AUTH_HOST_PORT}:5432"
-  #   volumes:
-  #     - postgres-auth-data:/var/lib/postgresql/data
-  #   networks:
-  #     - iot_network
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AUTH_USER} -d ${POSTGRES_AUTH_DB}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   restart: unless-stopped
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    container_name: ${COMPOSE_PROJECT_NAME}-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
 
-  # postgres-device:
-  #   image: postgres:15-alpine
-  #   container_name: ${COMPOSE_PROJECT_NAME}-postgres-device
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_DEVICE_USER}
-  #     POSTGRES_PASSWORD: ${POSTGRES_DEVICE_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_DEVICE_DB}
-  #   ports:
-  #     - "${POSTGRES_DEVICE_HOST_PORT}:5432"
-  #   volumes:
-  #     - postgres-device-data:/var/lib/postgresql/data
-  #   networks:
-  #     - iot_network
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DEVICE_USER} -d ${POSTGRES_DEVICE_DB}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   restart: unless-stopped
-
-  redis-cache:
-    image: redis:7-alpine
-    container_name: ${COMPOSE_PROJECT_NAME}-redis-cache
+      POSTGRES_AUTH_DB: ${POSTGRES_AUTH_DB}
+      POSTGRES_DEVICE_DB: ${POSTGRES_DEVICE_DB}
     ports:
-      - "${REDIS_HOST_PORT}:6379"
+      - "${POSTGRES_HOST_PORT}:${POSTGRES_DOCKER_PORT}"
     volumes:
-      - redis-data:/data
+      - postgres-data:/var/lib/postgresql/data
+      - ./seeds:/opt/seed
     networks:
       - iot_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_AUTH_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - iot_network
 
   rabbitmq-broker:
     image: rabbitmq:3.11-management-alpine
@@ -63,7 +55,6 @@ services:
     ports:
       - "${RABBITMQ_HOST_PORT}:5672"
       - "${RABBITMQ_MANAGEMENT_HOST_PORT}:15672"
-    # Переносим сюда
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -87,6 +78,12 @@ services:
       - ./mosquitto/log:/mosquitto/log
     networks:
       - iot_network
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     restart: unless-stopped
 
   influxdb:
@@ -103,6 +100,12 @@ services:
       - "${INFLUXDB_HOST_PORT}:8086"
     volumes:
       - influxdb-data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - iot_network
     restart: unless-stopped
@@ -119,21 +122,27 @@ services:
     ports:
       - "${AUTH_SERVICE_HOST_PORT}:${AUTH_SERVICE_CONTAINER_PORT}"
     environment:
-      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}
-      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}
-      DB_USER: ${POSTGRES_AUTH_USER}
-      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
-      DB_NAME: ${POSTGRES_AUTH_DB}
       PORT: ${AUTH_SERVICE_CONTAINER_PORT}
+
+      DB_HOST: ${AUTH_SERVICE_DB_HOST}
+      DB_PORT: ${AUTH_SERVICE_DB_PORT}
+      DB_USER: ${AUTH_SERVICE_DB_USER}
+      DB_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
+      DB_NAME: ${AUTH_SERVICE_DB_NAME}
+      POSTGRES_SSL: ${AUTH_SERVICE_DB_SSL}
+
       JWT_SECRET: ${AUTH_SERVICE_JWT_SECRET}
       REDIS_URL: ${REDIS_URL}
+
+      GOOGLE_CLIENT_ID: ${AUTH_SERVICE_GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${AUTH_SERVICE_GOOGLE_CLIENT_SECRET}
     networks:
       - iot_network
     depends_on:
-      # postgres-auth:
-      #   condition: service_healthy
-      redis-cache:
-        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   api-gateway:
@@ -146,13 +155,20 @@ services:
     environment:
       DEVICE_SERVICE_GRPC_URL: ${DEVICE_SERVICE_GRPC_URL}
       AUTH_SERVICE_GRPC_URL: ${AUTH_SERVICE_GRPC_URL}
+
       PORT: ${API_GATEWAY_CONTAINER_PORT}
+
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
       RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
       RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+      RABBITMQ_STREAM_QUEUE: ${RABBITMQ_STREAM_QUEUE}
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
     networks:
       - iot_network
     restart: unless-stopped
@@ -166,14 +182,25 @@ services:
       - "${BROKER_SERVICE_HOST_PORT}:${BROKER_SERVICE_CONTAINER_PORT}"
     environment:
       PORT: ${BROKER_SERVICE_HOST_PORT}
+
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
       RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
       RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+      RABBITMQ_STREAM_QUEUE: ${RABBITMQ_STREAM_QUEUE}
+
       MQTT_BROKER_URL: ${MQTT_BROKER_URL}
       DEVICE_SERVICE_GRPC_URL: ${DEVICE_SERVICE_GRPC_URL}
+
+      REDIS_URL: ${REDIS_URL}/1
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - iot_network
     restart: unless-stopped
@@ -187,17 +214,26 @@ services:
       - "${DEVICE_SERVICE_HOST_PORT}:${DEVICE_SERVICE_CONTAINER_PORT}"
     environment:
       PORT: ${DEVICE_SERVICE_CONTAINER_PORT}
-      DB_HOST: ${POSTGRES_AUTH_DOCKER_HOST}
-      DB_PORT: ${POSTGRES_AUTH_DOCKER_PORT}
-      DB_USER: ${POSTGRES_AUTH_USER}
-      DB_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
-      DB_NAME: ${POSTGRES_AUTH_DB}
+
+      DB_HOST: ${DEVICE_SERVICE_DB_HOST}
+      DB_PORT: ${DEVICE_SERVICE_DB_PORT}
+      DB_USER: ${DEVICE_SERVICE_DB_USER}
+      DB_PASSWORD: ${DEVICE_SERVICE_DB_PASSWORD}
+      DB_NAME: ${DEVICE_SERVICE_DB_NAME}
+      POSTGRES_SSL: ${DEVICE_SERVICE_DB_SSL}
+
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
       RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
       RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - iot_network
     restart: unless-stopped
@@ -214,6 +250,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_PORT: ${RABBITMQ_HOST_PORT}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
       RABBITMQ_EVENTS_QUEUE: ${RABBITMQ_EVENTS_QUEUE}
       RABBITMQ_TELEMETRY_QUEUE: ${RABBITMQ_TELEMETRY_QUEUE}
 
@@ -224,6 +261,27 @@ services:
       INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
       INFLUXDB_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
       INFLUXDB_URL: ${INFLUXDB_URL}
+    depends_on:
+      rabbitmq-broker:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+      mosquitto-broker:
+        condition: service_healthy
+    networks:
+      - iot_network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-web
+    ports:
+      - "${WEB_HOST_PORT:-5173}:3000"
+    environment:
+      VITE_API_URL: ${WEB_API_URL}
+      VITE_GOOGLE_CLIENT_ID: ${AUTH_SERVICE_GOOGLE_CLIENT_ID}
     networks:
       - iot_network
     restart: unless-stopped
@@ -233,12 +291,10 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-auth-data:
+  postgres-data:
     driver: local
   rabbitmq_data:
     driver: local
-  # postgres-device-data:
-  #   driver: local
   redis-data:
     driver: local
   influxdb-data:
