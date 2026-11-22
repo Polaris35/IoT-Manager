@@ -6,6 +6,7 @@ import MuiCard from "@mui/material/Card";
 import RegisterForm from "../components/RegisterForm";
 import GoogleButton from "../components/GoogleButton";
 import FacebookButton from "../components/FacebookButton";
+import { GOOGLE_CLIENT_ID } from "~/constants";
 
 export default function RegisterPage() {
   return (
@@ -28,7 +29,7 @@ export default function RegisterPage() {
       </Divider>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <GoogleButton />
+        {GOOGLE_CLIENT_ID && <GoogleButton />}
         <FacebookButton />
 
         <Typography sx={{ textAlign: "center" }}>

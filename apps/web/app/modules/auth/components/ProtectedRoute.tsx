@@ -1,4 +1,3 @@
-// app/modules/auth/components/ProtectedRoute.tsx
 import { Navigate, Outlet, useLocation } from "react-router";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAuth } from "~/context/AuthContext";

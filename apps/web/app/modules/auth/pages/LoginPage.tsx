@@ -6,6 +6,7 @@ import MuiCard from "@mui/material/Card";
 import LoginForm from "../components/LoginForm";
 import GoogleButton from "../components/GoogleButton";
 import FacebookButton from "../components/FacebookButton";
+import { GOOGLE_CLIENT_ID } from "~/constants";
 
 export default function LoginPage() {
   return (
@@ -25,7 +26,7 @@ export default function LoginPage() {
 
       <Divider>or</Divider>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <GoogleButton />
+        {GOOGLE_CLIENT_ID && <GoogleButton />}
         <FacebookButton />
 
         <Typography sx={{ textAlign: "center" }}>
