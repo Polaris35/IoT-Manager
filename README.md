@@ -128,6 +128,8 @@ Make sure you have the following installed:
    - **Frontend (UI):** http://localhost:5173
    - **API Gateway (Swagger UI):** http://localhost:3000/api/swagger
 
+P.S. If any service is not working as expected, try restarting it.
+
 ## 🧩 Services Overview
 
 | **Service**        | **Path**                   | **Tech**      | **Description**                                                      |
